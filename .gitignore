@@ -1,0 +1,37 @@
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+*.so
+
+# Jupyter
+.ipynb_checkpoints/
+
+# LaTeX
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.synctex.gz
+*.toc
+
+# Profiling outputs (keep JSON results and CSVs, ignore large traces)
+profiling/e2e_results/*.json.gz
+
+# NCU raw reports
+*.ncu-rep
+
+# Compiled Triton/CUDA artifacts
+*.ptx
+*.cubin
+*.fatbin
