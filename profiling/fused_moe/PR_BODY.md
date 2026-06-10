@@ -55,12 +55,10 @@ per-channel INT8 weight quantization error itself.
 Repro scripts: `cache-barrier/profiling/fused_moe/bench_fused_moe_mxq.py`
 (github.com/zhan4808/cache-barrier).
 
-## How to submit
+## Status
 
-```bash
-# 1. Fork flagos-ai/FlagGems on GitHub (account zhan4808), then:
-cd ~/FlagGems
-git remote add fork git@github.com:zhan4808/FlagGems.git
-git push -u fork fix-w8a16-inkernel-dequant
-# 2. Open PR on GitHub with this file as the body.
-```
+- Fork: `git@github.com:zhan4808/FlagGems.git`
+- Branch pushed: `fix-w8a16-inkernel-dequant` (commit `bfddbfddc`)
+- **Open PR:** https://github.com/flagos-ai/FlagGems/compare/master...zhan4808:fix-w8a16-inkernel-dequant?expand=1
+
+Sign in on GitHub, click **Create pull request**, paste this file as the body (minus this Status section).
