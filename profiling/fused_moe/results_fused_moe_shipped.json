@@ -1,0 +1,104 @@
+{
+  "gpu": "NVIDIA H100 80GB HBM3",
+  "torch": "2.7.0",
+  "correctness": {
+    "bf16": "rel_err=0.0005  [ok]",
+    "w8a16": "rel_err=0.0128  [ok]",
+    "w4a16": "rel_err=0.2102  [FAIL >0.05]",
+    "mxq_w8a16": "rel_err=15.4766  [FAIL >0.05]",
+    "mxq_w4a16": "rel_err=15.9008  [FAIL >0.05]"
+  },
+  "sweep": [
+    {
+      "tokens": 1,
+      "bf16_us": 354.7,
+      "bf16_tflops": 3.31,
+      "w8a16_us": 7974.7,
+      "w8a16_tflops": 0.15,
+      "w4a16_us": 7974.0,
+      "w4a16_tflops": 0.15,
+      "mxq_w8a16_us": 138.2,
+      "mxq_w8a16_tflops": 8.5,
+      "mxq_w4a16_us": 141.6,
+      "mxq_w4a16_tflops": 8.3
+    },
+    {
+      "tokens": 4,
+      "bf16_us": 858.3,
+      "bf16_tflops": 5.47,
+      "w8a16_us": 8523.6,
+      "w8a16_tflops": 0.55,
+      "w4a16_us": 8523.8,
+      "w4a16_tflops": 0.55,
+      "mxq_w8a16_us": 138.2,
+      "mxq_w8a16_tflops": 33.98,
+      "mxq_w4a16_us": 138.5,
+      "mxq_w4a16_tflops": 33.92
+    },
+    {
+      "tokens": 16,
+      "bf16_us": 973.3,
+      "bf16_tflops": 19.31,
+      "w8a16_us": 8640.3,
+      "w8a16_tflops": 2.17,
+      "w4a16_us": 8640.0,
+      "w4a16_tflops": 2.17,
+      "mxq_w8a16_us": 142.2,
+      "mxq_w8a16_tflops": 132.18,
+      "mxq_w4a16_us": 142.3,
+      "mxq_w4a16_tflops": 132.02
+    },
+    {
+      "tokens": 64,
+      "bf16_us": 987.0,
+      "bf16_tflops": 76.15,
+      "w8a16_us": 8655.9,
+      "w8a16_tflops": 8.68,
+      "w4a16_us": 8655.0,
+      "w4a16_tflops": 8.68,
+      "mxq_w8a16_us": 135.3,
+      "mxq_w8a16_tflops": 555.67,
+      "mxq_w4a16_us": 133.5,
+      "mxq_w4a16_tflops": 563.05
+    },
+    {
+      "tokens": 128,
+      "bf16_us": 1036.9,
+      "bf16_tflops": 144.97,
+      "w8a16_us": 8705.4,
+      "w8a16_tflops": 17.27,
+      "w4a16_us": 8702.4,
+      "w4a16_tflops": 17.27,
+      "mxq_w8a16_us": 141.6,
+      "mxq_w8a16_tflops": 1061.27,
+      "mxq_w4a16_us": 148.0,
+      "mxq_w4a16_tflops": 1015.59
+    },
+    {
+      "tokens": 256,
+      "bf16_us": 1096.1,
+      "bf16_tflops": 274.3,
+      "w8a16_us": 8761.0,
+      "w8a16_tflops": 34.32,
+      "w4a16_us": 8750.6,
+      "w4a16_tflops": 34.36,
+      "mxq_w8a16_us": 224.9,
+      "mxq_w8a16_tflops": 1336.98,
+      "mxq_w4a16_us": 225.5,
+      "mxq_w4a16_tflops": 1333.04
+    },
+    {
+      "tokens": 512,
+      "bf16_us": 1383.0,
+      "bf16_tflops": 434.77,
+      "w8a16_us": 9035.0,
+      "w8a16_tflops": 66.55,
+      "w4a16_us": 9038.0,
+      "w4a16_tflops": 66.53,
+      "mxq_w8a16_us": 385.2,
+      "mxq_w8a16_tflops": 1560.81,
+      "mxq_w4a16_us": 386.4,
+      "mxq_w4a16_tflops": 1556.25
+    }
+  ]
+}
