@@ -12,3 +12,15 @@
 - Updated `profiling/fused_moe/REPORT.md` Finding 4.
 
 **Loop:** armed 45m sentinel (PID tracked in session).
+
+## 2026-06-10 ~10:00 UTC — tick 1 (45m loop)
+
+**P0 FlagGems NCU (complete)**
+- Re-ran warm NCU with `-k regex:fused_moe`; fixed CSV parser (skip NCU header lines).
+- Warm `fused_moe_kernel` counters (longest invocation):
+  - T=16: bf16 668µs 84% DRAM / 9% SM; w8a16 383µs 74% DRAM / **82% SM**
+  - T=128: bf16 676µs 84% DRAM; w8a16 607µs 48% DRAM / **52% SM**
+  - T=512: bf16 5371µs 64% DRAM; w8a16 1580µs 24% DRAM / 30% SM
+- Confirms T≤128 memory-bound (bf16 DRAM-heavy), W8A16 shifts to conversion/compute;
+  at T=512 bf16 still DRAM-bound but much slower per kernel than W8A16.
+- Saved `ncu_warm_summary.json`. P0 done → next tick P1 W8A8 MLA autotune.

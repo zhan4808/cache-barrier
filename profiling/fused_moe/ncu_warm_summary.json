@@ -1,0 +1,11 @@
+{
+  "note": "warm NCU, cache-control none, -k regex:fused_moe, longest fused_moe_kernel invocation per run",
+  "rows": [
+    {"T": 16, "mode": "bf16", "us": 667.6, "dram_pct": 84.2, "sm_pct": 8.8, "l2_hit_pct": 2},
+    {"T": 16, "mode": "w8a16", "us": 382.5, "dram_pct": 73.6, "sm_pct": 81.9, "l2_hit_pct": 3},
+    {"T": 128, "mode": "bf16", "us": 676.1, "dram_pct": 84.1, "sm_pct": 22.9, "l2_hit_pct": 12},
+    {"T": 128, "mode": "w8a16", "us": 606.8, "dram_pct": 47.5, "sm_pct": 51.9, "l2_hit_pct": 23},
+    {"T": 512, "mode": "bf16", "us": 5370.8, "dram_pct": 64.2, "sm_pct": 10.2, "l2_hit_pct": 59},
+    {"T": 512, "mode": "w8a16", "us": 1579.8, "dram_pct": 23.5, "sm_pct": 30.1, "l2_hit_pct": 38}
+  ]
+}
