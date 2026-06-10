@@ -89,7 +89,34 @@ memory-bound regime, and both hit the same wall outside it.
    chain, M-tiling via `moe_align_block_size`, `tl.dot`, and a compute_type
    matching the buffer dtype before any benchmark of it is meaningful.
 
-Files: `bench_fused_moe_mxq.py` (correctness + sweep),
-`results_fused_moe_shipped.json` / `results_fused_moe_fixed.json`,
-`ncu_target_w8a16.py`, `plot_fused_moe.py` → `fused_moe_analysis.png`,
-`flaggems_w8a16_inkernel_dequant.patch`.
+## Finding 4 — extended graph-timed sweep (T=16–2048, fix branch)
+
+CUDA-graph timed (10 launches/graph, median of 40 replays). All paths use
+default embedded MoE configs (`No embedded MoE config ... Will use default`).
+
+| T | bf16 µs | W8A16 | vs bf16 | W8A8 | vs bf16 |
+|---|---|---|---|---|---|
+| 16 | 968 | 564 | **1.72×** | 558 | **1.74×** |
+| 64 | 1224 | 711 | **1.72×** | 658 | **1.86×** |
+| 128 | 1000 | 833 | 1.20× | 776 | 1.29× |
+| 256 | 1242 | 1209 | 1.03× | 1064 | 1.17× |
+| 512 | 5311 | 1990 | **2.67×** | 2279 | 2.33× |
+| 1024 | 8114 | 3000 | **2.71×** | 3448 | 2.35× |
+| 2048 | 14917 | 5033 | **2.96×** | 6164 | 2.42× |
+
+**Interpretation (revised):** with the in-kernel fix and graph timing, W8A16
+*does* win at high token counts (2.7–3.0× at T≥512) because bf16's latency
+scales super-linearly (chunking / alignment / default tile configs) while
+quantized paths scale more gently. The T≈256 dip is a **crossover band** where
+all three are within ~20% — not a regime where quantization loses outright.
+W8A8 INT8-MMA beats W8A16 at T≤128 (less conversion overhead) but W8A16 pulls
+ahead at T≥512 (better default kernel configs for the int8→fp16 dot path).
+
+Warm NCU (`run_ncu_warm_sweep.sh`) initially captured setup kernels; re-run
+with `--kernel-name-base regex:fused_moe_kernel` (see updated script).
+
+Files: `bench_fused_moe_mxq.py`, `bench_fused_moe_extended.py`,
+`results_fused_moe_extended.json`, `results_fused_moe_shipped.json` /
+`results_fused_moe_fixed.json`, `ncu_target_w8a16.py`, `run_ncu_warm_sweep.sh`,
+`parse_ncu_warm.py`, `plot_fused_moe.py`, `flaggems_w8a16_inkernel_dequant.patch`,
+`PR_BODY.md`.
