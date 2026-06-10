@@ -24,3 +24,24 @@
 - Confirms T≤128 memory-bound (bf16 DRAM-heavy), W8A16 shifts to conversion/compute;
   at T=512 bf16 still DRAM-bound but much slower per kernel than W8A16.
 - Saved `ncu_warm_summary.json`. P0 done → next tick P1 W8A8 MLA autotune.
+
+## 2026-06-10 ~10:45 UTC — ticks 2–9 (45m loop)
+
+**P1 blocked** — shell/workspace disconnect on ticks 2–9. Loop killed on user request.
+
+## 2026-06-10 — P1 complete (manual resume)
+
+**Autotune** (`autotune_w8a8.py`, bs=64–512): configs match existing `_pick_config`
+(<5% delta vs `results_w8a8.json`); no kernel change.
+
+**Warm NCU** (bs=1, `cache-control none`):
+| weights | mode | kernel | µs | DRAM | SM | L2 hit |
+|---|---|---|---|---|---|---|
+| 16 MB | fp16 | nvjet | 10.3 | 49% | 8% | **61%** |
+| 16 MB | w8a8 | _w8a8_bmm | 8.4 | 14% | 39% | **93%** |
+| 48 MB | fp16 | nvjet | 24.4 | 69% | 6% | **1%** |
+| 48 MB | w8a8 | _w8a8_bmm | 18.4 | 41% | 54% | 11% |
+
+L2 cliff confirmed: 16 MB fp16 61% L2-served; 48 MB fp16 1% L2 (HBM). W8A8 BMM
+faster per-kernel at both sizes but loses end-to-end at 16 MB due to act-quant overhead.
+Next: **P2 CARM revalidate**.

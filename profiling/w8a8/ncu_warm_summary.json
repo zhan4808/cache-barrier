@@ -1,0 +1,37 @@
+{
+  "note": "warm NCU cache-control none, longest kernel per run",
+  "rows": [
+    {
+      "file": "d1536_fp16",
+      "kernel": "nvjet_hsh_512x8_64x3_1x1_v_bz_NNT",
+      "us": 24.4,
+      "dram_pct": 69.2,
+      "sm_pct": 6.2,
+      "l2_hit_pct": 1.0
+    },
+    {
+      "file": "d1536_w8a8",
+      "kernel": "_w8a8_bmm_kernel",
+      "us": 18.4,
+      "dram_pct": 41.4,
+      "sm_pct": 54.1,
+      "l2_hit_pct": 11.0
+    },
+    {
+      "file": "d512_fp16",
+      "kernel": "nvjet_hsh_256x8_64x6_2x1_v_bz_NNT",
+      "us": 10.3,
+      "dram_pct": 48.8,
+      "sm_pct": 8.1,
+      "l2_hit_pct": 61.0
+    },
+    {
+      "file": "d512_w8a8",
+      "kernel": "_w8a8_bmm_kernel",
+      "us": 8.4,
+      "dram_pct": 14.3,
+      "sm_pct": 39.4,
+      "l2_hit_pct": 93.0
+    }
+  ]
+}

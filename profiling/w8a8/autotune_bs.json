@@ -1,0 +1,54 @@
+{
+  "64": {
+    "bs": 64,
+    "fp16_us": 6.42,
+    "w8a8_mm_us": 9.76,
+    "ratio": 0.658,
+    "cfg": {
+      "BLOCK_M": 32,
+      "BLOCK_N": 128,
+      "BLOCK_K": 64,
+      "num_warps": 4,
+      "num_stages": 3
+    }
+  },
+  "128": {
+    "bs": 128,
+    "fp16_us": 9.73,
+    "w8a8_mm_us": 15.0,
+    "ratio": 0.649,
+    "cfg": {
+      "BLOCK_M": 128,
+      "BLOCK_N": 64,
+      "BLOCK_K": 64,
+      "num_warps": 4,
+      "num_stages": 3
+    }
+  },
+  "256": {
+    "bs": 256,
+    "fp16_us": 25.82,
+    "w8a8_mm_us": 30.32,
+    "ratio": 0.852,
+    "cfg": {
+      "BLOCK_M": 128,
+      "BLOCK_N": 64,
+      "BLOCK_K": 64,
+      "num_warps": 4,
+      "num_stages": 3
+    }
+  },
+  "512": {
+    "bs": 512,
+    "fp16_us": 41.09,
+    "w8a8_mm_us": 58.28,
+    "ratio": 0.705,
+    "cfg": {
+      "BLOCK_M": 128,
+      "BLOCK_N": 64,
+      "BLOCK_K": 64,
+      "num_warps": 4,
+      "num_stages": 3
+    }
+  }
+}
