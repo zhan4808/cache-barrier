@@ -55,16 +55,23 @@ Correctness: rel err 0.013 (quantization noise, same as before).
 
 ## Finding 3 — the residual token-scaling falloff is a dequant in-core ceiling (CARM)
 
-With the fix, W8A16 behaves exactly as the cache-aware roofline from our MLA
-work predicts:
+> **Partially superseded by Finding 4.** The table above and the ≈230-token
+> crossover below came from eager (non-graph) timing; the graph-timed extended
+> sweep shows the fixed W8A16 kernel wins at **every** measured T (min 1.03× @
+> T=256, 2.7–3.0× at T≥512). The in-core ceiling diagnosis (~305 TF, NCU
+> counters) stands — but bf16's own super-linear scaling at high T means the
+> ceiling does not translate into a measured loss at this shape.
+
+With the fix, W8A16 behaves as the cache-aware roofline from our MLA
+work predicts in-kernel:
 
 - **≤128 tokens (memory-bound):** weights dominate bytes; INT8 halves them →
   up to 1.74× win. (At T=1 launch/router overheads dominate → parity.)
-- **≥256 tokens (dequant-bound):** the kernel pins at an **in-core ceiling of
-  ~305 TFLOPS (31% of peak)**. Warm NCU at T=512: W8A16 = 24% DRAM / 32% SM
+- **≥256 tokens (dequant-influenced):** the kernel pins at an **in-core ceiling
+  of ~305 TFLOPS (31% of peak)**. Warm NCU at T=512: W8A16 = 24% DRAM / 32% SM
   vs bf16 = 76% DRAM / 54% SM — W8A16 is stalled on the int8→fp16 convert
   feeding `tl.dot`, not on memory and not on tensor-core math.
-- Crossover ≈ 230 tokens.
+- ~~Crossover ≈ 230 tokens~~ — eager-timing artifact; see Finding 4.
 
 Same failure mode as our MLA W4A16 kernel (in-core ceiling ~30 TF, 3% of
 peak); the MoE kernel's ceiling is 10× higher because conversion is vectorized
@@ -80,9 +87,9 @@ memory-bound regime, and both hit the same wall outside it.
 ## Recommendations (upstreamable)
 
 1. Apply the in-kernel dequant fix (patch in this directory).
-2. Dispatch on token count: W8A16 kernel for T ≲ 200, bf16 (or W8A8 INT8-MMA)
-   above — the crossover is predictable from the CARM parameters
-   (T* where weight-byte savings = dequant stall cost).
+2. ~~Dispatch on token count: W8A16 for T ≲ 200, bf16 above~~ — revised by
+   Finding 4: graph-timed, fixed W8A16 wins at all measured T at this shape;
+   no dispatch needed. W8A8 INT8-MMA is preferable at T ≤ 128 only.
 3. To win at high token counts, dequant must leave the inner loop:
    INT8 tensor-core MMA (W8A8) or Hopper warpgroup fragment-level dequant.
 4. The PR's mxq kernel needs an N-dimension in its grid, the full SwiGLU

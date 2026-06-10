@@ -8,16 +8,22 @@ import sys
 _D = os.path.dirname(os.path.abspath(__file__))
 
 
+def _read_csv_rows(path: str) -> list[dict]:
+    with open(path) as f:
+        lines = f.readlines()
+    start = next(i for i, ln in enumerate(lines) if ln.startswith('"ID"'))
+    return list(csv.DictReader(lines[start:]))
+
+
 def parse(path: str) -> dict | None:
     by_id: dict[str, dict] = {}
-    with open(path, newline="") as f:
-        for r in csv.DictReader(f):
-            kn = r.get("Kernel Name", "")
-            if "fused_moe_kernel" not in kn:
-                continue
-            kid = r["ID"]
-            by_id.setdefault(kid, {})
-            by_id[kid][r["Metric Name"]] = float(r["Metric Value"])
+    for r in _read_csv_rows(path):
+        kn = r.get("Kernel Name", "")
+        if "fused_moe_kernel" not in kn:
+            continue
+        kid = r["ID"]
+        by_id.setdefault(kid, {})
+        by_id[kid][r["Metric Name"]] = float(r["Metric Value"])
     if not by_id:
         return None
     m = max(by_id.values(), key=lambda x: x.get("gpu__time_duration.sum", 0))

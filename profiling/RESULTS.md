@@ -435,3 +435,72 @@ We implemented a custom batched W4A16 Triton GEMM kernel and benchmarked against
 python3 profiling/eval_int4_perplexity.py      # Perplexity eval
 python3 profiling/int4_batched_gemm_v2.py       # Kernel benchmark
 ```
+
+---
+
+## 9. Measured cache-aware roofline (CARM)
+
+`t = t0 + max(B/BW(WS), F/P)` with capacity-gated bandwidth and explicit launch
+fixed cost; every parameter measured on H100 (`measure_carm_params.py`):
+
+| Parameter | Value |
+|---|---|
+| Effective L2 capacity C_eff | ~36 MB (cliff measured at 32–40 MB) |
+| HBM read BW | 3.146 TB/s |
+| L2-era serving BW | 5.3 TB/s (reduction) / 6.3 TB/s (GEMM incremental slope) |
+| t₀ | 2.802 µs graph / 18.0 µs eager |
+| INT4 dequant in-core ceiling | ~30 TF (R_dq ≈ 0.50 TB/s packed) |
+
+Validation (`validate_carm_mape.py`, bs=1–512): **FP16 MAPE 15.5%, INT4 10.9%**.
+Largest errors at bs≤16 where data-path time overlaps t₀ (model conservative).
+Model + helpers live in `kernel-compass/profiling/carm.py`.
+
+## 10. W8A8 INT8-MMA — constructive confirmation (first quantized win)
+
+Kernel: `w8a8/w8a8_bmm.py` — int8 `tl.dot` → int32 accumulator (Hopper IMMA),
+per-channel weight + per-token activation scales applied once on the accumulator;
+no inner-loop dequant. rel err ~0.009. Graph-timed, bs=1:
+
+| Weights | FP16 µs | W8A8 µs | Speedup |
+|---|---|---|---|
+| 16 MB (MLA) | 4.9 | 6.9 | 0.70× |
+| 32 MB | 7.6 | 10.4 | 0.73× |
+| 48 MB | 21.7 | 14.3 | **1.52×** |
+| 128 MB | 49.1 | 34.4 | **1.43×** |
+
+Flip occurs at measured C_eff (~36 MB), not nominal 50 MB. Warm NCU: fp16 L2 hit
+61% @ 16 MB → 1% @ 48 MB. Compute-bound (bs≥64): W8A8 0.35–0.50× (cuBLAS TMA wins).
+**Three-way rule: L2-served → FP16; HBM weight-byte-bound → W8A8; compute-bound → FP16.**
+
+## 11. Multi-layer MLA L2 stacking
+
+Stacking 1–6 × 16 MB reconstruction layers per decode step (`mla_l2_stack/`):
+FP16 wins through 2 layers (32 MB); W8A8 wins from 3 layers (48 MB, 1.44×) onward.
+Crossover brackets C_eff exactly as CARM predicts.
+
+## 12. FlagGems fused_moe generalization
+
+Mixtral shape (E=8, H=4096, I=14336, topk=2). Shipped W8A16 host-dequantized all
+expert weights every call (flat 8.5 ms). One-conditional in-kernel fix
+(`fused_moe/flaggems_w8a16_inkernel_dequant.patch`, upstream PR):
+
+| T | bf16 µs | W8A16 fixed µs | Speedup |
+|---|---|---|---|
+| 16 | 968 | 564 | 1.72× |
+| 256 | 1242 | 1209 | 1.03× |
+| 512 | 5311 | 1990 | **2.67×** |
+| 2048 | 14917 | 5033 | **2.96×** |
+
+Graph-timed: fixed W8A16 wins at **every** measured T (earlier ~230-token
+crossover was an eager-timing artifact). In-core conversion ceiling ~305 TF
+(warm NCU @T=512: 24% DRAM / 32% SM) — same structure as MLA W4A16's ~30 TF
+ceiling, 10× higher because conversion is vectorized.
+
+### Scripts
+```bash
+python3 profiling/measure_carm_params.py
+python3 profiling/validate_carm_mape.py
+python3 profiling/w8a8/bench_w8a8.py
+python3 profiling/mla_l2_stack/bench_mla_l2_stack.py
+python3 profiling/fused_moe/bench_fused_moe_extended.py
+```
