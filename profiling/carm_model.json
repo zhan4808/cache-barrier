@@ -1,0 +1,15 @@
+{
+  "gpu": "NVIDIA H100 80GB HBM3",
+  "peak_tflops": 989.4,
+  "bw_hbm_tbs": 3.146,
+  "bw_l2_gemm_tbs": 6.3,
+  "bw_l2_reduction_tbs": 5.007,
+  "effective_l2_capacity_mb": 36.0,
+  "t0_graph_us": 2.795,
+  "t0_eager_us": 15.392,
+  "t0_int4_us": 6.0,
+  "r_dequant_tbs": 0.496,
+  "int4_incore_ceiling_tflops": 31.7,
+  "fp16_mape_pct": 10.2,
+  "int4_mape_pct": 18.2
+}

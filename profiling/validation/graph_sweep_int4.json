@@ -1,0 +1,50 @@
+{
+  "256": {
+    "weight_mb": 8.0,
+    "us_per_kernel": 5.522
+  },
+  "384": {
+    "weight_mb": 12.0,
+    "us_per_kernel": 7.394
+  },
+  "512": {
+    "weight_mb": 16.0,
+    "us_per_kernel": 9.06
+  },
+  "768": {
+    "weight_mb": 24.0,
+    "us_per_kernel": 12.618
+  },
+  "1024": {
+    "weight_mb": 32.0,
+    "us_per_kernel": 15.623
+  },
+  "1280": {
+    "weight_mb": 40.0,
+    "us_per_kernel": 19.01
+  },
+  "1536": {
+    "weight_mb": 48.0,
+    "us_per_kernel": 22.317
+  },
+  "1792": {
+    "weight_mb": 56.0,
+    "us_per_kernel": 25.521
+  },
+  "2048": {
+    "weight_mb": 64.0,
+    "us_per_kernel": 28.599
+  },
+  "2560": {
+    "weight_mb": 80.0,
+    "us_per_kernel": 34.912
+  },
+  "3072": {
+    "weight_mb": 96.0,
+    "us_per_kernel": 41.163
+  },
+  "4096": {
+    "weight_mb": 128.0,
+    "us_per_kernel": 55.374
+  }
+}

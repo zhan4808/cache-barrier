@@ -23,10 +23,12 @@ import numpy as np
 # H100 SXM5 specs
 # ═══════════════════════════════════════════════════════════════════════════════
 
-HBM_BW = 3.35e12      # 3.35 TB/s
-L2_BW = 12e12          # ~12 TB/s effective L2 bandwidth
+HBM_BW = 3.35e12      # 3.35 TB/s nominal (measured effective for these GEMMs: ~2.7 TB/s)
+L2_BW = 4.6e12         # measured effective L2-era serving bandwidth for cuBLAS BMM
+                       # (peak total-bytes/time at 32 MB; incremental slope 6.3 TB/s).
+                       # The ~12 TB/s aggregate L2 figure is NOT achieved by these kernels.
 FP16_PEAK = 990e12     # 990 TFLOPS
-L2_SIZE_MB = 50        # 50 MB L2 cache
+L2_SIZE_MB = 50        # nominal; measured effective residency capacity ~36 MB (cliff at 32-40 MB)
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # Load benchmark data

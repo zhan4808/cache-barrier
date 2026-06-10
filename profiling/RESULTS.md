@@ -193,6 +193,8 @@ Weight sizes: `w_kc` = 16.8 MB, `w_vc` = 16.8 MB per layer (33.6 MB total, 2,047
 
 BMM TFLOPS achieved: 63–195 TFLOPS FP16 (6–20% of 990 TFLOPS peak), confirming these are **memory-bound** — weight loading dominates.
 
+> **Caveat (2026-06 audit):** the bs=1 BMM timings in this section come from per-launch CUDA-event measurement, which carries a ~15.5 µs launch/eventing floor per call. At bs=1 the two reconstruction BMMs (~35 µs measured) are roughly two-thirds launch overhead in eager mode; graph-timed kernel time is ~4.8 µs per BMM. The recon-vs-attention *fraction* is less affected (both sides carry the same floor), but absolute times and derived bandwidth/TFLOPS at bs≤16 are launch-dominated, and engines that decode under CUDA graphs (e.g. SGLang) will see smaller absolute reconstruction overhead than reported here.
+
 ### 3.3 INT4 Quantization Feasibility (Roofline)
 
 All reconstruction BMMs are memory-bound at every batch size tested (arithmetic intensity 1–93, well below the 295 crossover for H100):
@@ -414,13 +416,18 @@ We implemented a custom batched W4A16 Triton GEMM kernel and benchmarked against
 
 **The INT4 kernel is 2× slower than cuBLAS FP16, not 3.9× faster.**
 
-**Root cause: L2 cache residency.** The reconstruction weight matrix (128 × 128 × 512 × 2 = 16 MB per BMM) fits within H100's 50 MB L2 cache. After first access, weights are served from L2 at ~12 TB/s, making HBM bandwidth savings from INT4 irrelevant.
+**Root cause (revised 2026-06): partial L2 residency + dequant-bound kernel.** Two stacked effects, neither sufficient alone:
+
+1. *Partial L2 residency.* In the warm benchmark loop, ~75% of the 16 MB weight matrix is served from L2 (`ncu --cache-control none`: 4 MB DRAM read per launch; 2.2 MB at 32 MB weights). Effective serving bandwidth is 3.5–4.6 TB/s — not 12 TB/s — and residency collapses between 32 and 40 MB (effective capacity ~36 MB, not the nominal 50 MB).
+2. *Dequant-bound INT4 kernel.* With L2 residency destroyed by a weight-rotation intervention (fixed 16 MB shape, 6 weight copies = 96 MB working set), FP16 slows from 4.8 to 8.3 µs but INT4 stays at ~9.1–9.3 µs — **INT4 still loses 1.12×**. The kernel runs 2.7× above its memory entitlement (~3.4 µs) because of scalar unpack ops, BLOCK_M=16 padding for M=1 (15/16 of tensor-core work wasted), and 2× `tl.dot` per K-block.
+
+**Timing-methodology caveat**: per-launch CUDA-event timing has a ~15.5 µs floor on these µs-scale kernels (a 0.5 MB bmm times the same as a 16 MB one). The "flat" FP16 latency from 8–32 MB in the event-timed sweep is this floor, not L2 serving. CUDA-graph timing (true kernel time) shows latency scaling at ~6.3 TB/s below the residency cliff and ~2.7 TB/s above it. Graph-timed INT4/FP16 ratios: 1.9× at 16 MB → ~1.0–1.1× above 40 MB (parity, never a win). See `validation/`.
 
 **However**, the batched INT4 kernel is 30× faster than a per-head FP16 loop (0.073ms vs 2.19ms), confirming the batched grid approach is effective.
 
 **Implications**:
-1. Roofline-predicted INT4 speedups assume HBM-bound operation, which is violated for L2-resident small matrices
-2. In production serving with L2 pressure from concurrent operations, weights may be evicted to HBM, shifting the balance
+1. Roofline-predicted INT4 speedups assume HBM-bound operation, which is violated for (partially) L2-resident small matrices — but fixing residency alone would not make this INT4 kernel win; the dequant path must also be fixed (e.g., INT8 MMA, fused dequant-in-tensor-core)
+2. In production serving with L2 pressure from concurrent operations, weights may be evicted to HBM, shifting the balance — though by at most the measured +3.5 µs reload cost per BMM
 3. A CUDA-native kernel with INT8 tensor cores (Hopper has INT8 MMA, not INT4 MMA) could potentially close the gap
 
 ### Scripts

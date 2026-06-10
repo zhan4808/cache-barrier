@@ -42,6 +42,11 @@ Coleman Hooper, Sehoon Kim, Hiva Mohammadi, Michael~W. Mahoney, Yakun~Sophia
   cache quantization.
 \newblock {\em arXiv preprint arXiv:2401.18079}, 2024.
 
+\bibitem{carm}
+Aleksandar Ilic, Frederico Pratas, and Leonel Sousa.
+\newblock Cache-aware roofline model: Upgrading the loft.
+\newblock {\em IEEE Computer Architecture Letters}, 13(1):21--24, 2014.
+
 \bibitem{awq}
 Ji~Lin, Jiaming Tang, Haotian Tang, Shang Yang, Wei-Ming Chen, Wei-Chen Wang,
   Guangxuan Xiao, Xingyu Dang, Chuang Gan, and Song Han.

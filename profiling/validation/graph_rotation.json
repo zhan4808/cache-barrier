@@ -1,0 +1,8 @@
+{
+  "fp16_copies1": 4.771,
+  "fp16_copies2": 4.725,
+  "fp16_copies3": 7.92,
+  "fp16_copies6": 8.295,
+  "int4_copies1": 9.121,
+  "int4_copies6": 9.271
+}

@@ -1,5 +1,14 @@
 ## A100 vs H100 NCU Comparison (L2 Sweep)
 
+> **CRITICAL CAVEAT (2026-06 audit):** these NCU runs used kernel replay with the
+> default `--cache-control all`, which flushes GPU caches before every measured
+> launch. All counters below are therefore **cold-cache** numbers: they contain no
+> information about L2 residency, and the FP16 DRAM% rise with size is smooth
+> duration-amortization of fixed overheads (steepest *below* 32 MB), not a knee at
+> the L2 boundary. Do not cite this file as residency evidence; use the
+> `--cache-control none` warm-loop counters in `profiling/validation/` instead.
+> The INT4 SM%-dominance observation (dequant-bound at all sizes) is unaffected.
+
 - Figure: `profiling/ncu_results/figure_ncu_h100_a100_side_by_side.png`
 - Merged data: `profiling/ncu_results/h100_a100_l2_sweep_merged.csv`
 

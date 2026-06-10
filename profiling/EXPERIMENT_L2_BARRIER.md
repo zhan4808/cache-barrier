@@ -67,6 +67,16 @@ The script produces:
 
 **If the hypothesis is wrong**, the ratio would stay flat across all weight sizes.
 
+## Interpretation corrections (2026-06 audit — read before citing this experiment)
+
+The sweep above reproduces, but three things in the original interpretation are wrong; see `validation/` for the experiments:
+
+1. **The knee sits at 32–40 MB, not 48–56 MB.** Warm-state NCU (`--cache-control none`) shows DRAM re-reads collapse at 16–32 MB weights and snap to ~100% of weight size from 40 MB onward. Effective LRU residency capacity is ~36 MB. A knee "at the 50 MB boundary" should not be expected or claimed.
+2. **The ratio improvement is necessary but not sufficient evidence.** The event-timed ratio decline conflates (a) FP16 leaving a ~15.5 µs launch-overhead floor, (b) FP16's serving tier changing L2→HBM, and (c) both kernels amortizing fixed costs with size. The clean causal test is the *weight-rotation intervention at fixed shape* (`validation/diag_l2_residency.py`, `graph_rotation.py`): same kernel, same size, residency toggled by cycling weight copies.
+3. **This experiment alone cannot establish L2 residency as THE root cause of INT4's failure** — rotation shows INT4 loses even with FP16 forced to HBM. Cite the residency effect as removing most of the theoretical INT4 upside, with dequant compute consuming the remainder.
+
+Also note: cuBLAS dispatches different `nvjet` tile variants across this sweep, so the FP16 curve mixes kernel implementations; and ratios are stack-sensitive (torch 2.9/triton 3.5: 1.86→1.08x; torch 2.7/triton 3.3: 2.75→1.58x).
+
 ## After running
 
 Please provide:

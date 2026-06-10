@@ -1,26 +1,31 @@
 """
-Task 1: Memory-to-Compute Transition Validation
-================================================
+Task 1: Memory-to-Compute Transition — COLD-CACHE NCU view (interpretation corrected 2026-06)
+=============================================================================================
 Produces two side-by-side figures from the NCU sweep data:
 
   Figure A (left):  Achieved DRAM Bandwidth (GB/s) vs FP16 weight size
   Figure B (right): Achieved SM Compute Throughput (TFLOPS proxy) vs FP16 weight size
 
-Both figures share the same x-axis (weight size in MB) and carry a vertical
-marker at the H100's 50 MB L2 boundary.
+IMPORTANT — what this data can and cannot show:
+  The underlying NCU sweep was collected with kernel replay and the default
+  `--cache-control all`, which flushes GPU caches before every measured launch.
+  Every point below is therefore a COLD-CACHE measurement:
 
-Expected visual:
-  - FP16 DRAM BW rises from ~35% HBM at 8 MB toward ~83% HBM at 128 MB, with
-    the steepest acceleration just after the L2 boundary (40–56 MB).
-  - INT4 DRAM BW stays flat and low (<23%) at all sizes — it is always
-    compute-bound from dequantization, never HBM-limited.
-  - FP16 SM util stays below ~15% (memory-bound, SMs stalled on data).
-  - INT4 SM util rises monotonically from ~33% to ~79% (compute-bound).
+  - FP16 DRAM% rising from ~35% (8 MB) to ~83% (128 MB) is smooth amortization
+    of fixed launch/ramp overheads as kernel duration grows (steepest rise is
+    BELOW 32 MB, not at the L2 boundary). It is NOT an L2-residency knee and
+    must not be cited as one.
+  - INT4 SM% rising from ~33% to ~79% is the same duration-amortization effect;
+    INT4 is dequant-compute-bound at EVERY size (valid observation).
+  - There is no within-kernel "memory-bound -> compute-bound transition" here:
+    FP16 is memory-side at all sizes, INT4 compute-side at all sizes. What
+    changes with size (visible only in warm-state data, not in this file's
+    inputs) is FP16's serving TIER: L2 below ~36 MB effective capacity, HBM above.
 
-The crossover validation: the FP16 knee and INT4 plateau appear at the same
-40-56 MB point, confirming that the L2 boundary is the causal mechanism.
+  For actual residency evidence use profiling/validation/ (warm-loop NCU with
+  --cache-control none, CUDA-graph timing, weight-rotation intervention).
 
-Inputs:  ncu_results/l2_sweep/ncu_sweep_summary.json
+Inputs:  ncu_results/l2_sweep/ncu_sweep_summary.json   (cold-cache)
 Outputs: ../paper/figures/memory_compute_transition.png
          ../paper/figures/memory_compute_transition.pdf
 """
@@ -72,8 +77,8 @@ L2_COLOR   = "#757575"   # gray
 
 fig, (ax_a, ax_b) = plt.subplots(1, 2, figsize=(13, 5))
 fig.suptitle(
-    "Memory-to-Compute Transition: FP16 cuBLAS vs INT4 Triton across L2 Boundary\n"
-    "H100 SXM5 · BS=1 · H=128 · NCU hw counters",
+    "FP16 cuBLAS vs INT4 Triton across Weight Sizes — COLD-CACHE NCU counters\n"
+    "H100 SXM5 · BS=1 · H=128 · kernel replay with --cache-control all (caches flushed; no residency information)",
     fontsize=12, y=1.02,
 )
 
@@ -102,8 +107,9 @@ ax_a.axhline(y=H100_HBM_BW_GBs, color="black", linestyle=":", linewidth=1.0,
 x_max = max(weight_mbs_fp16) * 1.08
 ax_a.axvspan(0,               L2_CAPACITY_MB, alpha=0.06, color=FP16_COLOR, zorder=0)
 ax_a.axvspan(L2_CAPACITY_MB,  x_max,          alpha=0.06, color=INT4_COLOR, zorder=0)
-ax_a.text(25,  80, "L2-resident", fontsize=8, color=FP16_COLOR, ha="center", style="italic")
-ax_a.text(89, 80, "HBM-bound",  fontsize=8, color=INT4_COLOR,  ha="center", style="italic")
+ax_a.text(25,  80, "weights fit nominal L2\n(cold-cache here: no residency)", fontsize=7,
+          color=FP16_COLOR, ha="center", style="italic")
+ax_a.text(89, 80, "weights exceed L2", fontsize=7, color=INT4_COLOR, ha="center", style="italic")
 
 add_l2_vline(ax_a, y_text=H100_HBM_BW_GBs * 0.96)
 
@@ -180,11 +186,13 @@ for r in int4_entries:
                       xytext=(0, -14), textcoords="offset points",
                       fontsize=7.5, color=INT4_COLOR, ha="center", fontweight="bold")
 
-# Crossover annotation box
-crossover_mb = 48.0  # last point still marked fits_l2=True
+# Note: no regime crossover exists in this cold-cache data. FP16 is memory-side
+# and INT4 dequant-compute-side at every size; both curves rise smoothly with
+# kernel duration. The warm-state residency cliff (32-40 MB) is only visible in
+# profiling/validation/ data.
 ax_b.annotate(
-    "Regime crossover\n~48–56 MB",
-    xy=(crossover_mb, fp16_tflops[list(weight_mbs_fp16).index(48.0)]),
+    "cold-cache data:\nno regime crossover;\nboth curves = duration\namortization",
+    xy=(48.0, fp16_tflops[list(weight_mbs_fp16).index(48.0)]),
     xytext=(68, fp16_tflops[0] + 20),
     arrowprops=dict(arrowstyle="->", color="black", lw=1.2),
     fontsize=8, ha="center",

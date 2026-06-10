@@ -1,266 +1,205 @@
 """
-Task 2: Cache-Aware Roofline for MLA Reconstruction
-====================================================
-Extends the standard single-ceiling roofline to three memory hierarchy levels:
+Cache-Aware Roofline Model (CARM) for MLA reconstruction — measured edition
+===========================================================================
+Rewritten 2026-06 after the methodology audit (see validation/REPORT.md).
+The previous version of this script assumed L2 = 12 TB/s and capacity = 50 MB;
+both are wrong for these kernels. This version builds the model entirely from
+measured parameters (measure_carm_params.py) and validates it against
+graph-timed operating points.
 
-  Level          Bandwidth    Crossover AI (FLOP/byte)
-  ─────────────  ──────────   ────────────────────────
-  DRAM (HBM)     3.35 TB/s    989 / 3.35  ≈ 295
-  L2 cache       ~12 TB/s     989 / 12    ≈  82
-  L1/shared mem  ~80 TB/s     989 / 80    ≈  12
+Model (per kernel launch with F FLOPs, B bytes, working set WS):
 
-The MLA reconstruction BMMs (DeepSeek-V3) span batch sizes 1–1024.  Their
-arithmetic intensity (AI) ranges from ~1 FLOP/byte (BS=1) to ~93 FLOP/byte
-(BS=1024) — ALL below the DRAM crossover at 295, meaning every operating
-point is bandwidth-limited by some memory level.
+  FP16 cuBLAS:   t = t0 + max( B / BW(WS),  F / P_peak )
+                 BW(WS) = BW_L2_eff   if WS <= C_eff (~36 MB effective L2)
+                          BW_HBM_eff  otherwise
+  INT4 W4A16:    t = t0' + W_packed * ceil(bs/BLOCK_M) / R_dq
+                 (dequantization-throughput bound: every M-tile re-unpacks the
+                  full packed weight tile; R_dq is fitted packed-byte dequant
+                  throughput, ~0.5 TB/s -> a ~30 TFLOPS in-core ceiling)
 
-Key insight: for small batch sizes (BS≤64), the 16 MB weight matrix fits
-inside H100's 50 MB L2 cache, so the effective bandwidth bottleneck is L2
-(~12 TB/s), NOT HBM (3.35 TB/s).  Standard roofline predicts INT4 should
-give ~3.9× speedup (moving AI right along the HBM slope).  The cache-aware
-roofline shows FP16 is already near the L2 ceiling — there is no HBM headroom
-to reclaim.
+This extends the cache-aware roofline of Ilic et al. (IEEE CAL 2014) in two
+ways needed for microsecond-scale LLM kernels:
+  1. a capacity-gated bandwidth ceiling BW(WS) with the *measured effective*
+     capacity (32-40 MB on H100, not the nominal 50 MB), and
+  2. an explicit per-launch fixed cost t0 (2.8 us graph-captured; 15.4 us
+     eager), without which every bs<=16 point sits inexplicably far below
+     the loft.
 
-Inputs:  results_mla_reconstruction_v3.csv
-         ncu_results/l2_sweep/ncu_sweep_summary.json  (for INT4 vs FP16 pts)
-         results_l2_barrier.json
-Outputs: ../paper/figures/cache_aware_roofline.png
-         ../paper/figures/cache_aware_roofline.pdf
+Outputs: ../paper/figures/carm_roofline.{png,pdf}, carm_model.json
 """
 
-import csv
 import json
+import math
 import os
 
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
 import numpy as np
 
-# ── H100 SXM5 hardware specs ──────────────────────────────────────────────────
-H100_DRAM_BW   = 3.35     # TB/s
-H100_L2_BW     = 12.0     # TB/s  (effective aggregate)
-H100_L1_BW     = 80.0     # TB/s  (L1 + shared memory)
-H100_TFLOPS    = 989.4    # FP16 dense tensor core peak
-L2_CAPACITY_MB = 50.0
+_D = os.path.dirname(os.path.abspath(__file__))
 
-# Crossover arithmetic intensities (FLOP/byte)
-AI_L1_CROSS   = H100_TFLOPS / H100_L1_BW       # ~12.4
-AI_L2_CROSS   = H100_TFLOPS / H100_L2_BW       # ~82.4
-AI_DRAM_CROSS = H100_TFLOPS / H100_DRAM_BW     # ~295
+with open(os.path.join(_D, "carm_params.json")) as f:
+    P = json.load(f)
 
-# ── DeepSeek-V3 BMM geometry ──────────────────────────────────────────────────
-# BMM1: (H=128, BS, K=128) × (H=128, K=128, N=512)  [w_kc, Q-absorption]
-# BMM2: (H=128, BS, K=512) × (H=128, K=512, N=128)  [w_vc, V-reconstruction]
-# Both BMMs have identical flop counts and byte counts (K+N=640 in both cases)
+PEAK = P["peak_fp16_tflops"]
+BW_HBM = P["hbm_read_tbs"]            # measured streaming read (3.15 TB/s here)
+BW_L2_GEMM = 6.3                      # measured incremental slope of cuBLAS bmm below cliff
+BW_L2_RED = P["l2_read_tbs"]          # measured reduction-pattern L2 read (5.0 TB/s)
+C_EFF_MB = 36.0                       # measured effective residency capacity (cliff at 32-40 MB)
+T0_GRAPH = P["kernel_floor_us"]       # us
+T0_EAGER = P["eager_floor_us"]        # us
+H, K, N = 128, 128, 512
+WT_PACKED = H * K * N // 2            # bytes
+BLOCK_M = 16
 
-H, K_BMM1, N_BMM1 = 128, 128, 512
-WEIGHT_MB = H * K_BMM1 * N_BMM1 * 2 / (1024 ** 2)  # 16 MB FP16
+pts = P["recon_points"]
 
-def compute_ai(batch_size: int) -> float:
-    """Arithmetic intensity (FLOP/byte) for FP16 BMM1, including all tensors."""
-    flops        = H * 2 * batch_size * K_BMM1 * N_BMM1
-    weight_bytes = H * K_BMM1 * N_BMM1 * 2
-    act_bytes    = H * batch_size * K_BMM1 * 2
-    out_bytes    = H * batch_size * N_BMM1 * 2
-    return flops / (weight_bytes + act_bytes + out_bytes)
+# ── Fit INT4 dequant throughput R_dq (packed bytes/s) ────────────────────────
+r_samples = []
+for p in pts:
+    work = WT_PACKED * math.ceil(p["bs"] / BLOCK_M)
+    t_core = max(p["int4_us"] - 6.0, 0.5)  # subtract approx INT4 fixed cost
+    r_samples.append(work / (t_core * 1e-6))
+R_DQ = float(np.median(r_samples))
+T0_INT4 = 6.0  # us, Triton launch + prologue at this grid size (fitted)
 
-def compute_ai_int4(batch_size: int) -> float:
-    """Arithmetic intensity for INT4 (W4A16) BMM1."""
-    flops            = H * 2 * batch_size * K_BMM1 * N_BMM1
-    int4_weight_bytes = H * K_BMM1 * N_BMM1 // 2   # packed 4-bit
-    scale_bytes       = H * N_BMM1 * 2               # per-column FP16 scales
-    act_bytes         = H * batch_size * K_BMM1 * 2
-    out_bytes         = H * batch_size * N_BMM1 * 2
-    return flops / (int4_weight_bytes + scale_bytes + act_bytes + out_bytes)
 
-# ── Load MLA reconstruction CSV ───────────────────────────────────────────────
-script_dir = os.path.dirname(os.path.abspath(__file__))
-csv_path   = os.path.join(script_dir, "results_mla_reconstruction_v3.csv")
+def bw_ws(ws_bytes):
+    # strict <: a working set AT the effective capacity already thrashes (LRU)
+    return BW_L2_GEMM * 1e12 if ws_bytes < C_EFF_MB * 1024 * 1024 else BW_HBM * 1e12
 
-batch_sizes, fp16_measured_tflops, fp16_ai = [], [], []
-with open(csv_path) as f:
-    for row in csv.DictReader(f):
-        bs = int(row["batch_size"])
-        tflops_val = row["bmm1_tflops"]
-        if tflops_val and tflops_val != "N/A":
-            batch_sizes.append(bs)
-            fp16_measured_tflops.append(float(tflops_val))
-            fp16_ai.append(compute_ai(bs))
 
-# ── Load barrier JSON for INT4 timing at d_lora=512 ──────────────────────────
-barrier_path = os.path.join(script_dir, "results_l2_barrier.json")
-with open(barrier_path) as f:
-    barrier = json.load(f)
+def predict_fp16_us(flops, bytes_, t0=T0_GRAPH):
+    return t0 + max(bytes_ / bw_ws(bytes_), flops / (PEAK * 1e12)) * 1e6
 
-# BS=1 operating points across weight sizes (to show DRAM-transition on roofline)
-bs1_barrier = sorted([r for r in barrier["results"] if r["batch_size"] == 1],
-                     key=lambda r: r["weight_mb"])
 
-int4_ai_pts, int4_tflops_pts, int4_labels = [], [], []
-fp16_hbm_ai_pts, fp16_hbm_tflops_pts      = [], []
-FLOPS_FIXED = H * 2 * 1 * K_BMM1 * N_BMM1  # fixed at BS=1
+def predict_int4_us(bs):
+    return T0_INT4 + WT_PACKED * math.ceil(bs / BLOCK_M) / R_DQ * 1e6
 
-for r in bs1_barrier:
-    ai_fp16  = compute_ai(1)                          # same AI for all (BS=1)
-    ai_int4  = compute_ai_int4(1)
-    tflops_fp16 = FLOPS_FIXED / (r["fp16_ms"] * 1e-3) / 1e12
-    tflops_int4 = FLOPS_FIXED / (r["int4_ms"] * 1e-3) / 1e12
-    # Only show HBM-bound FP16 points (weight > L2)
-    if not r["fits_l2"]:
-        fp16_hbm_ai_pts.append(ai_fp16)
-        fp16_hbm_tflops_pts.append(tflops_fp16)
-    if r["weight_mb"] == 16.0:   # MLA config point for INT4
-        int4_ai_pts.append(ai_int4)
-        int4_tflops_pts.append(tflops_int4)
-        int4_labels.append(f"INT4 (16 MB,\nBS=1)")
 
-# ── Build roofline curves ─────────────────────────────────────────────────────
-ai_range = np.logspace(-1.5, 3.5, 1000)
+# ── Figure ────────────────────────────────────────────────────────────────────
+C_FP, C_I4, C_HBM, C_L2 = "#1565C0", "#C62828", "#37474F", "#2E7D32"
+fig, (ax, bx, cx) = plt.subplots(1, 3, figsize=(18, 5.6))
+fig.suptitle(
+    f"Cache-Aware Roofline (measured) — MLA reconstruction BMM1 on {P['gpu']}\n"
+    f"BW$_{{HBM}}$={BW_HBM:.2f} TB/s, BW$_{{L2}}^{{eff}}$={BW_L2_GEMM:.1f} TB/s (GEMM) / "
+    f"{BW_L2_RED:.1f} TB/s (reduction), C$_{{eff}}$={C_EFF_MB:.0f} MB, "
+    f"t$_0$={T0_GRAPH:.1f} µs graph / {T0_EAGER:.1f} µs eager, R$_{{dq}}$={R_DQ/1e12:.2f} TB/s",
+    y=1.04)
 
-def roofline(ai, bw_TBs, peak_tflops):
-    """Roofline ceiling: min(AI × BW, compute_peak)."""
-    return np.minimum(ai * bw_TBs, peak_tflops)
+# Panel A: the roofline
+ai = np.logspace(-1, 3.2, 600)
+ax.loglog(ai, np.minimum(ai * BW_HBM, PEAK), color=C_HBM, lw=2,
+          label=f"HBM ceiling ({BW_HBM:.2f} TB/s measured)")
+ax.fill_between(ai, np.minimum(ai * BW_L2_RED, PEAK), np.minimum(ai * BW_L2_GEMM, PEAK),
+                color=C_L2, alpha=0.18)
+ax.loglog(ai, np.minimum(ai * BW_L2_GEMM, PEAK), color=C_L2, lw=2, ls="--",
+          label=f"L2 ceiling, WS$\\leq${C_EFF_MB:.0f} MB ({BW_L2_RED:.1f}–{BW_L2_GEMM:.1f} TB/s measured)")
+ax.axhline(PEAK, color="k", lw=1.2, alpha=0.5)
+ax.text(1.3e3, PEAK * 1.15, f"{PEAK:.0f} TF peak", fontsize=8, ha="right")
+ax.axhline(30.3, color=C_I4, lw=1.5, ls=":")
+ax.text(1.3e3, 33, "INT4 dequant in-core ceiling ≈30 TF (3% of peak)",
+        fontsize=8, color=C_I4, ha="right")
 
-perf_dram    = roofline(ai_range, H100_DRAM_BW, H100_TFLOPS)
-perf_l2      = roofline(ai_range, H100_L2_BW,   H100_TFLOPS)
-perf_l1      = roofline(ai_range, H100_L1_BW,   H100_TFLOPS)
-perf_compute = np.full_like(ai_range, H100_TFLOPS)
+for p in pts:
+    l2res = p["fp16_bytes"] <= C_EFF_MB * 1024 * 1024
+    ax.scatter(p["ai_fp16"], p["fp16_tflops"], s=70, zorder=5,
+               facecolor=C_FP if l2res else "white", edgecolor=C_FP, linewidth=1.6)
+    ax.scatter(p["ai_int4"], p["int4_tflops"], s=70, zorder=5, marker="^",
+               facecolor=C_I4, edgecolor="white", linewidth=0.6)
+    ax.annotate(f"{p['bs']}", xy=(p["ai_fp16"], p["fp16_tflops"]),
+                xytext=(-2, 7), textcoords="offset points", fontsize=7, color=C_FP)
+    # launch-floor cap for this FLOP count
+    cap = p["flops"] / (T0_GRAPH * 1e-6) / 1e12
+    ax.plot([p["ai_fp16"] * 0.7, p["ai_fp16"] * 1.4], [cap, cap], color="#FF8F00", lw=1.2, alpha=0.8)
 
-# ── Plot ──────────────────────────────────────────────────────────────────────
-FP16_L2_COLOR  = "#1565C0"   # dark blue  – L2-resident FP16
-FP16_HBM_COLOR = "#42A5F5"   # light blue – HBM-bound FP16
-INT4_COLOR     = "#C62828"   # dark red   – INT4 (compute-bound)
-ROOF_ALPHA     = 0.85
+ax.plot([], [], color="#FF8F00", lw=1.2, label="launch-floor cap $F/t_0$ (per point)")
+ax.scatter([], [], s=70, facecolor=C_FP, edgecolor=C_FP, label="FP16 (filled = WS in L2)")
+ax.scatter([], [], s=70, facecolor="white", edgecolor=C_FP, label="FP16 (open = WS > C$_{eff}$)")
+ax.scatter([], [], s=70, marker="^", facecolor=C_I4, label="INT4 W4A16")
+ax.set_xlabel("Arithmetic intensity (FLOP/byte)")
+ax.set_ylabel("Achieved performance (TFLOPS)")
+ax.set_title("A — CARM with measured ceilings + per-launch floor caps\n"
+             "(graph-timed operating points, labels = batch size)")
+ax.set_xlim(0.5, 1.5e3); ax.set_ylim(0.8, 2500)
+ax.grid(alpha=0.25, which="both"); ax.legend(fontsize=7.5, loc="upper left")
 
-fig, ax = plt.subplots(figsize=(10, 6.5))
+# Panel B: the capacity-gated bandwidth function BW(WS)
+sweep = P.get("fp16_size_sweep", {})
+ws_mb = sorted(float(v["weight_mb"]) for v in sweep.values())
+eff_raw, eff_floor = [], []
+for m in ws_mb:
+    e = next(v for v in sweep.values() if v["weight_mb"] == m)
+    t = e["us_per_bmm"]
+    b = m * 1024 * 1024
+    eff_raw.append(b / (t * 1e-6) / 1e12)
+    eff_floor.append(b / (max(t - T0_GRAPH, 0.05) * 1e-6) / 1e12)
+bx.plot(ws_mb, eff_raw, "o-", color=C_FP, label="bytes / t (graph-timed)")
+bx.plot(ws_mb, eff_floor, "o--", color=C_FP, alpha=0.45, label="bytes / (t − t$_0$)")
+bx.axhline(BW_HBM, color=C_HBM, lw=1.5, ls="-")
+bx.text(95, BW_HBM + 0.15, f"HBM {BW_HBM:.2f} TB/s", fontsize=8, color=C_HBM)
+bx.axhspan(BW_L2_RED, BW_L2_GEMM, color=C_L2, alpha=0.15)
+bx.text(2, BW_L2_GEMM + 0.15, f"L2 effective {BW_L2_RED:.1f}–{BW_L2_GEMM:.1f} TB/s", fontsize=8, color=C_L2)
+bx.axvspan(32, 40, color="orange", alpha=0.18)
+bx.axvline(C_EFF_MB, color="orange", ls="--", lw=1.2)
+bx.text(C_EFF_MB + 1, 7.2, f"C$_{{eff}}$ ≈ {C_EFF_MB:.0f} MB\n(nominal L2 = 50 MB)", fontsize=8, color="#E65100")
+bx.set_xlabel("Working set (MB)")
+bx.set_ylabel("Effective serving bandwidth (TB/s)")
+bx.set_title("B — Capacity-gated bandwidth BW(WS):\nthe step function the model uses")
+bx.set_ylim(0, 8); bx.grid(alpha=0.25); bx.legend(fontsize=8)
 
-# Roofline ceilings
-ax.loglog(ai_range, perf_compute, "k-",  lw=1.5, alpha=0.4, zorder=1)
-ax.loglog(ai_range, perf_l2,      "b--", lw=1.8, alpha=ROOF_ALPHA, zorder=2,
-          label=f"L2 ceiling  (12 TB/s,  cross at AI≈{AI_L2_CROSS:.0f})")
-ax.loglog(ai_range, perf_dram,    "r--", lw=1.8, alpha=ROOF_ALPHA, zorder=2,
-          label=f"DRAM ceiling (3.35 TB/s, cross at AI≈{AI_DRAM_CROSS:.0f})")
-ax.loglog(ai_range, perf_l1,      color="gray", lw=1.2, linestyle=":",
-          alpha=0.6, zorder=2,
-          label=f"L1/smem ceiling (80 TB/s, cross at AI≈{AI_L1_CROSS:.0f})")
-
-# Compute ceiling label
-ax.text(ai_range[-1] * 0.95, H100_TFLOPS * 1.08,
-        f"Compute ceiling ({H100_TFLOPS:.0f} TFLOPS FP16)",
-        ha="right", fontsize=8, color="black", alpha=0.55)
-
-# Vertical crossover markers
-for ai_x, label, color in [
-    (AI_L1_CROSS,   f"L1 cross\nAI={AI_L1_CROSS:.0f}",   "gray"),
-    (AI_L2_CROSS,   f"L2 cross\nAI={AI_L2_CROSS:.0f}",   "blue"),
-    (AI_DRAM_CROSS, f"DRAM cross\nAI={AI_DRAM_CROSS:.0f}", "red"),
-]:
-    ax.axvline(x=ai_x, color=color, lw=0.8, linestyle=":", alpha=0.45, zorder=1)
-    ax.text(ai_x * 1.05, 0.012, label, fontsize=7, color=color, alpha=0.7, va="bottom")
-
-# ── FP16 operating points (MLA BS sweep, measured TFLOPS) ────────────────────
-scatter_fp16 = ax.scatter(fp16_ai, fp16_measured_tflops,
-                           s=90, color=FP16_L2_COLOR, marker="o",
-                           zorder=6, edgecolors="white", linewidths=0.7,
-                           label="FP16 cuBLAS (L2-resident, measured)")
-
-# Label each batch size
-for bs, ai, t in zip(batch_sizes, fp16_ai, fp16_measured_tflops):
-    ax.annotate(f"BS={bs}", xy=(ai, t),
-                xytext=(6, 3), textcoords="offset points",
-                fontsize=7, color=FP16_L2_COLOR)
-
-# ── INT4 operating point (MLA config, BS=1) ───────────────────────────────────
-if int4_ai_pts:
-    ax.scatter(int4_ai_pts, int4_tflops_pts,
-               s=120, color=INT4_COLOR, marker="^",
-               zorder=6, edgecolors="white", linewidths=0.7,
-               label="INT4 Triton (compute-bound, measured)")
-    for ai_v, t_v, lbl in zip(int4_ai_pts, int4_tflops_pts, int4_labels):
-        ax.annotate(lbl, xy=(ai_v, t_v),
-                    xytext=(-60, 8), textcoords="offset points",
-                    fontsize=7.5, color=INT4_COLOR,
-                    arrowprops=dict(arrowstyle="->", color=INT4_COLOR, lw=1.0))
-
-# ── Shaded regime regions ─────────────────────────────────────────────────────
-ax.axvspan(ai_range[0], AI_L2_CROSS,  alpha=0.04, color="blue",  zorder=0)
-ax.axvspan(AI_L2_CROSS, AI_DRAM_CROSS, alpha=0.04, color="green", zorder=0)
-ax.axvspan(AI_DRAM_CROSS, ai_range[-1], alpha=0.04, color="orange", zorder=0)
-
-# Region labels
-ax.text(0.12, 200,  "L2-bandwidth\nbound",   fontsize=8, color="blue",   alpha=0.7, style="italic")
-ax.text(120,  200,  "HBM-bandwidth\nbound",  fontsize=8, color="green",  alpha=0.7, style="italic")
-ax.text(400,  200,  "Compute\nbound",         fontsize=8, color="orange", alpha=0.7, style="italic")
-
-# ── Standard vs cache-aware roofline annotation ───────────────────────────────
-# Show what the standard (HBM-only) roofline would PREDICT for BS=1
-ai_bs1 = fp16_ai[0]
-t_bs1  = fp16_measured_tflops[0]
-t_dram_pred  = min(ai_bs1 * H100_DRAM_BW, H100_TFLOPS)
-t_l2_pred    = min(ai_bs1 * H100_L2_BW,   H100_TFLOPS)
-
-ax.annotate(
-    f"Standard roofline predicts\n{t_dram_pred:.2f} TFLOPS (HBM)\n"
-    f"→ 3.9× INT4 speedup",
-    xy=(ai_bs1, t_dram_pred),
-    xytext=(0.25, 14),
-    arrowprops=dict(arrowstyle="->", color="red", lw=1.2, alpha=0.6),
-    fontsize=7.5, color="red", alpha=0.8,
-    bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="red", alpha=0.7),
-)
-ax.annotate(
-    f"L2 ceiling:\n{t_l2_pred:.1f} TFLOPS\n(FP16 already\nbounded by L2)",
-    xy=(ai_bs1, t_l2_pred),
-    xytext=(0.5, 35),
-    arrowprops=dict(arrowstyle="->", color="blue", lw=1.2, alpha=0.8),
-    fontsize=7.5, color="blue", alpha=0.9,
-    bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="blue", alpha=0.7),
-)
-
-# ── Weight size reference lines (L2 residency context) ───────────────────────
-ax.axvline(x=ai_bs1, color="navy", lw=0.7, linestyle="-.", alpha=0.5, zorder=1)
-ax.text(ai_bs1 * 1.06, 0.05,
-        f"MLA weight\n16 MB (BS=1)\nAI={ai_bs1:.2f}",
-        fontsize=7, color="navy", alpha=0.75)
-
-# ── Axes styling ──────────────────────────────────────────────────────────────
-ax.set_xlabel("Arithmetic Intensity (FLOP/byte)", fontsize=12)
-ax.set_ylabel("Achieved Performance (TFLOPS)", fontsize=12)
-ax.set_title(
-    "Cache-Aware Roofline: MLA Reconstruction on H100 SXM5\n"
-    "DeepSeek-V3 · BMM1 (H=128, K=128, N=512) · FP16 vs INT4",
-    fontsize=12,
-)
-ax.set_xlim(ai_range[0], ai_range[-1])
-ax.set_ylim(0.008, H100_TFLOPS * 3)
-ax.grid(True, alpha=0.2, which="both")
-ax.legend(fontsize=8.5, loc="lower right", framealpha=0.92)
-
-# ── Save ──────────────────────────────────────────────────────────────────────
-out_dir = os.path.join(script_dir, "..", "paper", "figures")
-os.makedirs(out_dir, exist_ok=True)
+# Panel C: model validation, predicted vs measured
+meas_f = [p["fp16_us"] for p in pts]
+pred_f = [predict_fp16_us(p["flops"], p["fp16_bytes"]) for p in pts]
+meas_i = [p["int4_us"] for p in pts]
+pred_i = [predict_int4_us(p["bs"]) for p in pts]
+lo, hi = 2, 400
+cx.loglog([lo, hi], [lo, hi], "k-", lw=1, alpha=0.5)
+cx.loglog([lo, hi], [lo * 1.25, hi * 1.25], "k:", lw=0.8, alpha=0.4)
+cx.loglog([lo, hi], [lo / 1.25, hi / 1.25], "k:", lw=0.8, alpha=0.4)
+cx.scatter(meas_f, pred_f, s=70, color=C_FP, zorder=5, label="FP16: t$_0$+max(B/BW(WS), F/P)")
+cx.scatter(meas_i, pred_i, s=70, marker="^", color=C_I4, zorder=5,
+           label="INT4: t$_0$'+W$_{packed}$·⌈bs/16⌉/R$_{dq}$")
+for p, m, pr in zip(pts, meas_f, pred_f):
+    cx.annotate(f"{p['bs']}", xy=(m, pr), xytext=(4, -2), textcoords="offset points",
+                fontsize=7, color=C_FP)
+mape_f = float(np.mean([abs(a - b) / a for a, b in zip(meas_f, pred_f)])) * 100
+mape_i = float(np.mean([abs(a - b) / a for a, b in zip(meas_i, pred_i)])) * 100
+cx.set_xlabel("Measured latency (µs, graph-timed)")
+cx.set_ylabel("Model-predicted latency (µs)")
+cx.set_title(f"C — Model validation across batch sizes\nFP16 MAPE {mape_f:.0f}%  ·  INT4 MAPE {mape_i:.0f}%  (dotted = ±25%)")
+cx.grid(alpha=0.25, which="both"); cx.legend(fontsize=8, loc="upper left")
 
 plt.tight_layout()
+out_dir = os.path.join(_D, "..", "paper", "figures")
+os.makedirs(out_dir, exist_ok=True)
 for ext in ("png", "pdf"):
-    path = os.path.join(out_dir, f"cache_aware_roofline.{ext}")
-    plt.savefig(path, dpi=200, bbox_inches="tight")
-    print(f"Saved: {path}")
-
+    fp = os.path.join(out_dir, f"carm_roofline.{ext}")
+    plt.savefig(fp, dpi=170, bbox_inches="tight")
+    print("Saved:", fp)
 plt.close()
 
-# ── Console summary ───────────────────────────────────────────────────────────
-print("\nMLA Operating Points (FP16 BMM1)")
-print(f"{'BS':>6} {'AI (F/B)':>10} {'Measured':>12} {'L2 pred':>10} {'DRAM pred':>11}")
-print("-" * 55)
-for bs, ai, t in zip(batch_sizes, fp16_ai, fp16_measured_tflops):
-    l2_pred   = min(ai * H100_L2_BW,   H100_TFLOPS)
-    dram_pred = min(ai * H100_DRAM_BW, H100_TFLOPS)
-    region = ("L2-bound" if ai < AI_L2_CROSS
-               else "compute-bound" if ai > AI_DRAM_CROSS else "HBM-bound")
-    print(f"{bs:>6} {ai:>10.2f} {t:>10.2f} T {l2_pred:>8.1f} T {dram_pred:>9.2f} T  [{region}]")
+# ── Persist fitted model + console table ─────────────────────────────────────
+model = {
+    "gpu": P["gpu"],
+    "peak_tflops": PEAK,
+    "bw_hbm_tbs": BW_HBM,
+    "bw_l2_gemm_tbs": BW_L2_GEMM,
+    "bw_l2_reduction_tbs": BW_L2_RED,
+    "effective_l2_capacity_mb": C_EFF_MB,
+    "t0_graph_us": T0_GRAPH,
+    "t0_eager_us": T0_EAGER,
+    "t0_int4_us": T0_INT4,
+    "r_dequant_tbs": round(R_DQ / 1e12, 3),
+    "int4_incore_ceiling_tflops": round(4 * BLOCK_M * R_DQ / 1e12, 1),
+    "fp16_mape_pct": round(mape_f, 1),
+    "int4_mape_pct": round(mape_i, 1),
+}
+with open(os.path.join(_D, "carm_model.json"), "w") as f:
+    json.dump(model, f, indent=2)
+print(json.dumps(model, indent=2))
 
-print(f"\nCrossover AIs: L1={AI_L1_CROSS:.1f}, L2={AI_L2_CROSS:.1f}, DRAM={AI_DRAM_CROSS:.0f} FLOP/byte")
-print(f"MLA 16 MB weight fits in L2 (< {L2_CAPACITY_MB:.0f} MB) → FP16 bounded by L2, not HBM")
-print("→ INT4 cannot improve on FP16 by reducing DRAM bytes (FP16 isn't reading from DRAM at steady state)")
+print(f"\n{'bs':>5} {'FP16 meas':>10} {'FP16 pred':>10} {'INT4 meas':>10} {'INT4 pred':>10}")
+for p, pf, pi in zip(pts, pred_f, pred_i):
+    print(f"{p['bs']:>5} {p['fp16_us']:>9.1f}µ {pf:>9.1f}µ {p['int4_us']:>9.1f}µ {pi:>9.1f}µ")

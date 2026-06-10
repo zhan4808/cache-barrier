@@ -1,13 +1,22 @@
 """
-L2 Cache Barrier Experiment
-============================
-Varies reconstruction weight matrix size across the H100 L2 cache boundary (50 MB)
-to causally isolate L2 residency as the reason INT4 fails to outperform FP16.
+L2 Cache Barrier Experiment (interpretation corrected 2026-06)
+==============================================================
+Varies reconstruction weight matrix size across the H100 L2 cache boundary
+while comparing FP16 cuBLAS vs INT4 Triton.
 
-Hypothesis: When FP16 weights fit in L2 (<50 MB), cuBLAS serves them from L2 at
-~12 TB/s, making INT4's HBM savings irrelevant. Once weights exceed L2 capacity,
-FP16 must stream from HBM at 3.35 TB/s, and INT4 (4x smaller, still L2-resident)
-should finally outperform.
+Original hypothesis: when FP16 weights fit in L2 (<50 MB), cuBLAS serves them
+from L2, making INT4's HBM savings irrelevant; above L2, INT4 catches up.
+
+What the audit (profiling/validation/) established:
+  - The residency effect is real but partial: ~75% of a 16 MB weight matrix is
+    L2-served in steady state, at an effective 3.5-4.6 TB/s (not 12 TB/s), and
+    the residency cliff is at ~32-40 MB (effective capacity ~36 MB, not 50 MB).
+  - This sweep's per-launch CUDA-event timing has a ~15.5 us floor; the "flat"
+    FP16 region below 32 MB is that floor, not L2 serving. Use CUDA-graph
+    timing for kernel-level conclusions.
+  - The ratio knee is necessary but NOT sufficient evidence for the L2
+    mechanism: the fixed-shape weight-rotation intervention shows INT4 loses
+    even with FP16 forced to HBM (dequant-compute-bound kernel).
 
 We scale d_lora (the N dimension of BMM1) while keeping H=128 and d_nope=128 fixed.
 Weight size per BMM = H * d_nope * d_lora * 2 bytes.
@@ -288,8 +297,11 @@ def main():
                 print(f"\n*** INT4 first beats FP16 at d_lora={first['d_lora']} "
                       f"({first['weight_mb']} MB) ***")
             else:
-                print(f"\nINT4 did not beat FP16 at any size (dequant overhead may dominate)")
-                print(f"But the ratio should still IMPROVE past {l2_threshold_mb:.0f} MB, confirming L2 hypothesis.")
+                print(f"\nINT4 did not beat FP16 at any size (dequant overhead dominates).")
+                print("NOTE: a ratio improvement past the L2 boundary is consistent with the")
+                print("residency mechanism but does NOT prove it (launch-overhead floor +")
+                print("kernel-variant switching are confounds). See validation/ for the")
+                print("rotation intervention and CUDA-graph timing that isolate the effect.")
             best = min(above, key=lambda r: r["int4_fp16_ratio"])
             worst = min(below, key=lambda r: r["int4_fp16_ratio"])
             print(f"\nBest ratio below L2:  {min(r['int4_fp16_ratio'] for r in below):.2f}x "
