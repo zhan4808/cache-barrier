@@ -45,3 +45,12 @@
 L2 cliff confirmed: 16 MB fp16 61% L2-served; 48 MB fp16 1% L2 (HBM). W8A8 BMM
 faster per-kernel at both sizes but loses end-to-end at 16 MB due to act-quant overhead.
 Next: **P2 CARM revalidate**.
+
+## 2026-06-10 — P2 complete
+
+- Reran `measure_carm_params.py` (hbm 3.146, l2 5.331, t0 2.802/18.048 µs).
+- `validate_carm_mape.py`: **FP16 MAPE 15.5%**, **INT4 MAPE 10.9%** on recon_points.
+- `kernel-compass/profiling/carm.py`: refreshed params, `validate_recon_mape`,
+  `predict_fp16/int4_recon_us`, MoE helpers (`predict_moe_*`, `moe_crossover_tokens`).
+  With W8A16 fix, measured crossover is **None** (wins at all T; min ratio 1.03 @ T=256).
+- Next: **P3** kernel-compass w8a8 baselines + `--compare`.
