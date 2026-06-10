@@ -11,6 +11,10 @@ INT4 quantization of MLA reconstruction weights fails to outperform FP16 cuBLAS 
 
 L2 residency therefore removes most of the theoretical INT4 upside, and dequantization overhead destroys the rest. An earlier version of this claim attributed the failure solely to L2 residency at 50 MB / 12 TB/s; see `profiling/validation/` for the audit, corrected measurements, and causal experiments (CUDA-graph timing, weight rotation, warm-state NCU).
 
+**Constructive confirmation (W8A8, 2026-06):** removing dequantization from the inner loop entirely — INT8 `tl.dot` → int32 accumulator on Hopper IMMA tensor cores, scales applied once on the accumulator — produces the **first quantized kernel that beats cuBLAS FP16**: 1.4–1.5× at bs=1 when weights exceed the ~36 MB effective L2 capacity, and 0.70× (still losing) when they are L2-served. The win/loss boundary sits exactly at the measured residency capacity. See `profiling/w8a8/REPORT.md`.
+
+**Generalization (FlagGems fused_moe):** the shipped per-channel INT8 W8A16 path host-dequantized all expert weights on every call (flat ~8.5 ms); with the in-kernel fix it is 1.07–2.63× over bf16 on Mixtral shapes. Patch + PR body in `profiling/fused_moe/`. The same CARM regime structure (weight-byte-bound vs conversion-bound) governs the token-count crossover.
+
 > **Profiling caveat:** NCU's default `--cache-control all` flushes GPU caches before every replayed launch. All cache-residency conclusions in this repo are now based on `--cache-control none` warm-loop counters and timing-only interventions; cold-cache NCU sweeps are retained but must not be read as residency evidence.
 
 ## Repo Structure
@@ -19,7 +23,9 @@ L2 residency therefore removes most of the theoretical INT4 upside, and dequanti
 kernels/                Triton/PyTorch transformer kernels and benchmarks
 profiling/              Microbenchmarks, NCU profiling scripts, and results
 profiling/validation/   2026-06 methodology audit: causal experiments, corrected figures, REPORT.md
-paper/                  LaTeX source and figures
+profiling/w8a8/         W8A8 INT8-MMA BMM kernel: the constructive result (REPORT.md, figure)
+profiling/fused_moe/    FlagGems mixed-precision fused_moe analysis, W8A16 fix patch, PR body
+paper/                  LaTeX source and figures (dist/arxiv_submission.tar.gz = arXiv package)
 ```
 
 ## Requirements
@@ -75,6 +81,14 @@ python make_figures.py             # audit figures (figures/)
 cd profiling
 python measure_carm_params.py      # measure tier bandwidths, fixed costs, operating points
 python plot_cache_aware_roofline.py  # build + validate model, render paper figure
+```
+
+**W8A8 INT8-MMA kernel (constructive result):**
+```bash
+cd profiling/w8a8
+python w8a8_bmm.py                 # correctness check
+python bench_w8a8.py               # graph-timed bs + weight-size sweeps vs cuBLAS/W4A16
+python plot_w8a8.py                # figure
 ```
 
 See `profiling/RUNBOOK.md` for full instructions and `profiling/RESULTS.md` for a summary of findings.
