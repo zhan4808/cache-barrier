@@ -1,0 +1,66 @@
+{
+  "gpu": "NVIDIA H100 80GB HBM3",
+  "layer_mb": 16.0,
+  "rows": [
+    {
+      "n_layers": 1,
+      "weight_mb": 16.0,
+      "fp16_us": 4.93,
+      "w8a8_us": 6.87,
+      "w4a16_us": 9.22,
+      "w8a8_speedup": 0.717,
+      "carm_fp16_pred_us": 5.98,
+      "l2_served": true
+    },
+    {
+      "n_layers": 2,
+      "weight_mb": 32.0,
+      "fp16_us": 9.58,
+      "w8a8_us": 12.09,
+      "w4a16_us": 18.3,
+      "w8a8_speedup": 0.792,
+      "carm_fp16_pred_us": 9.16,
+      "l2_served": true
+    },
+    {
+      "n_layers": 3,
+      "weight_mb": 48.0,
+      "fp16_us": 24.56,
+      "w8a8_us": 17.1,
+      "w4a16_us": 26.82,
+      "w8a8_speedup": 1.436,
+      "carm_fp16_pred_us": 18.96,
+      "l2_served": false
+    },
+    {
+      "n_layers": 4,
+      "weight_mb": 64.0,
+      "fp16_us": 31.4,
+      "w8a8_us": 23.59,
+      "w4a16_us": 36.06,
+      "w8a8_speedup": 1.331,
+      "carm_fp16_pred_us": 24.34,
+      "l2_served": false
+    },
+    {
+      "n_layers": 5,
+      "weight_mb": 80.0,
+      "fp16_us": 40.78,
+      "w8a8_us": 34.53,
+      "w4a16_us": 44.82,
+      "w8a8_speedup": 1.181,
+      "carm_fp16_pred_us": 29.73,
+      "l2_served": false
+    },
+    {
+      "n_layers": 6,
+      "weight_mb": 96.0,
+      "fp16_us": 48.82,
+      "w8a8_us": 41.66,
+      "w4a16_us": 55.6,
+      "w8a8_speedup": 1.172,
+      "carm_fp16_pred_us": 35.11,
+      "l2_served": false
+    }
+  ]
+}

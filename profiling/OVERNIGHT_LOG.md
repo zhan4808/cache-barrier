@@ -54,3 +54,21 @@ Next: **P2 CARM revalidate**.
   `predict_fp16/int4_recon_us`, MoE helpers (`predict_moe_*`, `moe_crossover_tokens`).
   With W8A16 fix, measured crossover is **None** (wins at all T; min ratio 1.03 @ T=256).
 - Next: **P3** kernel-compass w8a8 baselines + `--compare`.
+
+## 2026-06-10 — P3 complete
+
+- `kernel-compass/kernels/baselines.py`: `make_w8a8_bmm_fn`, `batched_w8a8_gemm`, `bench_w8a8_bmm`.
+- `optimizer/loop.py` uses baselines for w8a8 arm.
+- `python3 -m optimizer.loop --compare`: 128 MB grid accept@1, FFN grid accept@2, LLM accept@1.
+  (16 MB L2-resident: 0 candidates — expected.)
+
+## 2026-06-10 — P4 complete
+
+- Added `figures/w8a8_results.pdf` + Figure in §5.7 (`fig:w8a8`).
+- Rebuilt `main.pdf` and `dist/arxiv_submission.tar.gz` (includes `carm_roofline.pdf`, `w8a8_results.pdf`).
+- Updated §5.8 MoE crossover text (2.7–3.0× at T≥512, no bf16 crossover to T=2048).
+
+## 2026-06-10 — P5 complete
+
+- `profiling/mla_l2_stack/`: graph-timed 1–6 layer stack; W8A8 wins from L=3 (48 MB).
+- Figure `mla_l2_stack.pdf`; stacking sentence added to §5.7.
