@@ -1,0 +1,40 @@
+{
+  "experiment": "red_team_verification",
+  "gpu": "NVIDIA H100 80GB HBM3",
+  "conditions": "SM clock LOCKED to 1755 MHz; drift-controlled (rotated measurement order, median of 3 rounds)",
+  "check1_2_moe_crossover_and_raggedness": {
+    "root_cause": "vLLM ships NO tuned bf16 config for E=8,N=14336 on H100 (only fp8_w8a8 / H200). The default heuristic uses GROUP_SIZE_M=1 below ~M=1280, which cripples L2 reuse of expert weights across M-blocks -> bf16 is anomalously slow in the T=256-512 band. This is real, deterministic vLLM behavior (reproduces to <0.1% across runs), not measurement noise.",
+    "is_measurement_artifact": false,
+    "is_baseline_tuning_artifact": true,
+    "rows_T_bf16def_bf16g16_fp8_us": [
+      [16, 958.6, 961.0, 507.6], [64, 962.6, 967.5, 526.9], [128, 1005.3, 1008.5, 568.2],
+      [192, 1031.3, 1032.6, 695.8], [256, 1383.2, 1065.7, 1057.3], [384, 1799.8, 1198.7, 1389.4],
+      [512, 2204.6, 1377.4, 1785.8], [640, 1867.1, 1511.5, 2083.9], [768, 1895.4, 1547.9, 2353.4],
+      [1024, 2386.3, 1918.5, 3053.4]
+    ],
+    "group_size_m_speedup_bf16_def_over_g16": {"T<=192": 1.00, "T256": 1.30, "T384": 1.50, "T512": 1.60, "T640-1024": 1.24},
+    "small_T_control": "def/g16 = 0.995-0.997 at T<=128 (GROUP_SIZE_M irrelevant with few M-blocks) => method validated AND small-T fp8 win (1.77-1.89x) is config-INDEPENDENT/robust",
+    "crossover_tokens": {
+      "vs_stock_default_bf16": 601,
+      "vs_properly_tuned_bf16_group16": 263,
+      "roofline_model": 334,
+      "reconciliation": "Against a FAIR (tuned) bf16 baseline the measured crossover (263) matches the roofline (334) ~ 300 tokens. The original ~600 was INFLATED by vLLM's under-tuned stock default (GROUP_SIZE_M=1) in the T=256-512 band. The 706 anchor-interp value was a sparse-interpolation artifact and is dropped."
+    },
+    "robust_claims": [
+      "small-T fp8 win ~1.8x (T<=128) is config-independent (HBM-weight-bound)",
+      "large-T fp8 loss 0.63-0.78x (T>=640) holds vs BOTH stock and tuned bf16 (worse vs tuned)",
+      "crossover ~300 tokens vs a fair baseline; ~600 vs stock out-of-the-box vLLM"
+    ]
+  },
+  "check3_mla_washout_robustness": {
+    "C": 4096, "topk": 2048, "h_q": 128,
+    "rows_B_bf16us_fp8us_ratio_bf16KVbw_fp8KVbw": [
+      [1, 62.7, 20.1, 3.12, 0.04, 0.07], [8, 65.7, 30.4, 2.16, 0.29, 0.35],
+      [16, 63.6, 45.7, 1.39, 0.59, 0.47], [32, 68.4, 71.4, 0.96, 1.10, 0.60],
+      [64, 78.1, 109.3, 0.71, 1.93, 0.79], [128, 157.3, 214.2, 0.73, 1.92, 0.80]
+    ],
+    "finding": "FP8 KV does not merely wash out -- it LOSES monotonically at high batch (0.96x @ B=32 -> 0.71x @ B>=64), robust and stable. Root cause: the fp8 with_kvcache decode kernel saturates KV bandwidth at ~0.8 TB/s, BELOW the bf16 sparse_fwd kernel's ~1.9 TB/s, so fewer bytes/token does not translate into lower latency once batch is large.",
+    "confound": "low-batch win (3.1x) is confounded by vLLM's two-kernel dispatch (fp8->decode kernel, bf16->prefill-style sparse_fwd; the latter is inefficient at B=1). The high-batch LOSS is the robust, deployment-relevant signal.",
+    "crossover_batch": 32
+  }
+}

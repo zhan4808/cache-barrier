@@ -27,9 +27,10 @@
       "bf16_moe_mape_pct": 22.3,
       "fp8_w8a16_moe_mape_pct": 12.2,
       "mape_note": "fp8 (quant) MAPE 12.2% improves on the Triton-era INT4 recon MAPE of 18.2%; bf16 MAPE 22.3% is inflated by the vLLM kernel's 256-1024 config-selection raggedness sitting above the smooth roofline",
-      "crossover_tokens_measured": 602,
-      "crossover_tokens_anchor_interp": 706,
-      "crossover_tokens_roofline": 334
+      "crossover_tokens_fair_baseline": 263,
+      "crossover_tokens_roofline": 334,
+      "crossover_tokens_stock_vllm": 601,
+      "crossover_note": "Red-team (clock-locked, drift-controlled, results_verification.json): against a PROPERLY-TUNED bf16 baseline (GROUP_SIZE_M=16) the measured crossover is 263, matching the roofline 334 (~300 tok). The earlier 602 reflected vLLM's UNDER-TUNED stock default (GROUP_SIZE_M=1, no tuned bf16 config shipped for E=8,N=14336 on H100), which is real deployment behavior but inflates the crossover. The 706 anchor-interp value is dropped as a sparse-interpolation artifact. Robust/tuning-independent: small-T fp8 win ~1.8x (T<=128) and large-T loss 0.63-0.78x (T>=640)."
     },
     "gpu_parameterized_crossover": {
       "h100_w8a16_weightonly": 334,

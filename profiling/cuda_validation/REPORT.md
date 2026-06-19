@@ -10,9 +10,11 @@ it GPU-parameterized.
 would sink it** — but the Triton numbers were *distorted by a bad bf16 baseline*, and
 the tuned-CUDA data tells a **cleaner, more correct** story that *strengthens* the
 cache-aware-roofline thesis: weight-only quant wins only in the memory-bound regime and
-**loses once compute-bound**, with a now-visible crossover at **≈600 tokens** for the
-Mixtral MoE shape. FP8-KV MLA shows the same regime structure on the batch axis (wins at
-low batch, washes out at high batch).
+**loses once compute-bound**. A clock-locked red-team pass (§7) pins the MoE crossover at
+**≈300 tokens against a properly-tuned bf16 baseline — matching the roofline's 334** — and
+shows the looser "≈600" figure was inflated by vLLM's *under-tuned stock config*
+(`GROUP_SIZE_M=1`) for this shape. FP8-KV MLA shows the same regime structure on the batch
+axis (≈3× at low batch, then a **net loss, 0.71×, at high batch**).
 
 ---
 
@@ -93,9 +95,9 @@ Figure: `figures/cuda_moe_triton_vs_cuda.png`.
 > **Does the tuned-CUDA path also wash out at small T (≤128)? No — it wins *more* (fp8
 > 1.76–1.90×).** The real correction is at *large* T: the tuned-CUDA bf16 baseline is
 > *competent* (it does not blow up the way the Triton bf16 baseline did), so weight-only
-> quant **crosses over and LOSES above ≈600 tokens** (0.59× at T=2048) — the in-core
-> dequant ceiling, finally visible. **The Triton "2.7–3.0× win at high T" was a
-> bad-baseline artifact**, not a property of the quant kernel.
+> quant **crosses over (≈300 tokens vs a properly-tuned bf16, §7) and LOSES outright by high
+> T** (0.59× at T=2048) — the in-core dequant ceiling, finally visible. **The Triton "2.7–3.0×
+> win at high T" was a bad-baseline artifact**, not a property of the quant kernel.
 
 So the result is **part fundamental, part Triton artifact**, and we re-scope honestly:
 
@@ -182,8 +184,8 @@ ceiling catches up.
 
 | operator | crossover | source |
 |---|---|---|
-| MoE fp8 W8A16 (this shape) | **≈600 tokens** (measured); 706 anchor-interp; 334 smooth-roofline | Exp A / `carm.moe_crossover_tokens_cuda()` |
-| MLA FP8 KV (topk=2048) | **batch ≈16–32** (washout) | Exp B |
+| MoE fp8 W8A16 (this shape) | **≈300 tokens** vs a fair bf16 baseline (measured 263, roofline 334); ≈600 vs under-tuned stock vLLM — see §7 | Exp A + §7 |
+| MLA FP8 KV (topk=2048) | **batch ≈32** (parity; net loss 0.71× beyond) | Exp B + §7 |
 
 ### GPU-parameterized crossover
 
@@ -208,7 +210,48 @@ measured here**. (`carm_cuda_params.json`, `CARM_PARAMS["b200"]`.)
 
 ---
 
-## 5. (Design-only) Dispatch hook — quantized vs dense by token count
+## 5. Red-team verification (clock-locked, drift-controlled)
+
+Three load-bearing claims were independently re-checked with the **SM clock locked to
+1755 MHz** and **rotated measurement order** (median of 3 interleaved rounds), so neither
+thermal/boost drift nor measurement order can move the numbers. (`verify_moe_crossover_v2.py`,
+`verify_mla_washout.py`, `results_verification.json`.)
+
+**(1+2) The bf16 "config raggedness" is real vLLM behavior, and it inflated the crossover.**
+vLLM ships **no tuned bf16 config** for E=8,N=14336 on H100 (only `fp8_w8a8`/H200), so it falls
+back to a default heuristic that uses **`GROUP_SIZE_M=1`** below ~M=1280 — which cripples L2
+reuse of expert weights across M-blocks. Forcing `GROUP_SIZE_M=16` (the value the heuristic
+itself uses at larger M) speeds up bf16 by **1.30–1.60× in the T=256–512 band** and removes the
+spike. Consequences:
+
+| | crossover T* |
+|---|---|
+| fp8 W8A16 vs **stock-default** bf16 (`GROUP_SIZE_M=1`) | **601** |
+| fp8 W8A16 vs **properly-tuned** bf16 (`GROUP_SIZE_M=16`) | **263** |
+| smooth roofline (§4) | 334 |
+
+The three numbers **reconcile**: against a *fair* bf16 baseline the measured crossover (263) sits
+right at the roofline (334) — **≈300 tokens** — and the loose "≈600" was an *under-tuned-baseline*
+artifact, not a property of the quant kernel. The 706 anchor-interpolation figure was a
+sparse-interp artifact and is **dropped**. Two claims are **config-independent and robust** (a
+small-T control confirms `GROUP_SIZE_M` is irrelevant at T≤128, `def/g16 = 0.997`): the **small-T
+fp8 win (~1.8×, T≤128)** and the **large-T fp8 loss (0.63–0.78×, T≥640)**.
+
+> **Honest headline:** quant's win window for this MoE shape is **T ≲ 300 against a competent
+> bf16 baseline** (not ~600). The model predicted this; the stock-vLLM number was generous to quant.
+
+**(3) The MLA FP8-KV high-batch result is robust — and is a *loss*, not just a washout.**
+Extending batch to 128 (clock-locked), the FP8/bf16-KV ratio falls **monotonically**: 3.12× (B=1)
+→ 1.39× (B=16) → 0.96× (B=32) → **0.71× (B≥64)**. The bandwidth columns show why: the fp8
+`with_kvcache` decode kernel saturates KV bandwidth at **~0.8 TB/s**, *below* the bf16
+`sparse_fwd` kernel's **~1.9 TB/s**, so fewer bytes/token stops helping once batch is large. The
+low-batch win remains confounded by the two-kernel dispatch (acknowledged §3); the **high-batch
+loss is the robust, deployment-relevant signal**, and it is *stronger* than the original
+"washes out to parity" wording.
+
+---
+
+## 6. (Design-only) Dispatch hook — quantized vs dense by token count
 
 **Why upstream of the operator.** `fused_marlin_moe` / `flash_mla_*` see *already-quantized*
 data; they cannot choose. The decision must live where the per-step **token count** is known
@@ -220,7 +263,9 @@ and both weight representations can be reached — the layer/scheduler boundary.
    `num_tokens = hidden_states.shape[0]` against the CARM crossover for *that layer's* shape
    (E,H,I): `T < T*` → quantized Marlin experts; `T ≥ T*` → bf16 `fused_experts`. `T*` comes
    from `carm.moe_crossover_tokens_cuda()` / the GPU-parameterized `moe_crossover(gpu, mode)`
-   at load time (≈600 for this shape on H100).
+   at load time (**≈300 for this shape on H100** against a competent bf16 baseline, §7; a
+   *quantization-only* deployment that keeps no bf16 copy simply lives with the bounded high-T
+   loss and needs no dispatch).
 2. **MLA:** the analogous knob is **batch/elements-per-step**: route small-batch decode steps
    to FP8 KV and large-batch / chunked-prefill steps to bf16, keyed on the Exp-B crossover
    (batch ≈16–32). This aligns naturally with vLLM v1's prefill/decode split.
@@ -239,7 +284,7 @@ implementation this session, per scope.)
 
 ---
 
-## 6. Files
+## 7. Files
 
 ```
 profiling/cuda_validation/
@@ -248,6 +293,8 @@ profiling/cuda_validation/
   bench_cuda_moe.py              Exp A   -> results_cuda_moe.json (+ _run1 repro)
   bench_flashmla_sparse.py       Exp B   -> results_flashmla_sparse.json
   carm_cuda_fit.py               Exp C   -> carm_cuda_params.json
+  verify_moe_crossover_v2.py     §7 red-team (clock-locked) -> results_verification.json
+  verify_mla_washout.py          §7 red-team (clock-locked, batch->128)
   probe_marlin.py / probe_flashmla.py / probe_dense.py   de-risking probes (incl. the
                                  recorded "no same-kernel MLA control on Hopper" finding)
   plot_cuda_moe.py / plot_flashmla.py    figures/*.png,*.pdf
@@ -261,8 +308,9 @@ results updated in place:
 The "no benefit at small token counts" framing should be **replaced** by the sharper,
 CUDA-validated statement: *weight-only quantization wins only inside a bounded memory-bound
 window and loses outside it on both sides* — when weights are L2-resident (small matrices) and
-when compute-bound (large token counts), the latter now cleanly visible at **≈600 tokens** on a
-**tuned** CUDA MoE kernel. The Triton numbers were not "wrong about small T" but were distorted
+when compute-bound (large token counts), the latter now cleanly visible at **≈300 tokens against
+a competent bf16 baseline** on a tuned CUDA MoE kernel (§7). The Triton numbers were not "wrong
+about small T" but were distorted
 at **large** T by an uncompetitive bf16 baseline; the corrected, tuned-CUDA picture is more
 favorable to the cache-aware-roofline thesis, not less. Matched-precision quant (W8A8 today,
 native MXFP4 on Blackwell) is the way to win in the compute-bound regime — and CARM, now
