@@ -262,7 +262,7 @@ graph-timed, fp8 rel-err ≈0.006 (`task3_target_shapes.py`, `task3_dispatch_moe
 |---|---|---|---|---|---|
 | Mixtral-8x7B | 8 / 4096 / 14336 / 2 | 1.9× | **~1024 stock (~300 tuned, §7)** | 0.60× | 1.06× vs always-fp8 |
 | **DeepSeek-V4-Flash** | 256 / 4096 / 2048 / 6 | 1.9× | **none — fp8 wins to 2048** (1.4–2.0×) | 1.42× | 1.00× (=always-fp8) |
-| **Qwen3.6-35B-A3B** | 256 / 2048 / 512 / 8 | 1.7× | **~2048** | 0.93× | 1.00× (=always-fp8) |
+| **Qwen3.6-35B-A3B** | 256 / 2048 / 512 / 8 | 1.7× | **~1900** (stock=tuned) | 0.93× | 1.00× (=always-fp8) |
 
 **The crossover is shape-governed, and it is the headline of the shape-parameterized CARM.**
 Coarse-grained MoE (Mixtral: 8 *big* experts, I=14336) reaches compute-bound early → quant
@@ -278,11 +278,20 @@ earns its keep. A CARM-dispatched MoE over a continuous-batching trace **equals 
 every shape** (1.6–1.9× vs bf16; 1.0–1.4× vs the better static policy depending on prefill
 fraction — `results_task3_dispatch.json`).
 
-*Caveat (honest):* the bf16 baseline here is stock vLLM (under-tuned for these shapes too, §7);
-against a perfectly-tuned bf16 the fine-grained crossovers would move in somewhat, but the
-memory-bound structure (many experts read per token) means fp8 still wins broadly. Full-model
-serving of DeepSeek-V4 (1.6T) needs multi-GPU; this is the faithful **MoE-layer** unit where the
-dispatch decision lives.
+**Tuned-baseline re-check (the §7 trap, applied to the targets — `verify_target_tuned.py`).**
+The "always-quantize" claim was first measured against *stock* vLLM bf16 — the same under-tuned
+baseline that inflated the Mixtral crossover. So it was re-checked against a **tuned** bf16
+(sweeping `GROUP_SIZE_M ∈ {1,8,16,32,64}`, best per T). Result: for the fine-grained targets,
+tuning is **inert** — `bf16_best ≈ bf16_default` at every T, and the crossover is unchanged
+(DeepSeek: none→none; Qwen: 1908→1904). The mechanism is the point: these shapes stream **256
+distinct expert weights from HBM** with little cross-M-block reuse, so they are **HBM-weight-byte-
+bound, not L2-reuse-bound** — and `GROUP_SIZE_M` (an L2-reuse knob) cannot change how many weight
+*bytes* bf16 must read, which is exactly what fp8 halves. *That* is why fine-grained MoE differs
+from Mixtral (8 big experts → lots of L2-reuse headroom that `GROUP_SIZE_M` unlocks), and why the
+"always-quantize the targets" conclusion is structural, not a baseline artifact. (Full autotune
+of BLOCK_M/N/K could squeeze bf16 a few % more, but cannot touch the byte-count argument.)
+Full-model serving of DeepSeek-V4 (1.6T) needs multi-GPU; this is the faithful **MoE-layer** unit
+where the dispatch decision lives.
 
 ### 6b. Where the hook lives (design)
 
