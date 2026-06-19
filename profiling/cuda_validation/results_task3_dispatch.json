@@ -1,0 +1,55 @@
+{
+  "experiment": "task3_carm_dispatch_moe_layer_e2e",
+  "gpu": "NVIDIA H100 80GB HBM3",
+  "shape": {
+    "E": 8,
+    "H": 4096,
+    "I": 14336,
+    "topk": 2
+  },
+  "clock": "locked 1755MHz",
+  "trace": {
+    "16": 50,
+    "32": 30,
+    "64": 20,
+    "128": 12,
+    "256": 6,
+    "512": 4,
+    "1024": 2,
+    "2048": 1
+  },
+  "crossover_Tstar": 1024,
+  "bf16_us": {
+    "16": 957.2672367095947,
+    "32": 960.1424217224121,
+    "64": 962.6528263092041,
+    "128": 1004.527997970581,
+    "256": 1383.3727836608887,
+    "512": 2204.0671348571777,
+    "1024": 2377.5872230529785,
+    "2048": 3378.164863586426
+  },
+  "fp8_us": {
+    "16": 508.5599899291993,
+    "32": 503.8095951080322,
+    "64": 527.4976015090942,
+    "128": 567.8575992584229,
+    "256": 1003.6288261413575,
+    "512": 1795.1791763305664,
+    "1024": 3033.5824012756348,
+    "2048": 5651.203155517578
+  },
+  "totals_ms": {
+    "always_bf16": 133.22,
+    "always_fp8": 82.83,
+    "carm_dispatch": 79.24,
+    "oracle": 79.24
+  },
+  "speedup_vs_bf16": {
+    "always_fp8": 1.608,
+    "carm_dispatch": 1.681,
+    "oracle": 1.681
+  },
+  "dispatch_vs_always_fp8": 1.045,
+  "note": "Dispatch wins over BOTH static policies: it gets fp8's small-T win AND avoids fp8's large-T loss. Full-model serving of DeepSeek-V4(1.6T)/Qwen3.6-35B needs multi-GPU; this is the faithful layer-level unit where the dispatch decision lives."
+}
