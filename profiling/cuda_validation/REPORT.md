@@ -251,7 +251,41 @@ loss is the robust, deployment-relevant signal**, and it is *stronger* than the 
 
 ---
 
-## 6. (Design-only) Dispatch hook — quantized vs dense by token count
+## 6. Dispatch hook — design + measured Task-3 results
+
+### 6a. Measured: the crossover moves with shape, and the dispatcher = oracle
+
+Run at the **real target-model MoE shapes** (HF `config.json`, 2026-06), clock-locked,
+graph-timed, fp8 rel-err ≈0.006 (`task3_target_shapes.py`, `task3_dispatch_moe.py`):
+
+| model | E / H / I / top-k | fp8 win @small-T | **crossover T\*** | fp8 @T=2048 | dispatcher |
+|---|---|---|---|---|---|
+| Mixtral-8x7B | 8 / 4096 / 14336 / 2 | 1.9× | **~1024 stock (~300 tuned, §7)** | 0.60× | 1.06× vs always-fp8 |
+| **DeepSeek-V4-Flash** | 256 / 4096 / 2048 / 6 | 1.9× | **none — fp8 wins to 2048** (1.4–2.0×) | 1.42× | 1.00× (=always-fp8) |
+| **Qwen3.6-35B-A3B** | 256 / 2048 / 512 / 8 | 1.7× | **~2048** | 0.93× | 1.00× (=always-fp8) |
+
+**The crossover is shape-governed, and it is the headline of the shape-parameterized CARM.**
+Coarse-grained MoE (Mixtral: 8 *big* experts, I=14336) reaches compute-bound early → quant
+crosses over in the few-hundred-to-~1000-token range. The **actual target models are
+fine-grained** (256 *small* experts, I=2048/512, top-k 6–8): each token reads many small
+expert weights but does little compute per expert, so they stay **weight-memory-bound across
+the entire practical token range** → **weight-only fp8 wins everywhere (1.4–2.0×)**.
+
+So the deployment rule sharpens: **CARM tells you which models need a dispatch at all.**
+DeepSeek-V4-Flash and Qwen3.6-35B should simply **always quantize** the expert GEMMs (no
+dispatch, no second weight copy); a Mixtral-style coarse MoE is where the token-count dispatch
+earns its keep. A CARM-dispatched MoE over a continuous-batching trace **equals the oracle at
+every shape** (1.6–1.9× vs bf16; 1.0–1.4× vs the better static policy depending on prefill
+fraction — `results_task3_dispatch.json`).
+
+*Caveat (honest):* the bf16 baseline here is stock vLLM (under-tuned for these shapes too, §7);
+against a perfectly-tuned bf16 the fine-grained crossovers would move in somewhat, but the
+memory-bound structure (many experts read per token) means fp8 still wins broadly. Full-model
+serving of DeepSeek-V4 (1.6T) needs multi-GPU; this is the faithful **MoE-layer** unit where the
+dispatch decision lives.
+
+### 6b. Where the hook lives (design)
+
 
 **Why upstream of the operator.** `fused_marlin_moe` / `flash_mla_*` see *already-quantized*
 data; they cannot choose. The decision must live where the per-step **token count** is known
