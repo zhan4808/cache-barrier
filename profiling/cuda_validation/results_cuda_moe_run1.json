@@ -1,0 +1,119 @@
+{
+  "experiment": "A_fused_moe_cuda_vs_triton",
+  "gpu": "NVIDIA H100 80GB HBM3",
+  "versions": {
+    "gpu": "NVIDIA H100 80GB HBM3",
+    "torch": "2.11.0+cu130",
+    "cuda": "13.0",
+    "triton": "3.6.0",
+    "vllm": "0.20.2",
+    "flash_mla": "<absent: ModuleNotFoundError>",
+    "flashmla": "<absent: ModuleNotFoundError>"
+  },
+  "shape": {
+    "E": 8,
+    "H": 4096,
+    "I": 14336,
+    "topk": 2
+  },
+  "method": "graph_med_us 10 launches/graph, median of 40 replays (matches Triton extended sweep)",
+  "note_mxfp4": "H100 has NO FP4 tensor cores: mxfp4_w4a16 is EMULATED (FP4 dequantized to bf16, matmul in bf16). Not a fundamental conclusion.",
+  "correctness": {
+    "fp8_w8a16_relerr": 0.0057,
+    "mxfp4_w4a16_EMU_relerr": 0.0038,
+    "ref": "bf16 fused_experts on each path's dequantized weights @T=128"
+  },
+  "rows": [
+    {
+      "T": 16,
+      "bf16": 953.2,
+      "fp8_w8a16": 505.3,
+      "mxfp4_w4a16_EMU": 301.5,
+      "fp8_vs_bf16": 1.886,
+      "mxfp4_EMU_vs_bf16": 3.162,
+      "timing": {
+        "bf16": "graph",
+        "fp8": "graph",
+        "mxfp4": "graph"
+      }
+    },
+    {
+      "T": 64,
+      "bf16": 961.1,
+      "fp8_w8a16": 524.4,
+      "mxfp4_w4a16_EMU": 435.5,
+      "fp8_vs_bf16": 1.833,
+      "mxfp4_EMU_vs_bf16": 2.207,
+      "timing": {
+        "bf16": "graph",
+        "fp8": "graph",
+        "mxfp4": "graph"
+      }
+    },
+    {
+      "T": 128,
+      "bf16": 999.6,
+      "fp8_w8a16": 566.7,
+      "mxfp4_w4a16_EMU": 554.5,
+      "fp8_vs_bf16": 1.764,
+      "mxfp4_EMU_vs_bf16": 1.803,
+      "timing": {
+        "bf16": "graph",
+        "fp8": "graph",
+        "mxfp4": "graph"
+      }
+    },
+    {
+      "T": 256,
+      "bf16": 1384.7,
+      "fp8_w8a16": 1013.5,
+      "mxfp4_w4a16_EMU": 1037.0,
+      "fp8_vs_bf16": 1.366,
+      "mxfp4_EMU_vs_bf16": 1.335,
+      "timing": {
+        "bf16": "graph",
+        "fp8": "graph",
+        "mxfp4": "graph"
+      }
+    },
+    {
+      "T": 512,
+      "bf16": 2209.3,
+      "fp8_w8a16": 1782.5,
+      "mxfp4_w4a16_EMU": 1757.0,
+      "fp8_vs_bf16": 1.239,
+      "mxfp4_EMU_vs_bf16": 1.257,
+      "timing": {
+        "bf16": "graph",
+        "fp8": "graph",
+        "mxfp4": "graph"
+      }
+    },
+    {
+      "T": 1024,
+      "bf16": 2366.6,
+      "fp8_w8a16": 2971.1,
+      "mxfp4_w4a16_EMU": 3021.4,
+      "fp8_vs_bf16": 0.797,
+      "mxfp4_EMU_vs_bf16": 0.783,
+      "timing": {
+        "bf16": "graph",
+        "fp8": "graph",
+        "mxfp4": "graph"
+      }
+    },
+    {
+      "T": 2048,
+      "bf16": 3309.2,
+      "fp8_w8a16": 5691.0,
+      "mxfp4_w4a16_EMU": 5617.7,
+      "fp8_vs_bf16": 0.581,
+      "mxfp4_EMU_vs_bf16": 0.589,
+      "timing": {
+        "bf16": "graph",
+        "fp8": "graph",
+        "mxfp4": "graph"
+      }
+    }
+  ]
+}

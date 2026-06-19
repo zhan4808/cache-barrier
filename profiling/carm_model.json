@@ -11,5 +11,32 @@
   "r_dequant_tbs": 0.496,
   "int4_incore_ceiling_tflops": 31.7,
   "fp16_mape_pct": 10.2,
-  "int4_mape_pct": 18.2
+  "int4_mape_pct": 18.2,
+  "cuda_validation_2026_06_19": {
+    "stack": "vLLM 0.20.2, torch 2.11.0+cu130, triton 3.6.0",
+    "base_params_cuda_stack": {
+      "hbm_read_tbs": 3.121,
+      "l2_read_tbs": 5.617,
+      "kernel_floor_us": 2.778,
+      "note": "essentially unchanged from the torch-2.7 Triton-era params (3.146 / 5.331 / 2.802): the CUDA stack is not a confound"
+    },
+    "moe_fit": {
+      "operator": "Marlin fused_moe, Mixtral E=8 H=4096 I=14336 topk=2",
+      "peak_bf16_tflops": 712.9,
+      "dequant_ceiling_tflops": 422.9,
+      "bf16_moe_mape_pct": 22.3,
+      "fp8_w8a16_moe_mape_pct": 12.2,
+      "mape_note": "fp8 (quant) MAPE 12.2% improves on the Triton-era INT4 recon MAPE of 18.2%; bf16 MAPE 22.3% is inflated by the vLLM kernel's 256-1024 config-selection raggedness sitting above the smooth roofline",
+      "crossover_tokens_measured": 602,
+      "crossover_tokens_anchor_interp": 706,
+      "crossover_tokens_roofline": 334
+    },
+    "gpu_parameterized_crossover": {
+      "h100_w8a16_weightonly": 334,
+      "h100_w8a8_matched_native": null,
+      "h100_w4a4_mxfp4_emulated": 334,
+      "b200_w4a4_mxfp4_native": null,
+      "interpretation": "weight-only quant (bf16 compute) hits the dequant ceiling -> crossover exists on any GPU; matched-precision quant wins everywhere only when its precision has native tensor-core MMA (INT8/FP8 on H100; FP4 added on B200). null = quant wins across the whole token range."
+    }
+  }
 }

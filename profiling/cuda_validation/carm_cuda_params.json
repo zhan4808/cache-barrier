@@ -1,0 +1,159 @@
+{
+  "experiment": "C_carm_cuda_refit_gpu_parameterized",
+  "gpu": "NVIDIA H100 80GB HBM3",
+  "torch": "2.11.0+cu130",
+  "base_params_cuda_stack": {
+    "hbm_read_tbs": 3.121,
+    "l2_read_tbs": 5.617,
+    "kernel_floor_us": 2.778
+  },
+  "model": "t = t0 + max(B/BW(WS), F/P); P=dequant-ceiling for weight-only, native-peak for matched-precision iff precision in GPU native_mma",
+  "fit_h100": {
+    "peak_bf16_tflops": 712.9,
+    "dequant_ceiling_tflops": 422.9
+  },
+  "mape": {
+    "bf16_moe_pct": 22.3,
+    "fp8_w8a16_moe_pct": 12.2,
+    "triton_recon_baseline": {
+      "fp16_pct": 10.2,
+      "int4_pct": 18.2
+    },
+    "rows": [
+      {
+        "T": 16,
+        "bf16_meas": 952.8,
+        "bf16_pred": 906.8,
+        "fp8_meas": 502.0,
+        "fp8_pred": 455.3
+      },
+      {
+        "T": 64,
+        "bf16_meas": 961.5,
+        "bf16_pred": 909.7,
+        "fp8_meas": 524.8,
+        "fp8_pred": 458.2
+      },
+      {
+        "T": 128,
+        "bf16_meas": 999.2,
+        "bf16_pred": 913.6,
+        "fp8_meas": 567.6,
+        "fp8_pred": 462.1
+      },
+      {
+        "T": 256,
+        "bf16_meas": 1386.2,
+        "bf16_pred": 921.3,
+        "fp8_meas": 1013.2,
+        "fp8_pred": 713.7
+      },
+      {
+        "T": 512,
+        "bf16_meas": 2210.1,
+        "bf16_pred": 936.8,
+        "fp8_meas": 1791.2,
+        "fp8_pred": 1424.6
+      },
+      {
+        "T": 640,
+        "bf16_meas": 1867.3,
+        "bf16_pred": 1057.1,
+        "fp8_meas": 2070.1,
+        "fp8_pred": 1780.1
+      },
+      {
+        "T": 768,
+        "bf16_meas": 1912.2,
+        "bf16_pred": 1268.0,
+        "fp8_meas": 2349.6,
+        "fp8_pred": 2135.5
+      },
+      {
+        "T": 896,
+        "bf16_meas": 1947.3,
+        "bf16_pred": 1478.8,
+        "fp8_meas": 2735.2,
+        "fp8_pred": 2491.0
+      },
+      {
+        "T": 1024,
+        "bf16_meas": 2404.2,
+        "bf16_pred": 1689.7,
+        "fp8_meas": 3071.3,
+        "fp8_pred": 2846.5
+      },
+      {
+        "T": 1536,
+        "bf16_meas": 2641.1,
+        "bf16_pred": 2533.1,
+        "fp8_meas": 4474.7,
+        "fp8_pred": 4268.3
+      },
+      {
+        "T": 2048,
+        "bf16_meas": 3376.6,
+        "bf16_pred": 3376.6,
+        "fp8_meas": 5690.3,
+        "fp8_pred": 5690.1
+      }
+    ]
+  },
+  "moe_crossover_tokens": {
+    "h100_measured_fp8_w8a16": 602,
+    "predicted": {
+      "h100": {
+        "w8a16": 334,
+        "w4a16_mxfp4": 334,
+        "w8a8": null,
+        "w4a4_mxfp4": 334
+      },
+      "b200": {
+        "w8a16": 294,
+        "w4a16_mxfp4": 294,
+        "w8a8": null,
+        "w4a4_mxfp4": null
+      }
+    }
+  },
+  "gpu_params": {
+    "h100": {
+      "measured": true,
+      "c_eff_mb": 36.0,
+      "bw_l2_tbs": 6.3,
+      "bw_hbm_tbs": 3.121,
+      "peak_bf16_tflops": 712.9,
+      "dequant_ceiling_tflops": 422.9,
+      "t0_us": 2.778,
+      "native_mma": [
+        "int8",
+        "fp8"
+      ],
+      "native_peak_mult": {
+        "int8": 2.0,
+        "fp8": 2.0
+      },
+      "bw_l2_tbs_reduction": 5.617
+    },
+    "b200": {
+      "measured": false,
+      "c_eff_mb": 96.0,
+      "bw_l2_tbs": 10.0,
+      "bw_hbm_tbs": 8.0,
+      "peak_bf16_tflops": 2250.0,
+      "dequant_ceiling_tflops": 960.0,
+      "t0_us": 2.5,
+      "native_mma": [
+        "int8",
+        "fp8",
+        "fp4"
+      ],
+      "native_peak_mult": {
+        "int8": 2.0,
+        "fp8": 2.0,
+        "fp4": 4.0
+      }
+    }
+  },
+  "note_b200": "B200 row is PROJECTED from public Blackwell specs (native FP4 MMA, ~96 MB L2, ~8 TB/s HBM3e), not measured on this H100. It is the hook for the native-FP4 MXFP4 leg; the crossover moves with L2 capacity + native-precision support."
+}
