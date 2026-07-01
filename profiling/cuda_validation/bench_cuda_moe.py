@@ -29,7 +29,10 @@ import sys
 import torch
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from common import graph_med_us, eager_med_us, env_versions, save_json  # noqa: E402
+from common import (  # noqa: E402
+    graph_med_us, eager_med_us, env_versions, save_json,
+    gpu_key, native_low_precisions,
+)
 
 from vllm.model_executor.layers.fused_moe import fused_experts  # noqa: E402
 from vllm.model_executor.layers.fused_moe.fused_marlin_moe import fused_marlin_moe  # noqa: E402
@@ -134,18 +137,27 @@ def main():
         del x, tw, ti
         torch.cuda.empty_cache()
 
+    key = gpu_key()
+    fp4_native = "fp4" in native_low_precisions()
     out = {
         "experiment": "A_fused_moe_cuda_vs_triton",
-        "gpu": ver["gpu"], "versions": ver,
+        "gpu": ver["gpu"], "gpu_key": key, "versions": ver,
         "shape": {"E": E, "H": H, "I": I, "topk": TOPK},
         "method": "graph_med_us 10 launches/graph, median of 40 replays (matches Triton extended sweep)",
-        "note_mxfp4": "H100 has NO FP4 tensor cores: mxfp4_w4a16 is EMULATED "
-                      "(FP4 dequantized to bf16, matmul in bf16). Not a fundamental conclusion.",
+        "note_mxfp4": "mxfp4_w4a16 here is the Marlin path, which dequantizes FP4->bf16 "
+                      "in-kernel and runs bf16 tensor cores on EVERY GPU (EMU is intrinsic "
+                      "to Marlin, not a Hopper-only limitation). The NATIVE FP4-MMA leg "
+                      "(matched-precision W4A4) uses a different kernel (cutlass/trtllm nvfp4) "
+                      "and lives in bench_moe_nvfp4_native.py; it is only native on SM100+ "
+                      f"(fp4_native_hw={fp4_native} on this {key}).",
+        "fp4_native_hw": fp4_native,
         "correctness": {"fp8_w8a16_relerr": round(fp8_rel, 4), "mxfp4_w4a16_EMU_relerr": round(mx_rel, 4),
                         "ref": "bf16 fused_experts on each path's dequantized weights @T=128"},
         "rows": rows,
     }
-    save_json(os.path.join(_D, "results_cuda_moe.json"), out)
+    # GPU-keyed filename so H100/B200/B100 runs coexist; the committed
+    # results_cuda_moe.json remains the historical H100 reference.
+    save_json(os.path.join(_D, f"results_cuda_moe_{key}.json"), out)
 
 
 if __name__ == "__main__":

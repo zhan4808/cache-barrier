@@ -120,6 +120,16 @@ GPU_PARAMS = {
         "native_mma": ["int8", "fp8", "fp4"],   # B200: native FP4
         "native_peak_mult": {"int8": 2.0, "fp8": 2.0, "fp4": 4.0},
     },
+    "b100": {  # PROJECTED lower-power SM100 sibling (native FP4, ~0.8x compute)
+        "measured": False,
+        "c_eff_mb": 96.0,
+        "bw_l2_tbs": 9.6, "bw_hbm_tbs": 7.7,     # HBM3e, slightly below B200
+        "peak_bf16_tflops": 1800.0,              # ~0.8x B200 dense bf16
+        "dequant_ceiling_tflops": 770.0,         # same fraction of peak as B200
+        "t0_us": 2.5,
+        "native_mma": ["int8", "fp8", "fp4"],    # B100: native FP4
+        "native_peak_mult": {"int8": 2.0, "fp8": 2.0, "fp4": 4.0},
+    },
 }
 
 # quant modes: (weight bytes/elem, compute regime, precision tag)
@@ -251,7 +261,7 @@ def main():
     print(f"\n== MoE quant-vs-dense crossover (tokens) ==")
     meas_x = measured_moe_crossover(moe_rows)
     print(f"  H100 measured (fp8 W8A16):           T* ~= {meas_x}")
-    for gpu in ("h100", "b200"):
+    for gpu in ("h100", "b200", "b100"):
         gp = GPU_PARAMS[gpu]
         tag = "measured" if gp["measured"] else "PROJECTED"
         line = []
@@ -274,7 +284,7 @@ def main():
         "moe_crossover_tokens": {
             "h100_measured_fp8_w8a16": meas_x,
             "predicted": {gpu: {m: moe_crossover(GPU_PARAMS[gpu], m) for m in QUANT_MODES}
-                          for gpu in ("h100", "b200")},
+                          for gpu in ("h100", "b200", "b100")},
         },
         "gpu_params": GPU_PARAMS,
         "note_b200": "B200 row is PROJECTED from public Blackwell specs (native FP4 MMA, "

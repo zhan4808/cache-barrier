@@ -74,6 +74,49 @@ def env_versions():
     return out
 
 
+def gpu_key():
+    """Map the live device to a CARM param key (carm.py CARM_PARAMS).
+
+    Keys off compute capability (robust across SKUs/marketing names) with a
+    device-name tiebreak for the 90GB vs 180GB Blackwell parts. Added for the
+    B200/B100 leg so the same bench self-selects params on any GPU.
+
+      (9,0)  -> h100        (8,0) -> a100
+      (10,x) -> b200 / b100 (name tiebreak; both SM100, native FP4)
+      (12,x) -> b200        (consumer/other Blackwell fall back to b200 params)
+    """
+    cap = torch.cuda.get_device_capability(0)
+    name = torch.cuda.get_device_name(0).lower()
+    if cap == (9, 0):
+        return "h100"
+    if cap == (8, 0):
+        return "a100"
+    if cap[0] == 10:
+        # SM100 family: GB200/B200 vs B100. Name tiebreak; default b200.
+        if "b100" in name:
+            return "b100"
+        return "b200"
+    if cap[0] >= 10:
+        return "b200"
+    raise RuntimeError(f"No CARM param key for {name!r} cap={cap}; add one to carm.py")
+
+
+def native_low_precisions():
+    """Precisions with native tensor-core MMA on the live device (no dequant).
+
+    Drives the FP4 leg: on H100 FP4 is EMULATED (Marlin dequant->bf16); on
+    SM100 (B200/B100) FP4 MMA is native. Kept as a runtime probe so the bench
+    labels EMU vs native correctly wherever it runs."""
+    cap = torch.cuda.get_device_capability(0)
+    if cap[0] >= 10:      # Blackwell SM100+: int8, fp8, fp4 all native
+        return ("int8", "fp8", "fp4")
+    if cap == (9, 0):     # Hopper: int8, fp8 native; NO fp4
+        return ("int8", "fp8")
+    if cap == (8, 0):     # Ampere: int8 native
+        return ("int8",)
+    return ()
+
+
 def save_json(path, obj):
     with open(path, "w") as f:
         json.dump(obj, f, indent=2)
