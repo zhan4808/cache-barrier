@@ -1,0 +1,123 @@
+{
+  "clock": "1755 MHz",
+  "claimA_super_win": [
+    {
+      "shape": "q_proj",
+      "M": 1,
+      "warm": {
+        "bf16": 25.7,
+        "w8a8_mm": 9.55
+      },
+      "rot": {
+        "bf16": 25.08,
+        "w8a8_mm": 14.51
+      },
+      "speedup_warm": 2.69,
+      "speedup_rot": 1.73,
+      "fp8_bw_warm_tbs": 4.65,
+      "fp8_bw_rot_tbs": 2.68
+    },
+    {
+      "shape": "q_proj",
+      "M": 16,
+      "warm": {
+        "bf16": 25.63,
+        "w8a8_mm": 8.62
+      },
+      "rot": {
+        "bf16": 25.61,
+        "w8a8_mm": 14.6
+      },
+      "speedup_warm": 2.97,
+      "speedup_rot": 1.75,
+      "fp8_bw_warm_tbs": 5.39,
+      "fp8_bw_rot_tbs": 2.66
+    },
+    {
+      "shape": "o_proj",
+      "M": 1,
+      "warm": {
+        "bf16": 24.55,
+        "w8a8_mm": 10.18
+      },
+      "rot": {
+        "bf16": 24.49,
+        "w8a8_mm": 14.56
+      },
+      "speedup_warm": 2.41,
+      "speedup_rot": 1.68,
+      "fp8_bw_warm_tbs": 4.25,
+      "fp8_bw_rot_tbs": 2.67
+    },
+    {
+      "shape": "o_proj",
+      "M": 16,
+      "warm": {
+        "bf16": 24.88,
+        "w8a8_mm": 8.95
+      },
+      "rot": {
+        "bf16": 24.86,
+        "w8a8_mm": 14.56
+      },
+      "speedup_warm": 2.78,
+      "speedup_rot": 1.71,
+      "fp8_bw_warm_tbs": 5.1,
+      "fp8_bw_rot_tbs": 2.67
+    }
+  ],
+  "claimB_flip": [
+    {
+      "M": 1,
+      "warm": {
+        "bf16": 8.21,
+        "w8a16": 9.8
+      },
+      "rot": {
+        "bf16": 11.8,
+        "w8a16": 10.83
+      },
+      "w8a16_x_warm": 0.84,
+      "w8a16_x_rot": 1.09
+    },
+    {
+      "M": 4,
+      "warm": {
+        "bf16": 7.97,
+        "w8a16": 9.84
+      },
+      "rot": {
+        "bf16": 11.77,
+        "w8a16": 10.76
+      },
+      "w8a16_x_warm": 0.81,
+      "w8a16_x_rot": 1.09
+    },
+    {
+      "M": 16,
+      "warm": {
+        "bf16": 8.04,
+        "w8a16": 10.38
+      },
+      "rot": {
+        "bf16": 11.88,
+        "w8a16": 11.07
+      },
+      "w8a16_x_warm": 0.77,
+      "w8a16_x_rot": 1.07
+    },
+    {
+      "M": 64,
+      "warm": {
+        "bf16": 9.03,
+        "w8a16": 17.4
+      },
+      "rot": {
+        "bf16": 12.35,
+        "w8a16": 17.83
+      },
+      "w8a16_x_warm": 0.52,
+      "w8a16_x_rot": 0.69
+    }
+  ]
+}
