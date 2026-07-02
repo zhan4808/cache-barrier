@@ -1,0 +1,35 @@
+{
+ "bf16": {
+  "nvjet_sm90_tst_64x8_64x16_4x1_v_bz_TNT": {
+   "grid": "(4, 24, 1)",
+   "block": "(384, 1, 1)",
+   "dram__bytes_read.sum": "62944512",
+   "gpu__time_duration.sum": "28384",
+   "launch__registers_per_thread": "168",
+   "sm__throughput.avg.pct_of_peak_sustained_elapsed": "7.63",
+   "sm__warps_active.avg.pct_of_peak_sustained_active": "14.12"
+  }
+ },
+ "marlin": {
+  "void Marlin<1125899906909960, 2814749767172868, 1125899906909960, 1125899906909960, 256, 1, 8, 8, 1, 4, (int)-1, 0>(const int4 *, const int4 *, int4 *, int4 *, const int4 *, const float *, const int4 *, const float *, const int4 *, const int *, int, int, int, int, int, int *, bool, bool, bool, int)": {
+   "grid": "(132, 1, 1)",
+   "block": "(256, 1, 1)",
+   "dram__bytes_read.sum": "31518464",
+   "gpu__time_duration.sum": "19808",
+   "launch__registers_per_thread": "96",
+   "sm__throughput.avg.pct_of_peak_sustained_elapsed": "20.75",
+   "sm__warps_active.avg.pct_of_peak_sustained_active": "12.33"
+  }
+ },
+ "w8a8_pt": {
+  "void device_kernel<cutlass_3x_gemm_sm90_fp8<float_e4m3_t, bfloat16_t, ScaledEpilogue, tuple<C<64>, C<16>, C<256>>, tuple<C<1>, C<1>, C<1>>, KernelTmaWarpSpecializedFP8FastAccum, TmaWarpSpecialized, 1>::GemmKernel>(Params)": {
+   "grid": "(96, 1, 1)",
+   "block": "(256, 1, 1)",
+   "dram__bytes_read.sum": "31480832",
+   "gpu__time_duration.sum": "16768",
+   "launch__registers_per_thread": "34",
+   "sm__throughput.avg.pct_of_peak_sustained_elapsed": "5.26",
+   "sm__warps_active.avg.pct_of_peak_sustained_active": "8.03"
+  }
+ }
+}
