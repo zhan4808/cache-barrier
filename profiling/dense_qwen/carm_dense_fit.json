@@ -1,0 +1,29 @@
+{
+  "fit": {
+    "t0_us": 2.78,
+    "c_eff_mb": 36.0,
+    "bw_tbs": {
+      "bf16_hbm": 2.801158010181922,
+      "bf16_l2": 4.225352112676056,
+      "w8a8_hbm": 2.8770583161806984,
+      "w8a8_l2": 4.487179487179486,
+      "w8a16_hbm": 2.5439578699392196,
+      "w8a16_l2": 2.581967213114754
+    },
+    "ceilings_tflops": {
+      "bf16": 714.2173968417117,
+      "w8a16": 334.4018029224819,
+      "w8a8": 1335.1362468455668
+    },
+    "act_quant": {
+      "t0q_us": 15.58,
+      "bw_tbs": 1.81
+    }
+  },
+  "mape_pct": {
+    "bf16": 7.4,
+    "w8a16": 14.8,
+    "w8a8": 15.5
+  },
+  "model": "t = t0 + max(W/BW_tier(operand,mode), F/P_path) + Q_actquant; tier gate: quantized-weight size vs C_eff AND warm-mode only"
+}
