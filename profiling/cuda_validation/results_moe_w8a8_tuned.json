@@ -1,0 +1,55 @@
+{
+  "experiment": "w8a8_vs_tuned_bf16_mixtral_clock_locked",
+  "gpu": "NVIDIA H100 80GB HBM3",
+  "method": "SM 1755 locked; 3 interleaved rounds rotated order; median; bf16_g16 = GROUP_SIZE_M=16 forced (fair baseline per REPORT S7)",
+  "rows": [
+    {
+      "T": 128,
+      "bf16_def": 1005.0,
+      "bf16_g16": 1008.4,
+      "w8a8": 543.2,
+      "w8a8_vs_stock": 1.85,
+      "w8a8_vs_tuned": 1.85
+    },
+    {
+      "T": 256,
+      "bf16_def": 1387.9,
+      "bf16_g16": 1065.1,
+      "w8a8": 591.5,
+      "w8a8_vs_stock": 2.35,
+      "w8a8_vs_tuned": 1.8
+    },
+    {
+      "T": 512,
+      "bf16_def": 2207.4,
+      "bf16_g16": 1374.5,
+      "w8a8": 708.0,
+      "w8a8_vs_stock": 3.12,
+      "w8a8_vs_tuned": 1.94
+    },
+    {
+      "T": 768,
+      "bf16_def": 1893.0,
+      "bf16_g16": 1545.9,
+      "w8a8": 826.3,
+      "w8a8_vs_stock": 2.29,
+      "w8a8_vs_tuned": 1.87
+    },
+    {
+      "T": 1024,
+      "bf16_def": 2382.0,
+      "bf16_g16": 1920.6,
+      "w8a8": 1002.7,
+      "w8a8_vs_stock": 2.38,
+      "w8a8_vs_tuned": 1.92
+    },
+    {
+      "T": 2048,
+      "bf16_def": 3366.9,
+      "bf16_g16": 3376.7,
+      "w8a8": 1740.8,
+      "w8a8_vs_stock": 1.93,
+      "w8a8_vs_tuned": 1.93
+    }
+  ]
+}

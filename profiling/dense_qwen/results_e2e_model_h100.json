@@ -1,0 +1,14 @@
+{
+  "assumptions": "decode M=1; ROTATED (serving) numbers; GEMM bucket share 86.21% from Dr. Xiao's Qwen3.6-27B profile; rest of model unchanged",
+  "per_layer_gemm_us": {
+    "bf16": 260.5,
+    "w8a16": 159.2,
+    "w8a8_deployed": 213.2,
+    "w8a8_fused_quant": 132.5
+  },
+  "end_to_end_speedup": {
+    "w8a16": 1.5,
+    "w8a8_deployed": 1.19,
+    "w8a8_fused_quant": 1.73
+  }
+}
