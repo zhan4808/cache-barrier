@@ -1,0 +1,268 @@
+{
+  "experiment": "contention_degree_sweep",
+  "gpu": "NVIDIA H100 80GB HBM3",
+  "M": 16,
+  "rows": [
+    {
+      "shape": "kv_proj",
+      "path": "bf16",
+      "operand_mb": 21.0,
+      "R": 1,
+      "total_ws_mb": 21.0,
+      "us": 7.7,
+      "bw_tbs": 4.26
+    },
+    {
+      "shape": "kv_proj",
+      "path": "bf16",
+      "operand_mb": 21.0,
+      "R": 2,
+      "total_ws_mb": 41.9,
+      "us": 11.1,
+      "bw_tbs": 2.52
+    },
+    {
+      "shape": "kv_proj",
+      "path": "bf16",
+      "operand_mb": 21.0,
+      "R": 3,
+      "total_ws_mb": 62.9,
+      "us": 11.36,
+      "bw_tbs": 2.44
+    },
+    {
+      "shape": "kv_proj",
+      "path": "bf16",
+      "operand_mb": 21.0,
+      "R": 4,
+      "total_ws_mb": 83.9,
+      "us": 11.68,
+      "bw_tbs": 2.36
+    },
+    {
+      "shape": "kv_proj",
+      "path": "bf16",
+      "operand_mb": 21.0,
+      "R": 6,
+      "total_ws_mb": 125.8,
+      "us": 11.72,
+      "bw_tbs": 2.34
+    },
+    {
+      "shape": "kv_proj",
+      "path": "bf16",
+      "operand_mb": 21.0,
+      "R": 8,
+      "total_ws_mb": 167.8,
+      "us": 11.71,
+      "bw_tbs": 2.35
+    },
+    {
+      "shape": "kv_proj",
+      "path": "bf16",
+      "operand_mb": 21.0,
+      "R": 12,
+      "total_ws_mb": 251.7,
+      "us": 11.7,
+      "bw_tbs": 2.35
+    },
+    {
+      "shape": "kv_proj",
+      "path": "w8a8_mm",
+      "operand_mb": 10.5,
+      "R": 1,
+      "total_ws_mb": 10.5,
+      "us": 6.34,
+      "bw_tbs": 2.95
+    },
+    {
+      "shape": "kv_proj",
+      "path": "w8a8_mm",
+      "operand_mb": 10.5,
+      "R": 2,
+      "total_ws_mb": 21.0,
+      "us": 6.4,
+      "bw_tbs": 2.9
+    },
+    {
+      "shape": "kv_proj",
+      "path": "w8a8_mm",
+      "operand_mb": 10.5,
+      "R": 3,
+      "total_ws_mb": 31.5,
+      "us": 6.42,
+      "bw_tbs": 2.88
+    },
+    {
+      "shape": "kv_proj",
+      "path": "w8a8_mm",
+      "operand_mb": 10.5,
+      "R": 4,
+      "total_ws_mb": 41.9,
+      "us": 6.75,
+      "bw_tbs": 2.64
+    },
+    {
+      "shape": "kv_proj",
+      "path": "w8a8_mm",
+      "operand_mb": 10.5,
+      "R": 6,
+      "total_ws_mb": 62.9,
+      "us": 7.23,
+      "bw_tbs": 2.36
+    },
+    {
+      "shape": "kv_proj",
+      "path": "w8a8_mm",
+      "operand_mb": 10.5,
+      "R": 8,
+      "total_ws_mb": 83.9,
+      "us": 7.13,
+      "bw_tbs": 2.41
+    },
+    {
+      "shape": "kv_proj",
+      "path": "w8a8_mm",
+      "operand_mb": 10.5,
+      "R": 12,
+      "total_ws_mb": 125.8,
+      "us": 7.21,
+      "bw_tbs": 2.37
+    },
+    {
+      "shape": "q_proj",
+      "path": "bf16",
+      "operand_mb": 62.9,
+      "R": 1,
+      "total_ws_mb": 62.9,
+      "us": 25.42,
+      "bw_tbs": 2.78
+    },
+    {
+      "shape": "q_proj",
+      "path": "bf16",
+      "operand_mb": 62.9,
+      "R": 2,
+      "total_ws_mb": 125.8,
+      "us": 25.6,
+      "bw_tbs": 2.76
+    },
+    {
+      "shape": "q_proj",
+      "path": "bf16",
+      "operand_mb": 62.9,
+      "R": 3,
+      "total_ws_mb": 188.7,
+      "us": 25.53,
+      "bw_tbs": 2.77
+    },
+    {
+      "shape": "q_proj",
+      "path": "bf16",
+      "operand_mb": 62.9,
+      "R": 4,
+      "total_ws_mb": 251.7,
+      "us": 25.59,
+      "bw_tbs": 2.76
+    },
+    {
+      "shape": "q_proj",
+      "path": "bf16",
+      "operand_mb": 62.9,
+      "R": 6,
+      "total_ws_mb": 377.5,
+      "us": 25.5,
+      "bw_tbs": 2.77
+    },
+    {
+      "shape": "q_proj",
+      "path": "bf16",
+      "operand_mb": 62.9,
+      "R": 8,
+      "total_ws_mb": 503.3,
+      "us": 25.41,
+      "bw_tbs": 2.78
+    },
+    {
+      "shape": "q_proj",
+      "path": "bf16",
+      "operand_mb": 62.9,
+      "R": 12,
+      "total_ws_mb": 755.0,
+      "us": 25.52,
+      "bw_tbs": 2.77
+    },
+    {
+      "shape": "q_proj",
+      "path": "w8a8_mm",
+      "operand_mb": 31.5,
+      "R": 1,
+      "total_ws_mb": 31.5,
+      "us": 8.36,
+      "bw_tbs": 5.64
+    },
+    {
+      "shape": "q_proj",
+      "path": "w8a8_mm",
+      "operand_mb": 31.5,
+      "R": 2,
+      "total_ws_mb": 62.9,
+      "us": 14.36,
+      "bw_tbs": 2.72
+    },
+    {
+      "shape": "q_proj",
+      "path": "w8a8_mm",
+      "operand_mb": 31.5,
+      "R": 3,
+      "total_ws_mb": 94.4,
+      "us": 13.8,
+      "bw_tbs": 2.86
+    },
+    {
+      "shape": "q_proj",
+      "path": "w8a8_mm",
+      "operand_mb": 31.5,
+      "R": 4,
+      "total_ws_mb": 125.8,
+      "us": 14.39,
+      "bw_tbs": 2.71
+    },
+    {
+      "shape": "q_proj",
+      "path": "w8a8_mm",
+      "operand_mb": 31.5,
+      "R": 6,
+      "total_ws_mb": 188.7,
+      "us": 14.32,
+      "bw_tbs": 2.72
+    },
+    {
+      "shape": "q_proj",
+      "path": "w8a8_mm",
+      "operand_mb": 31.5,
+      "R": 8,
+      "total_ws_mb": 251.7,
+      "us": 14.35,
+      "bw_tbs": 2.72
+    },
+    {
+      "shape": "q_proj",
+      "path": "w8a8_mm",
+      "operand_mb": 31.5,
+      "R": 12,
+      "total_ws_mb": 377.5,
+      "us": 14.36,
+      "bw_tbs": 2.72
+    },
+    {
+      "shape": "lm_head",
+      "path": "bf16",
+      "operand_mb": 2548.0,
+      "R": 1,
+      "total_ws_mb": 2548.0,
+      "us": 896.54,
+      "bw_tbs": 2.85
+    }
+  ]
+}
