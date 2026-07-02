@@ -1,0 +1,115 @@
+{
+  "experiment": "dense_qwen3.6-27B_projections_mixed_precision",
+  "gpu": "NVIDIA H100 80GB HBM3",
+  "gpu_key": "h100",
+  "versions": {
+    "gpu": "NVIDIA H100 80GB HBM3",
+    "torch": "2.11.0+cu130",
+    "cuda": "13.0",
+    "triton": "3.6.0",
+    "vllm": "0.20.2",
+    "flash_mla": "<absent: ModuleNotFoundError>",
+    "flashmla": "<absent: ModuleNotFoundError>"
+  },
+  "model": "Qwen/Qwen3.6-27B (hidden 5120, inter 17408, 24qh/4kvh x 256)",
+  "method": "graph_med_us 10/graph median-of-40; w8a8 includes dynamic per-tensor act quant in timed region (w8a8_mm = mm only); rotate mode cycles >2xC_eff of weight copies per graph",
+  "c_eff_mb": 36.0,
+  "results": [
+    {
+      "shape": "gdn_in_proj_qkvz",
+      "K": 5120,
+      "N": 16384,
+      "wt_mb_bf16": 167.8,
+      "wt_mb_fp8": 83.9,
+      "n_weight_copies": 1,
+      "rotated": false,
+      "relerr": {
+        "w8a16": 0.0024,
+        "w8a8": 0.0374
+      },
+      "rows": [
+        {
+          "M": 1,
+          "bf16": 59.94,
+          "w8a16": 34.89,
+          "w8a8": 44.03,
+          "w8a8_mm": 30.65,
+          "w8a16_vs_bf16": 1.718,
+          "w8a8_vs_bf16": 1.361
+        },
+        {
+          "M": 4,
+          "bf16": 60.49,
+          "w8a16": 35.15,
+          "w8a8": 45.75,
+          "w8a8_mm": 31.38,
+          "w8a16_vs_bf16": 1.721,
+          "w8a8_vs_bf16": 1.322
+        },
+        {
+          "M": 16,
+          "bf16": 60.32,
+          "w8a16": 35.31,
+          "w8a8": 46.59,
+          "w8a8_mm": 31.92,
+          "w8a16_vs_bf16": 1.708,
+          "w8a8_vs_bf16": 1.295
+        },
+        {
+          "M": 64,
+          "bf16": 62.27,
+          "w8a16": 44.3,
+          "w8a8": 48.84,
+          "w8a8_mm": 33.47,
+          "w8a16_vs_bf16": 1.406,
+          "w8a8_vs_bf16": 1.275
+        },
+        {
+          "M": 128,
+          "bf16": 64.63,
+          "w8a16": 74.76,
+          "w8a8": 51.08,
+          "w8a8_mm": 35.04,
+          "w8a16_vs_bf16": 0.864,
+          "w8a8_vs_bf16": 1.265
+        },
+        {
+          "M": 256,
+          "bf16": 70.37,
+          "w8a16": 146.72,
+          "w8a8": 56.22,
+          "w8a8_mm": 39.59,
+          "w8a16_vs_bf16": 0.48,
+          "w8a8_vs_bf16": 1.252
+        },
+        {
+          "M": 512,
+          "bf16": 115.67,
+          "w8a16": 282.36,
+          "w8a8": 77.2,
+          "w8a8_mm": 65.37,
+          "w8a16_vs_bf16": 0.41,
+          "w8a8_vs_bf16": 1.498
+        },
+        {
+          "M": 1024,
+          "bf16": 251.53,
+          "w8a16": 511.42,
+          "w8a8": 158.6,
+          "w8a8_mm": 140.75,
+          "w8a16_vs_bf16": 0.492,
+          "w8a8_vs_bf16": 1.586
+        },
+        {
+          "M": 2048,
+          "bf16": 481.81,
+          "w8a16": 1040.86,
+          "w8a8": 304.81,
+          "w8a8_mm": 286.47,
+          "w8a16_vs_bf16": 0.463,
+          "w8a8_vs_bf16": 1.581
+        }
+      ]
+    }
+  ]
+}
