@@ -1,0 +1,121 @@
+{
+  "experiment": "moe_w8a8_matched_precision",
+  "gpu": "NVIDIA H100 80GB HBM3",
+  "gpu_key": "h100",
+  "versions": {
+    "gpu": "NVIDIA H100 80GB HBM3",
+    "torch": "2.11.0+cu130",
+    "cuda": "13.0",
+    "triton": "3.6.0",
+    "vllm": "0.20.2",
+    "flash_mla": "<absent: ModuleNotFoundError>",
+    "flashmla": "<absent: ModuleNotFoundError>"
+  },
+  "method": "vllm triton fused_experts + fp8_w8a8_moe_quant_config (per-tensor weight scales, dynamic act quant in-kernel); graph_med_us 10/graph median-of-40; bf16 baseline = stock fused_experts (same as results_cuda_moe.json; W8A16 comparison numbers live there)",
+  "results": [
+    {
+      "shape": "mixtral",
+      "E": 8,
+      "H": 4096,
+      "I": 14336,
+      "topk": 2,
+      "relerr": 0.0464,
+      "rows": [
+        {
+          "T": 16,
+          "bf16": 953.0,
+          "w8a8": 511.8,
+          "w8a8_vs_bf16": 1.862
+        },
+        {
+          "T": 64,
+          "bf16": 958.4,
+          "w8a8": 527.9,
+          "w8a8_vs_bf16": 1.815
+        },
+        {
+          "T": 128,
+          "bf16": 999.8,
+          "w8a8": 539.6,
+          "w8a8_vs_bf16": 1.853
+        },
+        {
+          "T": 256,
+          "bf16": 1389.4,
+          "w8a8": 587.8,
+          "w8a8_vs_bf16": 2.364
+        },
+        {
+          "T": 512,
+          "bf16": 2197.9,
+          "w8a8": 697.4,
+          "w8a8_vs_bf16": 3.152
+        },
+        {
+          "T": 1024,
+          "bf16": 2377.9,
+          "w8a8": 1037.1,
+          "w8a8_vs_bf16": 2.293
+        },
+        {
+          "T": 2048,
+          "bf16": 3253.2,
+          "w8a8": 1762.2,
+          "w8a8_vs_bf16": 1.846
+        }
+      ]
+    },
+    {
+      "shape": "qwen3.6-35B-A3B",
+      "E": 256,
+      "H": 2048,
+      "I": 512,
+      "topk": 8,
+      "relerr": 0.0462,
+      "rows": [
+        {
+          "T": 16,
+          "bf16": 226.5,
+          "w8a8": 144.0,
+          "w8a8_vs_bf16": 1.573
+        },
+        {
+          "T": 64,
+          "bf16": 483.3,
+          "w8a8": 280.3,
+          "w8a8_vs_bf16": 1.724
+        },
+        {
+          "T": 128,
+          "bf16": 548.2,
+          "w8a8": 313.5,
+          "w8a8_vs_bf16": 1.749
+        },
+        {
+          "T": 256,
+          "bf16": 567.0,
+          "w8a8": 327.0,
+          "w8a8_vs_bf16": 1.734
+        },
+        {
+          "T": 512,
+          "bf16": 582.5,
+          "w8a8": 345.9,
+          "w8a8_vs_bf16": 1.684
+        },
+        {
+          "T": 1024,
+          "bf16": 628.0,
+          "w8a8": 403.2,
+          "w8a8_vs_bf16": 1.558
+        },
+        {
+          "T": 2048,
+          "bf16": 704.4,
+          "w8a8": 471.0,
+          "w8a8_vs_bf16": 1.496
+        }
+      ]
+    }
+  ]
+}
