@@ -64,5 +64,115 @@
   "gen_toks": 16384,
   "gen_tok_per_s": 2817.5,
   "total_tok_per_s": 3256.0
+ },
+ {
+  "mode": "fp8",
+  "workload": "prefill",
+  "max_batched": null,
+  "load_s": 383.2,
+  "wall_s": 1.99,
+  "prompt_toks": 27254,
+  "gen_toks": 64,
+  "gen_tok_per_s": 32.2,
+  "total_tok_per_s": 13745.3
+ },
+ {
+  "mode": "fp8",
+  "workload": "prefill",
+  "max_batched": 512,
+  "load_s": 119.5,
+  "wall_s": 2.08,
+  "prompt_toks": 27254,
+  "gen_toks": 64,
+  "gen_tok_per_s": 30.7,
+  "total_tok_per_s": 13117.2
+ },
+ {
+  "mode": "fp8",
+  "workload": "prefill",
+  "max_batched": 460,
+  "load_s": 113.5,
+  "wall_s": 2.3,
+  "prompt_toks": 27254,
+  "gen_toks": 64,
+  "gen_tok_per_s": 27.8,
+  "total_tok_per_s": 11873.3
+ },
+ {
+  "mode": "fp8",
+  "workload": "prefill",
+  "max_batched": 1024,
+  "load_s": 113.7,
+  "wall_s": 1.69,
+  "prompt_toks": 27254,
+  "gen_toks": 64,
+  "gen_tok_per_s": 37.8,
+  "total_tok_per_s": 16129.0
+ },
+ {
+  "mode": "fp8",
+  "workload": "prefill",
+  "max_batched": 896,
+  "load_s": 114.3,
+  "wall_s": 2.11,
+  "prompt_toks": 27254,
+  "gen_toks": 64,
+  "gen_tok_per_s": 30.4,
+  "total_tok_per_s": 12961.7
+ },
+ {
+  "mode": "fp8",
+  "workload": "prefill",
+  "max_batched": 1792,
+  "load_s": 114.5,
+  "wall_s": 2.0,
+  "prompt_toks": 27254,
+  "gen_toks": 64,
+  "gen_tok_per_s": 31.9,
+  "total_tok_per_s": 13631.9
+ },
+ {
+  "mode": "fp8",
+  "workload": "prefill",
+  "max_batched": null,
+  "load_s": 52.9,
+  "wall_s": 1.64,
+  "prompt_toks": 27254,
+  "gen_toks": 64,
+  "gen_tok_per_s": 39.0,
+  "total_tok_per_s": 16626.9
+ },
+ {
+  "mode": "fp8",
+  "workload": "prefill",
+  "max_batched": 896,
+  "load_s": 47.6,
+  "wall_s": 2.1,
+  "prompt_toks": 27254,
+  "gen_toks": 64,
+  "gen_tok_per_s": 30.5,
+  "total_tok_per_s": 13007.8
+ },
+ {
+  "mode": "fp8",
+  "workload": "prefill",
+  "max_batched": 1024,
+  "load_s": 47.8,
+  "wall_s": 1.69,
+  "prompt_toks": 27254,
+  "gen_toks": 64,
+  "gen_tok_per_s": 37.8,
+  "total_tok_per_s": 16148.1
+ },
+ {
+  "mode": "fp8",
+  "workload": "prefill",
+  "max_batched": 1792,
+  "load_s": 48.6,
+  "wall_s": 1.64,
+  "prompt_toks": 27254,
+  "gen_toks": 64,
+  "gen_tok_per_s": 39.1,
+  "total_tok_per_s": 16703.9
  }
 ]

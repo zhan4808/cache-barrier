@@ -288,3 +288,81 @@ exactly what the per-kernel terms of the model are for).
 limitation bullet, and conclusion updated to the measured numbers; portability
 slide and status slide updated (⌁ source lines + MAPE). WeChat addendum
 drafted. Clocks reset (`-rgc`) at session end.
+
+## 2026-08-01 (session 6, H100) — footprint gate, below-gate decomposition, paper compression, prefill bands
+
+**Environment**: fresh H100 80GB SXM5 instance (new IP), NFS intact with the
+A100 session's commits synced back from `robert-nfs-west-2` (the A100 leg ran
+on a west-region copy; `repos/` + `docs/` rsynced back, both regions now
+carry `67c1138`+). System torch 2.7.0/triton 3.3.0 for microbenchmarks;
+served env restored from the NFS snapshot; Qwen3.6-27B re-downloaded (52 GB).
+Two restore lessons journaled: the 2026-08 extras addendum in `restore.sh`
+sat *after* the byte-exact path's `exit 0` and never ran (fixed — extras now
+install on every path), and flashinfer's GDN JIT needs *apt* ninja
+(`/usr/bin/ninja`) because the venv's pip ninja isn't on PATH when the venv
+python is invoked directly — the first band-sweep launch failed exactly there.
+
+**Below-gate residual, decomposed** (the A100 session's open finding —
+44% below-gate fp16 MAPE with measured constants). Residual analysis of the
+H100 gate sweep showed the below-gate error is *structured*: cells with small
+footprint sit at 0.87–0.96 measured/predicted, and the blowup rows switch on
+exactly where W + act + out crosses ~36–40 MB, plateauing at ~2.2×.
+
+**Footprint-vs-operand experiment** (`profiling/gate/bench_footprint_gate.py`,
+commit `aa9fdca`): bf16 bmm, W ∈ {8,16,24,28,32} × T ∈ {1..256}, graph-timed,
+clock-locked 1755. **Residency is gated by the launch's total footprint, not
+the weight operand**: effective weight BW (split-mem accounting) stays
+L2-class until footprint ≈ C_eff then collapses toward HBM rate — W=16 holds
+through T=128 (fp 36 MB) and collapses at T=192 (fp 46); W=32 breaks already
+at T=24–32 (fp 39–41). Operand gating cannot explain both. Two honest
+caveats: the collapse is **soft** (2–3 TB/s across a 40–60 MB band), so a
+binary footprint gate recovers only ~2 MAPE points (H100 20.9→20.5, A100
+44.0→42.3); and the A100's below-gate residual is dominated by something
+else entirely — **a small-kernel bandwidth floor** (~1.2–1.4 TB/s effective
+at bs≤4 on BOTH sides of the gate, linear in W, intercept ≈ t0; below even
+bw_hbm 1.51). That is kernel saturation, not capacity physics; H100 shows
+~8 TB/s on the same cells.
+
+**Correction (guardrail 8)**: session 5's claim that "the bf16 latency curve
+breaks at ~31 MB, C_eff visible by eye" on A100 does not survive close
+numerical reading — the marginal slope *bumps* at 32–40 MB and settles; the
+gate on that card is visible in the relative w8a8 structure, not raw bf16
+latency. Paper caption and this journal now say so.
+
+**Paper** (commit `bc4457a`): §Transfer gains the below-gate decomposition;
+§Boundary Conditions notes footprint gating as the within-kernel form of the
+contention step; caption corrected; limitation bullet updated. Case-study
+compression executed (the HANDOFF open item): validation section 260→13
+lines (three findings kept), four duplicative tikz bar charts cut with their
+tables/prose kept, roofline/e2e/repro folded to prose, Discussion subsections
+merged, Limitations kept verbatim. **18 → 15 pages, 0 errors, no undefined
+refs** (compiled on this box).
+
+**Mechanism B, prefill leg** (`profiling/served/run_band_prefill.sh`): the
+2026-08-01 band demo ran the *decode* workload and closed negative; the
+prefill-heavy version (27k-token prompts, chunked prefill,
+max_num_batched_tokens ∈ {uncapped, 512, 460, 1024, 896, 2048, 1792}, fp8)
+is the unexercised prediction. Honest prior stated before results: prefill
+chunks have large CTA counts, so engine-level band effects may wash out here
+too.
+Result (fp8, total tok/s, repeats where noted): 460 → 11.9k; 512 → 13.1k;
+**896 → 13.0k (×2, ±0.4%)**; **1024 → 16.1k (×2, ±0.4%)**; 1792 → 13.6k/16.7k;
+uncapped → 13.7k/16.6k; **2048 → engine HANG** (100% GPU spin, frozen at
+10/64 prompts, killed after 30 min — vLLM 0.20.2 + hybrid GDN + chunked
+prefill at this cap; stack bug, not a band effect). The repeat pass changed
+the story and is why it exists: the first pass read as "1024 beats uncapped
+by 17%", but uncapped/1792 turned out to have ±10% run-to-run variance and
+their better runs sit at 1024's plateau (~16.1–16.7k). What survives
+repetition is the **+24% step between adjacent caps 896 → 1024** (both ends
+±0.4% across repeats — non-smooth in cap size, the wave-band signature,
+mechanism B surfacing at engine level in prefill) and the monotone penalty
+for small caps (512/460 at −20/−28% vs plateau). Operational rule, decode
+and prefill now consistent: **engine-level batch shaping never gains over
+uncapped; its use is avoiding caps that lose** — and the loss holes are
+real, reproducible, and sit where kernel-level band data says they should.
+
+**Open after this session**: capture the soft footprint-collapse band in the
+model form (a two-parameter transition would likely recover most of the
+below-gate MAPE on both architectures); root-cause the A100 small-kernel BW
+floor (needs A100 time + NCU); non-NVIDIA backend; B200; GitHub push (still
+no key on these boxes).
