@@ -88,3 +88,38 @@ sweep, eager-timed):
   not hardware-scalable — they must be *measured* per architecture, which is a
   two-point microbenchmark. This sharpens the P5 pitch: the portable harness
   is not optional tooling, it is the transfer mechanism.
+
+### P6 — dispatch cost model (`profiling/dispatch/`)
+
+One input measured live (H100, graph-timed): unfused int8→bf16 repack runs at
+0.133 T elems/s (27B model: 203 ms; fused lower bound bw_hbm/3 B = 25 ms).
+Three storage policies for runtime precision dispatch, Qwen3.6-27B-class dense
+model at p32768d1024 (KV ≈ 2.21 GB/seq — only the 16 full-attn layers hold KV):
+
+- **A. Dual-resident**: the second format is paid in KV budget. H100 80 GB:
+  **infeasible** (base concurrency 9 → 0). H200 141 GB: 36 → 24 seqs =
+  **−33% concurrency ≈ −33% decode throughput**.
+- **B. Repack on switch**: 1% overhead needs a switch period ≥ 20 s (measured
+  unfused) / ≥ 2.5 s (fused bound). Engine-mode granularity only; per-phase
+  (~100 ms) or per-layer switching is out.
+- **C. JIT dequant via HBM scratch**: traffic per use = 4.5× per int4 elem-byte
+  vs 2× for resident bf16 → **2.25× worse than not quantizing. Never pays.**
+  JIT dequant *in-kernel* is not a new option — it is exactly the r_dequant
+  ceiling CARM already prices.
+
+**The conclusion the numbers force** (and the inversion worth putting in the
+paper): with bf16-primary storage, dispatch is memory-infeasible or
+switch-limited. The only zero-marginal-cost policy is **quantized-primary
+storage** with per-shape choice between quantized-compute kernels (W8A8/W4A4)
+and dequant-in-kernel bf16 compute priced by r_dequant. So the dispatcher's
+question is not "when do we quantize?" but "when do we pay the dequant ceiling
+vs take the quantized-compute path?" — which is exactly the world natively-
+quantized checkpoints (MXFP4 experts, FP8 dense) already put us in
+(DIRECTION.md §1). Couples to P3: dual-residency would also shrink KV traffic
+and raise GEMM-visible L2 capacity, but that is second-order vs the
+concurrency loss.
+
+**Phase plan status: P0–P6 all executed** (P2–P4 in the 2026-07 session;
+P1/P0 this morning; P5/P6 this session). Remaining open threads are the
+served A/B harnesses (need vLLM env + model download), a real A100 run of the
+portable harness to replace the estimated constants, and paper body surgery.

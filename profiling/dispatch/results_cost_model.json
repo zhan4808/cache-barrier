@@ -1,0 +1,45 @@
+{
+ "assumptions": {
+  "n_params": 27000000000.0,
+  "bytes_primary": 2.0,
+  "bytes_secondary": 1.0,
+  "kv_bytes_per_token": 65536,
+  "tokens_per_seq": 33792,
+  "runtime_overhead_gb": 6.0
+ },
+ "measured": {
+  "repack_unfused_telems_per_s": 0.133,
+  "repack_fused_bound_telems_per_s": 1.087,
+  "bw_hbm_tbs": 3.26
+ },
+ "policy_a_dual_resident": {
+  "h100_80gb": {
+   "gpu_mem_gb": 80,
+   "kv_gb_per_seq": 2.21,
+   "concurrency_single": 9,
+   "concurrency_dual": 0,
+   "throughput_cost_pct": 100.0,
+   "feasible": false
+  },
+  "h200_141gb": {
+   "gpu_mem_gb": 141,
+   "kv_gb_per_seq": 2.21,
+   "concurrency_single": 36,
+   "concurrency_dual": 24,
+   "throughput_cost_pct": 33.3,
+   "feasible": true
+  }
+ },
+ "policy_b_repack": {
+  "repack_s_unfused_measured": 0.203,
+  "repack_s_fused_bound": 0.025,
+  "switch_period_s_for_1pct_overhead_unfused": 20.3,
+  "switch_period_s_for_1pct_overhead_fused": 2.5,
+  "verdict": "feasible only at engine-mode granularity (seconds-minutes); infeasible per-phase (~100 ms) or per-layer"
+ },
+ "policy_c_jit_dequant": {
+  "traffic_ratio_vs_resident_bf16": 2.25,
+  "verdict": "never pays; in-kernel JIT is the r_dequant ceiling CARM already prices"
+ },
+ "conclusion": "quantized-primary storage + per-shape kernel choice is the only zero-marginal-cost dispatch; bf16-primary dispatch is memory-infeasible (80 GB) or switch-period-limited"
+}
