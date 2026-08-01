@@ -80,29 +80,37 @@ Two boundary conditions temper the gate.  First, under full-model serving conten
 % ══════════════════════════════════════════════════════════════════════════════
 \section{Introduction}
 
-Multi-head Latent Attention (MLA)~\cite{deepseekv2} compresses the KV cache through low-rank latent projections, achieving a 7.1$\times$ reduction in KV memory traffic and powering frontier models including DeepSeek-V2 and V3~\cite{deepseekv3}.  But this compression requires full-dimensional K and V to be \emph{reconstructed} from compressed latents at inference time via weight-absorbed batch matrix multiplications (BMMs).  Prior work has focused on MLA's memory savings; the runtime cost of reconstruction has not been studied.
+Whether a low-precision GEMM kernel beats its high-precision counterpart is a per-shape, per-architecture dispatch decision.  Modern checkpoints ship natively quantized (MXFP4 experts, FP8 dense layers) and must run across accelerator families with different cache hierarchies and dequantization throughputs, most without native FP4 tensor cores; operator layers such as FlagGems currently make the precision decision with hand-tuned heuristics or exhaustive autotuning, neither of which ports.  In real serving the stakes are concentrated in exactly this decision: in a Qwen3.6-27B serving profile, plain \texttt{aten::mm} is 86.2\% of GPU time --- doubling GEMM speed is a 1.76$\times$ end-to-end win, while infinite speedup on \emph{everything else} yields only 1.16$\times$.
 
-We show that this cost is the \textbf{dominant bottleneck} in MLA attention layers.  On DeepSeek-V3-scale architectures (128 heads, 61 layers), reconstruction GEMMs consume 61\% of per-layer time at batch size~1, exceeding the attention kernel itself.  This overhead is fixed per query, independent of KV length, and invisible to standard attention benchmarks.  MLA's compression, in other words, shifts the bottleneck from KV cache reads to weight-matrix reads for reconstruction.
+The literature offers contradictory guidance.  MARLIN~\cite{marlin} reports near-ideal ${\sim}4\times$ weight-only speedup at batch $\leq$32; our measurements on MLA-scale GEMMs at batch~1 show quantized kernels \emph{losing} to cuBLAS (0.70$\times$).  Both replicate.  The variable neither controls is whether the weight working set fits in the last-level cache.  We show the decision is governed by a \textbf{capacity condition that standard roofline analysis cannot express}, because roofline has no capacity term:
 
-Since reconstruction is memory-bound (arithmetic intensity 1--93 vs.\ H100 roofline crossover at~295), INT4 weight-only quantization is a natural mitigation.  Selective INT4 preserves quality ($\Delta$PPL~=~+0.051), but a custom Triton W4A16 kernel achieves only 0.49$\times$ of cuBLAS FP16, far from the 3.9$\times$ predicted by roofline.  We trace this to what we term the \textbf{L2 cache barrier} \emph{combined with a dequantization-bound kernel}: warm-state counters show ${\sim}75\%$ of the 16~MB reconstruction weight matrix is served from L2 (effective 3.5--4.6~TB/s) rather than HBM at 3.35~TB/s, so reducing precision saves HBM bandwidth that was largely not the bottleneck (Figure~\ref{fig:l2barrier}); and even when residency is experimentally removed, the W4A16 kernel's dequantization compute keeps it at or below FP16 parity.  Scaling weight size across the L2 boundary, the INT4/FP16 time ratio drops from 1.9$\times$ at 8~MB toward parity at 128~MB, with the transition at 32--40~MB --- the \emph{effective} residency capacity, below the nominal 50~MB (Figure~\ref{fig:val_ratio}).  MLA's compression paradoxically makes reconstruction weights \emph{too small} to benefit from weight-only quantization.
+\begin{itemize}[leftmargin=*,topsep=2pt]
+  \item $W < C_\text{eff}$: weights are already LLC-served; quantization saves traffic that was never being paid.  Speedup $\approx 1$, and $< 1$ if the kernel dequantizes in-core.
+  \item $W \gg C_\text{eff}$: weights stream from DRAM; quantization saves real traffic.  Speedup approaches $\min(\text{byte ratio},\ \text{dequant ceiling}/T_\text{compute})$ --- MARLIN's regime.
+\end{itemize}
 
-We validate our profiling methodology through an independent FlashInfer~\cite{flashinfer} vs.\ Triton~\cite{triton} kernel comparison on Llama-3-8B (Section~\ref{sec:validation}), reproducing known performance gaps and contributing new NCU-level root cause analysis.
+\noindent Here $C_\text{eff}$ is the \emph{measured} effective residency capacity --- 36~MB on H100, not the nominal 50~MB --- and the two published results are the near and far fields of one model.
+
+We formalize this as a \textbf{measured cache-aware roofline (CARM)} with three microbenchmarkable hardware parameters --- effective capacity, capacity-gated bandwidth, and in-core dequantization throughput --- plus an explicit per-launch fixed cost, and we validate it constructively, adversarially, and across architectures.
 
 \textbf{Contributions:}
 \begin{itemize}[leftmargin=*,topsep=0pt]
-  \item \textbf{Reconstruction GEMM overhead}: first quantification showing 61\% of MLA attention-layer time at bs=1 (2.17~ms/token across 61~layers).
-  \item \textbf{The L2 cache barrier}: roofline-predicted 3.9$\times$ INT4 speedup collapses to 0.49$\times$ through two stacked mechanisms --- partial L2 residency of the weights (75\% L2-served; effective capacity ${\sim}36$~MB, effective serving bandwidth 3.5--4.6~TB/s) and a dequantization-bound INT4 kernel that loses to FP16 even when residency is experimentally removed.  Validated by a weight-size sweep, warm-state counter analysis (\texttt{--cache-control none}), and a fixed-shape weight-rotation intervention.  We are not aware of prior published characterization of this failure mode.
-  \item \textbf{A measured cache-aware roofline}: capacity-gated bandwidth ceiling (effective $C_\text{eff}{\approx}36$~MB), explicit per-launch fixed cost (2.8~$\mu$s graph / 15.4~$\mu$s eager), and fitted dequant in-core ceilings; predicts FP16/INT4 latency to 11--16\% MAPE (Section~\ref{sec:carm}).
-  \item \textbf{Constructive confirmation (W8A8)}: an INT8 tensor-core MMA kernel with no inner-loop dequantization beats cuBLAS FP16 by 1.4--1.5$\times$ at bs=1 exactly above $C_\text{eff}$ and loses below it --- the first quantized win in this regime, flipping at the measured (not nominal) L2 boundary (Section~\ref{sec:w8a8}).  The same regime structure governs mixed-precision MoE, where we fix a FlagGems W8A16 defect; the corrected kernel wins at every measured token count, 2.7--3.0$\times$ at T$\geq$512 (Section~\ref{sec:moe}).
-  \item \textbf{Selective INT4 quality}: reconstruction weights tolerate INT4 well (+0.051 PPL), establishing them as targets once kernel support matures.
-  \item \textbf{NCU-level kernel analysis}: TMA vs.\ global-load root cause, corrected L1 metrics on Hopper, and the occupancy paradox (fewer warps, more bandwidth).
+  \item \textbf{The capacity gate, measured} (Section~\ref{sec:gate}): a 77-cell sweep (weight working set 8--128~MB $\times$ 1--512 tokens $\times$ three precisions, clock-locked, CUDA-graph timed) shows the win/loss sign flipping between 32 and 40~MB --- bracketing the measured $C_\text{eff}=36$~MB --- at every decode-scale token count.  W8A8 (INT8 MMA, no in-core dequant) goes 0.70$\times\!\to$1.2--1.46$\times$ across the gate; W4A16 flips at the same boundary but caps at parity, exactly the model's dequant-ceiling prediction.
+  \item \textbf{A three-parameter predictive model} (Section~\ref{sec:carm}): capacity-gated bandwidth ceiling, in-core dequant ceiling ($r_\text{dequant}$, set to $\infty$ for precisions with native MMA), and per-launch fixed cost.  Regime-separated accuracy: 12--21\% MAPE on the tuned cuBLAS baseline everywhere, 8--39\% on quantized Triton kernels in the decode regime where dispatch operates, 12\% on tuned CUDA (vLLM Marlin fused-MoE FP8).
+  \item \textbf{Operand-aware gating on real dense shapes} (Section~\ref{sec:gate}): on Qwen3.6-27B projections, each precision falls off the cache cliff at \emph{its own operand's} size --- so quantization can win by keeping its operand resident after the baseline has spilled (2.4--3.0$\times$ measured warm).
+  \item \textbf{Boundary conditions, stated plainly} (Section~\ref{sec:boundary}): under serving contention the L2-resident regime collapses as a \emph{step function} once combined working sets exceed $C_\text{eff}$ --- all isolated-microbenchmark crossovers, ours included, are optimistic in production; and five kernel-implementation mechanisms (tile starvation, wave-quantization bands, dispatch splits, occupancy floors, per-tile re-dequantization) each independently flip the sign, so dispatch = CARM + per-kernel predicates.
+  \item \textbf{Cross-architecture transfer} (Section~\ref{sec:transfer}): a portable harness measures the parameters on any CUDA-semantics backend.  Fit on H100 and applied to A100: 23--29\% MAPE zero-shot on fp16, 19.9\% on W4A16 after a two-point kernel calibration; naive peak-ratio scaling of kernel terms fails (40.6\%), establishing that kernel terms must be measured, not extrapolated.
+  \item \textbf{A dispatch cost model} (Section~\ref{sec:dispatch}): holding both weight formats is memory-infeasible on 80~GB (or $-33\%$ concurrency on H200); repacking amortizes only at $\geq$20~s switch periods; JIT dequant via DRAM is 2.25$\times$ worse than not quantizing.  The only zero-marginal-cost policy is quantized-primary storage --- the dispatch question becomes \emph{when to pay the dequant ceiling vs.\ take the quantized-compute path}, which is the question natively-quantized checkpoints force anyway.
+  \item \textbf{A methodology audit with teeth} (Sections~\ref{sec:casestudy}, \ref{sec:validation}): eager timing floors (15.5~$\mu$s), profiler cache flushing, and above all baseline tuning --- an under-tuned bf16 baseline moves a measured precision crossover from 263 to 601 tokens, manufacturing a 2.3$\times$ wider quantization win.
 \end{itemize}
+
+MLA reconstruction GEMMs --- the original subject of this study --- appear in Section~\ref{sec:casestudy} as a case study of the gate's near field, including the INT4 negative result and the causal interventions (weight rotation, warm-state counters) that isolated the two stacked mechanisms.
 
 % ══════════════════════════════════════════════════════════════════════════════
 \section{Experimental Setup}
 
 \subsection{Hardware}
-Primary measurements use a single NVIDIA H100 80GB SXM5 (HBM3).  Cross-hardware validation uses a single NVIDIA A100 80GB SXM4 (HBM2e).  Reference peaks for H100: 3.35~TB/s HBM bandwidth, 989.4~TFLOPS BF16 tensor core, 132 SMs, 50~MB L2 cache.  Reference peaks for A100: 2.0~TB/s HBM bandwidth, 312~TFLOPS BF16 tensor core, 108 SMs, 40~MB L2 cache.  GPU clocks were not locked on either platform (\texttt{nvidia-smi -lgc}); Section~\ref{sec:repro} quantifies the resulting variance.
+Primary measurements use a single NVIDIA H100 80GB SXM5 (HBM3).  Cross-hardware validation uses a single NVIDIA A100 80GB SXM4 (HBM2e).  Reference peaks for H100: 3.35~TB/s HBM bandwidth, 989.4~TFLOPS BF16 tensor core, 132 SMs, 50~MB L2 cache.  Reference peaks for A100: 2.0~TB/s HBM bandwidth, 312~TFLOPS BF16 tensor core, 108 SMs, 40~MB L2 cache.  The 2026-08 measurements (Sections~\ref{sec:gate}--\ref{sec:dispatch}) are clock-locked at 1755~MHz (\texttt{nvidia-smi -lgc}); the earlier case-study measurements were not, and Section~\ref{sec:repro} quantifies the resulting variance.
 
 \subsection{Software}
 SGLang (commit \texttt{7ef18be}), PyTorch 2.9.1+cu128, FlashInfer 0.6.6, Triton 3.5.1, CUDA 12.8, NCU 2025.1.1.
@@ -161,6 +169,72 @@ L1/L2 sector hit/miss counts           & Cache hierarchy behavior \\
 \end{table}
 
 % ══════════════════════════════════════════════════════════════════════════════
+\section{The Capacity Gate}
+\label{sec:gate}
+
+\subsection{Model statement}
+For a GEMM whose recurrent operand (the weights, in inference) occupies $W$ bytes at its stored precision, CARM predicts
+\begin{equation*}
+t = t_0 + \max\!\Big(\frac{B}{\mathrm{BW}(W)},\ \frac{F}{P}\Big),\qquad
+\mathrm{BW}(W)=\begin{cases}\mathrm{BW}_{L2} & W < C_\text{eff}\\ \mathrm{BW}_\text{HBM} & \text{otherwise,}\end{cases}
+\end{equation*}
+where $B$ is bytes moved, $F$ is FLOPs, $t_0$ is the per-launch fixed cost, and the compute ceiling $P$ is the tensor-core peak for precisions with native MMA support and the in-core dequantization ceiling ($r_\text{dequant}$ on packed bytes, re-paid per $M$-tile) for weight-only kernels that dequantize in the main loop.  In the split-memory form adopted here, streamed activations and outputs are priced at $\mathrm{BW}_\text{HBM}$ while only the weight term is capacity-gated; this beats the lumped form on below-gate cells (bf16 MAPE 25.3\%$\to$20.9\%).  All parameters are measured, none from datasheets (Section~\ref{sec:carm} details the fitting; Section~\ref{sec:transfer} the portable measurement).  On H100 SXM5: $C_\text{eff}=36$~MB (nominal 50), $\mathrm{BW}_{L2}=6.3$~TB/s, $\mathrm{BW}_\text{HBM}=3.15$~TB/s, $r_\text{dequant}=0.50$~TB/s, $t_0=2.8$~$\mu$s graphed.
+
+\subsection{The gate figure}
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=\textwidth]{figures/fig_capacity_gate.pdf}
+  \caption{\textbf{The capacity gate.}  Speedup over tuned cuBLAS bf16 vs.\ normalized weight working set $W/C_\text{eff}$, one line per token count $T$; 77 cells, clock-locked, CUDA-graph timed (10 launches/graph, median of 30 replays), per-cell mini-autotuned.  At decode-scale $T\!\leq\!32$ the sign flips between $W$=32 and 40~MB --- bracketing the measured $C_\text{eff}$=36~MB.  W8A8 (left; INT8 MMA, dynamic act-quant inside the timed region, no in-core dequant) reaches 1.2--1.46$\times$ in the far field; W4A16 (right) flips at the same boundary but caps at parity, bound by its in-core dequant ceiling.  At $T\!\geq\!64$ both lose everywhere: the compute-bound regime that produces MARLIN's reported batch-64 collapse.  Data: \texttt{profiling/gate/results\_capacity\_gate.json}.}
+  \label{fig:gate}
+\end{figure*}
+
+Figure~\ref{fig:gate} is the paper's central measurement: a 2D sweep of weight working set $W\in\{8\dots128\}$~MB $\times$ token count $T\in\{1\dots512\}$ over three precisions on the batched-GEMM family every model parameter was fit on.  Three features matter.  \textbf{(i) The flip location is the measured capacity.}  For $T\leq 32$, W8A8 loses at 0.5--0.7$\times$ below the gate and wins at 1.19--1.46$\times$ above it, with the crossing bracketed by the 32 and 40~MB cells --- independent confirmation of the NCU-derived $C_\text{eff}$.  \textbf{(ii) The far field obeys the ceiling term.}  W4A16 crosses at the same place but saturates at $\approx$1.0$\times$: its packed-byte dequant throughput (0.50~TB/s) makes the in-core term bind before the byte-ratio benefit can be realized.  The ceiling-free byte-ratio far field is reached only by kernels without main-loop dequantization --- W8A8 here, and tuned CUDA Marlin (ceiling 423~TFLOPS) in the MoE validation of Section~\ref{sec:carm}.  \textbf{(iii) The gate washes out at large $T$} as compute becomes the binding term, which is the same model term that predicts weight-only quantization's documented collapse beyond batch ${\sim}64$.
+
+Regime-separated accuracy (reported per guardrail; blended numbers hide where models fail): the tuned cuBLAS baseline is predicted to 12--21\% MAPE across the entire plane; the quantized Triton kernels to 8--39\% at the decode token counts where dispatch actually operates.  At $T\geq 64$ the Triton kernels drift progressively off their own rooflines (up to 81\% MAPE) while cuBLAS stays at ${\sim}17\%$ --- a kernel-implementation limitation, confined to the regime where no dispatcher would select them, and consistent with the per-tile re-dequantization staircase of Section~\ref{sec:boundary}.
+
+\subsection{Real dense shapes: the gate is operand-aware}
+On real Qwen3.6-27B projection GEMMs ($K$=8192, decode $M$=16), each precision falls off the residency cliff at \emph{its own operand's} size: bf16 spills near 40~MB while W8A8's int8 operand --- half the bytes --- remains L2-resident to twice the nominal weight size.  Between those two cliffs quantization wins not by saving DRAM traffic but by \emph{retaining residency the baseline has lost}: measured 2.4--3.0$\times$ warm on q/o\_proj (63~MB bf16 / 31~MB int8), reducing to 1.68--1.75$\times$ once rotation strips residency from both.  The same data shows the in-core-dequant path (W8A16) losing at every decode size.  This operand-aware form is the version of the gate a dispatcher must evaluate: compare \emph{each candidate kernel's own} working set against $C_\text{eff}$.
+
+\section{Boundary Conditions}
+\label{sec:boundary}
+
+\textbf{Serving contention kills the near field as a step function.}
+Running $R$ concurrent GEMM streams over disjoint weight copies, effective weight bandwidth for the bf16 kv\_proj operand (21~MB) drops from 4.26 to 2.52~TB/s the moment total hot working set crosses $C_\text{eff}$ ($R{=}1\!\to\!2$, 21$\to$42~MB) and is flat thereafter (2.34--2.44~TB/s out to 252~MB): the L2 tier does not degrade gracefully, it disappears.  Two corollaries.  First, every isolated-microbenchmark precision crossover in the literature --- including Figure~\ref{fig:gate} --- is optimistic under production co-residency; the near field is a microbenchmark and small-model regime on today's H100.  Second, the smaller quantized operand survives contention longer (W8A8's 10.5~MB copy holds 2.9~TB/s through $R{=}3$), which is the serving-side restatement of the operand-aware gate.  The regime is nonetheless \emph{expanding} in hardware: A100 40~MB $\to$ H100 50~MB $\to$ B200 ${\sim}126$~MB $\to$ B300 ${\sim}192$~MB LLC, so the fraction of GEMM working sets below the gate grows every generation.
+
+\textbf{A roofline is necessary but not sufficient for dispatch.}
+Five kernel-implementation mechanisms, each measured in this repo, independently flip win$\leftrightarrow$lose at fixed shape and precision: (A) persistent-grid tile starvation (Marlin's 132-CTA grid idles at $N\!\leq\!512$: fixed 16--29~$\mu$s floor; CUTLASS immune); (B) misaligned wave-quantization bands (one shape swings 0.75--2.71$\times$ vs.\ $M$; never interpolate across band edges); (C) implementation dispatch splits (blockwise-fp8 CUTLASS path +15--21\%, but $M{<}4$ falls back to a Triton kernel that loses to bf16 at decode); (D) decode occupancy floors (the register-pressure explanation was tested and refuted); (E) per-$M$-tile re-dequantization staircases (visible as W4A16's large-$T$ collapse in Figure~\ref{fig:gate}).  Precision routing therefore composes CARM with per-kernel predicates; the model prices the physics, the predicates veto implementation pathologies.
+
+\textbf{Where the KV cache fits.}
+KV-cache reads are outside the capacity story: decode attention shows no L2 tier at any working-set size (rotation-invariant), full attention is 2.67\% of runtime in the Qwen3.6-27B profile (end-to-end ceiling $\leq$0.2\%), and the fp8-KV decode kernel is bound by its own bandwidth ceiling (1.6 vs.\ bf16's 3.0~TB/s; 0.69--0.72$\times$ at small batch).  KV precision instead enters through the \emph{memory budget}: halving KV bytes doubles maximum concurrency at fixed memory (9$\to$18 sequences on 80~GB at the p32768d1024 operating point), which couples directly into the dispatch cost model below.  Quantize KV for concurrency, not for kernel speed.
+
+\section{Cross-Architecture Transfer}
+\label{sec:transfer}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\columnwidth]{figures/fig_transfer_a100.png}
+  \caption{\textbf{Transfer to A100} (bs=1).  Left: fp16 latency predicted zero-shot from the model form plus A100 hardware constants --- nothing fitted to A100 kernel measurements.  Right: the W4A16 Triton kernel after a two-point calibration of $(r_\text{dequant},\ \text{fixed cost})$ on the target; the dotted line scales H100 kernel terms by peak ratio and fails.  Data: \texttt{profiling/portable/results\_transfer\_a100.json}.}
+  \label{fig:transfer}
+\end{figure}
+
+The model is only useful for dispatch if its parameters can be obtained on a new backend for less than the cost of autotuning.  A portable harness (\texttt{profiling/portable/measure\_params.py}) measures $\{C_\text{eff}, \mathrm{BW}_{L2}, \mathrm{BW}_\text{HBM}, P, r_\text{dequant}, t_0\}$ on any backend with \texttt{torch.cuda} semantics: sweep sizes derive from the device's reported L2, bandwidths from graph-timed differential slopes, and $C_\text{eff}$ from a timing-only residency-collapse detector (warm re-read bandwidth rises with buffer size as fixed cost amortizes, then breaks downward at the effective capacity) --- no vendor counters required.  On H100 it reproduces the NCU-derived parameters: $C_\text{eff}$ 39.0~MB (counter-based band 32--40), $\mathrm{BW}_{L2}$ 5.26 vs.\ 5.33, $\mathrm{BW}_\text{HBM}$ 3.26 vs.\ 3.15.  It also measures the \emph{achieved} fp16 GEMM peak at 737~TFLOPS --- materially below the near-datasheet 989 used earlier in this project, and the honest value for the compute-bound far field.
+
+Applied across architectures (Figure~\ref{fig:transfer}): with A100 hardware constants and zero A100 kernel fitting, fp16 predictions land at 28.8\%/22.8\% MAPE (below/above the gate) --- an upper bound, since the available A100 constants are estimates rather than harness measurements.  Kernel terms do not transfer by scaling: extrapolating H100's $r_\text{dequant}$ by peak ratio yields 40.6\% MAPE and is structurally blind to the A100 kernel's measured 58.7~$\mu$s fixed cost (${\sim}6~\mu$s on H100 at the same shape).  A two-point calibration on the target --- the per-kernel microbenchmark the harness automates --- predicts the remaining 22 operating points to 19.9\%.  The division of labor is the finding: \emph{hardware terms transfer as cheap measurements; kernel terms are implementation properties that must be measured per architecture, and cannot be extrapolated}.
+
+\section{The Dispatch Cost Model}
+\label{sec:dispatch}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\columnwidth]{figures/fig_cost_model.png}
+  \caption{\textbf{Storage policies for runtime precision dispatch} (27B dense model, p32768d1024).  Left: holding a second weight format is paid out of the KV budget --- infeasible on 80~GB, $-33\%$ concurrency on H200 141~GB.  Right: repacking on a dispatch switch amortizes below 1\% overhead only at $\geq$20~s (measured unfused) / $\geq$2.5~s (fused bound) switch periods.  Data: \texttt{profiling/dispatch/results\_cost\_model.json}.}
+  \label{fig:dispatch}
+\end{figure}
+
+Runtime dispatch requires the chosen format to exist in memory, and the cost of that requirement decides whether dispatch is shippable (Figure~\ref{fig:dispatch}).  \textbf{(A) Dual residency}: a second copy of a 27B model (27~GB at int8) comes out of the KV budget; at the p32768d1024 operating point (2.21~GB KV per sequence) this takes an 80~GB H100 from 9 concurrent sequences to zero, and an H200 from 36 to 24 ($-33\%$ decode throughput, since decode throughput tracks concurrency until compute-bound).  \textbf{(B) Repack on switch}: measured unfused int8$\to$bf16 repack runs at 0.133~T elems/s (203~ms for 27B; fused lower bound $\mathrm{BW}_\text{HBM}/3$ bytes $=25$~ms), so keeping overhead under 1\% requires switch periods of 20~s (measured) to 2.5~s (bound) --- engine-mode granularity, never per-phase or per-layer.  \textbf{(C) JIT dequantization via DRAM scratch} moves $0.5{+}2{+}2 = 4.5\times$ bytes per int4 element per use vs.\ $2\times$ for resident bf16 --- 2.25$\times$ worse than not quantizing; it never pays.  JIT dequantization \emph{in-kernel} is not a fourth option: it is exactly the $r_\text{dequant}$ ceiling the model already prices.
+
+The numbers force an inversion.  With bf16-primary storage, dispatch is memory-infeasible or switch-limited; the only zero-marginal-cost policy is \textbf{quantized-primary storage} with per-shape choice between (i) quantized-compute kernels (W8A8/W4A4) and (ii) dequant-in-kernel bf16 compute priced by $r_\text{dequant}$.  The dispatcher's question is then not \emph{``when do we quantize?''} but \emph{``when do we pay the dequant ceiling vs.\ take the quantized-compute path?''} --- which is the question natively-quantized checkpoints (MXFP4 experts, FP8 dense) pose regardless.  KV precision couples in through the same budget: fp8 KV doubles feasible concurrency (Section~\ref{sec:boundary}) and is worth more to serving throughput than any per-kernel win in this paper.
+
 \section{Attention Kernel Validation}
 \label{sec:validation}
 
@@ -422,8 +496,11 @@ FlashInfer launches exactly 132 thread blocks (one per SM) using CUDA cooperativ
 Triton launches 2,048 blocks ($15.5\times$ more), dispatched in multiple waves.  Each wave evicts the previous wave's L2 residency, explaining the 14-point L2 hit rate gap (86.4\% vs.\ 72.0\%).
 
 % ══════════════════════════════════════════════════════════════════════════════
-\section{The MLA Reconstruction Bottleneck}
+\section{Case Study: MLA Reconstruction and the INT4 Negative Result}
+\label{sec:casestudy}
 \label{sec:recon}
+
+\emph{This section and the next preserve the study that discovered the gate: the MLA reconstruction workload, its INT4 mitigation attempt, the causal interventions (weight rotation, warm-state counters, CUDA-graph timing) that isolated partial L2 residency and the in-core dequantization ceiling as the two stacked mechanisms, and the W8A8 kernel that confirmed the model constructively.  Sparse/MoE operators were subsequently verified (FlagGems, 2026-07) to be outside the capacity story --- they are not cache-limited --- so these results stand as the gate's near-field case study rather than as claims about MLA serving in general.}
 
 Having established confidence in our profiling infrastructure, we turn to our central question: how much of MLA's attention-layer time is spent on reconstruction?
 
@@ -580,7 +657,7 @@ Arithmetic intensity peaks at 93 (bs=128+), well below the crossover point of 29
 \end{figure}
 
 % ══════════════════════════════════════════════════════════════════════════════
-\section{INT4 Mitigation and the L2 Cache Barrier}
+\section{Case Study (cont.): INT4 Mitigation and the L2 Cache Barrier}
 \label{sec:int4}
 
 Reconstruction BMMs are memory-bound at all practical batch sizes, and their weight matrices dominate the data transfer.  Reducing weight precision should therefore yield proportional speedups.  We evaluate INT4 weight-only quantization of $W^\text{kc}$ and $W^\text{vc}$, addressing two questions: does it preserve quality, and does it deliver the expected performance gain?
@@ -935,7 +1012,7 @@ The same regime structure appears in an independent workload class.  We analyzed
 \end{figure}
 
 % ══════════════════════════════════════════════════════════════════════════════
-\section{End-to-End Context}
+\section{End-to-End Context of the Case Study}
 \label{sec:e2e}
 
 To quantify the system-level impact of reconstruction, we contrast MLA against a standard GQA decode workload.
@@ -1050,8 +1127,12 @@ Despite the kernel limitations, reconstruction weights tolerate quantization wel
 \subsection{Limitations}
 
 \begin{itemize}[leftmargin=*,topsep=0pt]
+  \item The quantized Triton kernels drift off their own rooflines at $T\geq 64$ (up to 81\% MAPE) while cuBLAS stays at ${\sim}17\%$; the model prices the physics, not Triton codegen quality at large $M$.  All headline claims are confined to the decode regime or reproduced on tuned CUDA.
+  \item The A100 transfer numbers use estimated (not harness-measured) A100 hardware constants and an eager-timed 2026-06 target dataset; they are upper bounds pending a harness run on real A100 hardware.
+  \item The dispatch cost model's KV-per-token figure assumes the Qwen3.6-27B hybrid-attention layout (16 full-attention layers); dense-attention models shift the concurrency arithmetic, not the policy ordering.
+  \item Serving-contention measurements use concurrent GEMM streams as a proxy for full-engine co-residency; the staged served A/B (Section~\ref{sec:repro}) closes this gap.
   \item Single GPU; multi-GPU tensor-parallel workloads may show different ratios due to all-reduce overlap.
-  \item GPU clocks not locked; absolute numbers carry $\sim$3\% uncertainty at small batch sizes.
+  \item Sections~\ref{sec:casestudy} onward predate clock locking; absolute numbers there carry $\sim$3\% uncertainty at small batch sizes.  The gate sweep (Section~\ref{sec:gate}) and all 2026-08 measurements are clock-locked at 1755~MHz.
   \item Per-launch CUDA-event timing carries a ${\sim}15.5~\mu$s floor; eager-mode bs$\leq$16 latencies (and the 61\% reconstruction share) are launch-overhead-inflated.  Serving engines that capture decode in CUDA graphs will see smaller absolute reconstruction overhead (graph-timed: ${\sim}4.8~\mu$s per BMM vs.\ ${\sim}17~\mu$s eager), though the recon-vs-attention ratio is less affected since both sides carry the floor.
   \item Replay-based NCU counters are cold-cache (\texttt{--cache-control all}); only the \texttt{--cache-control none} warm-loop counters and timing interventions speak to residency.
   \item INT4/FP16 ratios are software-stack-sensitive: PyTorch 2.9.1/Triton 3.5.1 yields 1.86$\times$ (16~MB) $\to$ 1.08$\times$ (128~MB) event-timed, while PyTorch 2.7/Triton 3.3 yields 2.75$\times$ $\to$ 1.58$\times$ on identical hardware.  Kernel-level (graph-timed) ratios are more stable (1.9$\times$ $\to$ 1.0--1.1$\times$).  Directional conclusions transfer; magnitudes do not.
@@ -1078,13 +1159,13 @@ Despite the kernel limitations, reconstruction weights tolerate quantization wel
 % ══════════════════════════════════════════════════════════════════════════════
 \section{Conclusion}
 
-MLA's reconstruction GEMMs consume 61\% of eager-mode attention-layer time at batch size 1---a bottleneck that standard benchmarks miss, that single-level roofline analysis mispredicts by 8$\times$, and that naive INT4 quantization worsens rather than fixes.  We also provide a kernel-level characterization of FlashInfer vs.\ Triton attention on H100, identifying TMA hardware loads, memory access pattern quality, and cooperative grid launch as the three root causes of the performance gap.
+Whether quantization pays for a given GEMM is decided by a capacity condition standard roofline analysis cannot express: once the weight working set is last-level-cache resident, the traffic savings that motivate quantization vanish, and any in-core dequantization cost flips the quantized path to a net loss.  We measured the gate directly --- the win/loss sign flips between 32 and 40~MB, bracketing the measured 36~MB effective capacity of H100's nominal 50~MB L2 --- and showed that the literature's apparently contradictory results (MARLIN's ${\sim}4\times$ at small batch; our L2-resident null results) are the far and near fields of one three-parameter model.
 
-The INT4 quantization results illustrate a subtlety in MLA optimization.  \textbf{Quality is safe}: selective INT4 adds only +0.051 perplexity.  \textbf{But speedup is not automatic}: our custom Triton W4A16 kernel achieves 0.49$\times$ of cuBLAS FP16 through two stacked mechanisms --- ${\sim}75\%$ of the 16~MB reconstruction weights are L2-served in steady state (effective capacity ${\sim}36$~MB, effective bandwidth 3.5--4.6~TB/s), removing most of the HBM savings INT4 targets; and the dequantization-bound kernel forfeits the remainder, losing to FP16 even when residency is experimentally removed.  The gap between roofline-predicted (3.9$\times$) and realized performance is specific to small, (partially) L2-resident weight matrices, a regime common in MLA but absent from standard LLM linear layers.
+The model earns its parameters.  It predicts the tuned baseline to 12--21\% everywhere and quantized kernels to 8--39\% in the decode regime where dispatch operates; its dequant-ceiling term correctly caps W4A16 at parity in the far field; its parameters are measurable on any CUDA-semantics backend by a portable harness, transfer to A100 at 20--29\% MAPE with only a two-point per-kernel calibration, and provably cannot be extrapolated by hardware scaling ratios.  Its boundary conditions are stated rather than hidden: serving contention collapses the L2-resident regime as a step function, so isolated-microbenchmark crossovers are optimistic in production, and five measured kernel mechanisms mean dispatch must compose the model with per-kernel predicates.
 
-The measured cache-aware roofline turns these failures into a usable decision procedure, and the W8A8 result closes the loop: with dequantization removed from the inner loop (INT8 tensor-core MMA, scales on the accumulator), quantization wins 1.4--1.5$\times$ precisely where the model says it should --- weight-byte-bound decode above the effective L2 capacity --- and nowhere else.  The deployment rule for reconstruction-style GEMMs is three-way and fully measurable on the target GPU: serve from L2 in FP16; quantize with INT8 MMA when HBM-bound on weight bytes; stay in FP16 when compute-bound.  Fixing residency alone, or kernel efficiency alone, is provably insufficient; the regime decides.
+The dispatch cost analysis converts the model into a shippable policy: dual-format residency and on-line repacking are respectively memory-infeasible and switch-period-limited, so weights should be stored quantized-primary, and the runtime decision reduces to \emph{pay the dequant ceiling or take the quantized-compute path}, evaluated per shape against measured $C_\text{eff}$.  As LLC capacities grow (40$\to$50$\to$126$\to$192~MB across recent generations), the regime where quantization stops paying grows with them; the model, unlike any fixed heuristic, moves with the measurement.
 
-All profiling scripts, raw data, and the perplexity evaluation code are publicly available for reproduction.
+All profiling scripts, raw data (JSON alongside every figure), and evaluation code are publicly available for reproduction.
 
 % ══════════════════════════════════════════════════════════════════════════════
 

@@ -38,7 +38,7 @@ def main():
 
     from vllm import LLM, SamplingParams
 
-    kw = dict(model=MODEL, dtype="bfloat16", gpu_memory_utilization=0.92,
+    kw = dict(model=MODEL, dtype="bfloat16", gpu_memory_utilization=0.92, max_num_seqs=64,
               max_model_len=4096, enable_prefix_caching=False,
               disable_log_stats=True)
     if args.mode == "fp8":

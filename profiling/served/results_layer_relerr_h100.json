@@ -1,0 +1,238 @@
+{
+ "experiment": "real_weight_layer_relerr",
+ "model": "/home/ubuntu/models/Qwen3.6-27B",
+ "note": "reference math (quant-dequant + bf16 mm), 64 realistic acts; gaussian-floor baseline was 0.037 per-tensor",
+ "rows": [
+  {
+   "layer": 3,
+   "proj": "self_attn.q_proj",
+   "N": 12288,
+   "K": 5120,
+   "kurtosis": 3.7,
+   "w8a16": 0.0267,
+   "w8a8_pt": 0.0375,
+   "w8a8_pc": 0.0376,
+   "w8a8_blk": 0.0376
+  },
+  {
+   "layer": 3,
+   "proj": "self_attn.k_proj",
+   "N": 1024,
+   "K": 5120,
+   "kurtosis": 3.8,
+   "w8a16": 0.0267,
+   "w8a8_pt": 0.0378,
+   "w8a8_pc": 0.0375,
+   "w8a8_blk": 0.0375
+  },
+  {
+   "layer": 3,
+   "proj": "self_attn.v_proj",
+   "N": 1024,
+   "K": 5120,
+   "kurtosis": 3.5,
+   "w8a16": 0.0269,
+   "w8a8_pt": 0.0378,
+   "w8a8_pc": 0.0378,
+   "w8a8_blk": 0.0376
+  },
+  {
+   "layer": 3,
+   "proj": "self_attn.o_proj",
+   "N": 5120,
+   "K": 6144,
+   "kurtosis": 120.5,
+   "w8a16": 0.027,
+   "w8a8_pt": 0.0376,
+   "w8a8_pc": 0.0377,
+   "w8a8_blk": 0.0374
+  },
+  {
+   "layer": 3,
+   "proj": "mlp.gate_proj",
+   "N": 17408,
+   "K": 5120,
+   "kurtosis": 3.1,
+   "w8a16": 0.0265,
+   "w8a8_pt": 0.0374,
+   "w8a8_pc": 0.0375,
+   "w8a8_blk": 0.0375
+  },
+  {
+   "layer": 3,
+   "proj": "mlp.up_proj",
+   "N": 17408,
+   "K": 5120,
+   "kurtosis": 3.1,
+   "w8a16": 0.0265,
+   "w8a8_pt": 0.0373,
+   "w8a8_pc": 0.0376,
+   "w8a8_blk": 0.0376
+  },
+  {
+   "layer": 3,
+   "proj": "mlp.down_proj",
+   "N": 5120,
+   "K": 17408,
+   "kurtosis": 3.8,
+   "w8a16": 0.0265,
+   "w8a8_pt": 0.0375,
+   "w8a8_pc": 0.0376,
+   "w8a8_blk": 0.0375
+  },
+  {
+   "layer": 31,
+   "proj": "self_attn.q_proj",
+   "N": 12288,
+   "K": 5120,
+   "kurtosis": 3.5,
+   "w8a16": 0.0269,
+   "w8a8_pt": 0.0375,
+   "w8a8_pc": 0.0376,
+   "w8a8_blk": 0.0376
+  },
+  {
+   "layer": 31,
+   "proj": "self_attn.k_proj",
+   "N": 1024,
+   "K": 5120,
+   "kurtosis": 4.9,
+   "w8a16": 0.0268,
+   "w8a8_pt": 0.0374,
+   "w8a8_pc": 0.0376,
+   "w8a8_blk": 0.0375
+  },
+  {
+   "layer": 31,
+   "proj": "self_attn.v_proj",
+   "N": 1024,
+   "K": 5120,
+   "kurtosis": 3.7,
+   "w8a16": 0.0269,
+   "w8a8_pt": 0.0378,
+   "w8a8_pc": 0.0376,
+   "w8a8_blk": 0.0376
+  },
+  {
+   "layer": 31,
+   "proj": "self_attn.o_proj",
+   "N": 5120,
+   "K": 6144,
+   "kurtosis": 4.1,
+   "w8a16": 0.0266,
+   "w8a8_pt": 0.0375,
+   "w8a8_pc": 0.0376,
+   "w8a8_blk": 0.0376
+  },
+  {
+   "layer": 31,
+   "proj": "mlp.gate_proj",
+   "N": 17408,
+   "K": 5120,
+   "kurtosis": 3.2,
+   "w8a16": 0.0266,
+   "w8a8_pt": 0.0377,
+   "w8a8_pc": 0.0375,
+   "w8a8_blk": 0.0375
+  },
+  {
+   "layer": 31,
+   "proj": "mlp.up_proj",
+   "N": 17408,
+   "K": 5120,
+   "kurtosis": 3.2,
+   "w8a16": 0.0264,
+   "w8a8_pt": 0.0373,
+   "w8a8_pc": 0.0376,
+   "w8a8_blk": 0.0376
+  },
+  {
+   "layer": 31,
+   "proj": "mlp.down_proj",
+   "N": 5120,
+   "K": 17408,
+   "kurtosis": 3.6,
+   "w8a16": 0.0265,
+   "w8a8_pt": 0.0372,
+   "w8a8_pc": 0.0373,
+   "w8a8_blk": 0.0374
+  },
+  {
+   "layer": 63,
+   "proj": "self_attn.q_proj",
+   "N": 12288,
+   "K": 5120,
+   "kurtosis": 4.6,
+   "w8a16": 0.0267,
+   "w8a8_pt": 0.0377,
+   "w8a8_pc": 0.0378,
+   "w8a8_blk": 0.0378
+  },
+  {
+   "layer": 63,
+   "proj": "self_attn.k_proj",
+   "N": 1024,
+   "K": 5120,
+   "kurtosis": 8.8,
+   "w8a16": 0.0268,
+   "w8a8_pt": 0.0376,
+   "w8a8_pc": 0.0375,
+   "w8a8_blk": 0.0378
+  },
+  {
+   "layer": 63,
+   "proj": "self_attn.v_proj",
+   "N": 1024,
+   "K": 5120,
+   "kurtosis": 9.9,
+   "w8a16": 0.0266,
+   "w8a8_pt": 0.0377,
+   "w8a8_pc": 0.0377,
+   "w8a8_blk": 0.0379
+  },
+  {
+   "layer": 63,
+   "proj": "self_attn.o_proj",
+   "N": 5120,
+   "K": 6144,
+   "kurtosis": 5.5,
+   "w8a16": 0.0267,
+   "w8a8_pt": 0.0377,
+   "w8a8_pc": 0.0376,
+   "w8a8_blk": 0.0375
+  },
+  {
+   "layer": 63,
+   "proj": "mlp.gate_proj",
+   "N": 17408,
+   "K": 5120,
+   "kurtosis": 3.9,
+   "w8a16": 0.0267,
+   "w8a8_pt": 0.0378,
+   "w8a8_pc": 0.0375,
+   "w8a8_blk": 0.0376
+  },
+  {
+   "layer": 63,
+   "proj": "mlp.up_proj",
+   "N": 17408,
+   "K": 5120,
+   "kurtosis": 3.5,
+   "w8a16": 0.0267,
+   "w8a8_pt": 0.0378,
+   "w8a8_pc": 0.0377,
+   "w8a8_blk": 0.0376
+  },
+  {
+   "layer": 63,
+   "proj": "mlp.down_proj",
+   "N": 5120,
+   "K": 17408,
+   "kurtosis": 4.5,
+   "w8a16": 0.0268,
+   "w8a8_pt": 0.0377,
+   "w8a8_pc": 0.0375,
+   "w8a8_blk": 0.0375
+  }
+ ]
+}

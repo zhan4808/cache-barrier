@@ -50,7 +50,7 @@ def main():
     ids = tok(get_text(), return_tensors=None)["input_ids"]
     print(f"wikitext-2 test: {len(ids)} tokens; scoring {N_WIN} x {WIN}")
 
-    kw = dict(model=MODEL, dtype="bfloat16", gpu_memory_utilization=0.92,
+    kw = dict(model=MODEL, dtype="bfloat16", gpu_memory_utilization=0.92, max_num_seqs=64,
               max_model_len=WIN + 16, enable_prefix_caching=False,
               disable_log_stats=True)
     if args.mode == "fp8":
