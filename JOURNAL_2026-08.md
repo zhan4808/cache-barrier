@@ -123,3 +123,15 @@ concurrency loss.
 P1/P0 this morning; P5/P6 this session). Remaining open threads are the
 served A/B harnesses (need vLLM env + model download), a real A100 run of the
 portable harness to replace the estimated constants, and paper body surgery.
+
+### Presentation
+
+Built the MLSys-style deck: `docs/presentation_2026-08-01_gate.html` (NFS docs,
+not in git — matches convention for decks). 12 slides, assertion-evidence
+style, one claim + one visual per slide; data figures re-rendered in the deck
+palette from the committed JSONs; concept diagrams (hierarchy, gate predicate,
+contention step, LLC trend) as inline SVG. Also published as a private
+artifact for browser viewing. Flow for a cold reader: promise → contradiction
+(MARLIN vs us) → missing capacity term → the gate → Figure 1 → the
+three-parameter model → measurement hazards → boundary conditions → A100
+transfer → dispatch storage policies → LLC growth trend + takeaways.
