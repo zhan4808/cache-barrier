@@ -1,0 +1,75 @@
+{
+ "gpu": "NVIDIA A100-SXM4-40GB",
+ "nominal_l2_mb": 40.0,
+ "sm_count": 108,
+ "effective_l2_capacity_mb": 31.2,
+ "bw_l2_tbs": 3.855,
+ "bw_hbm_tbs": 1.514,
+ "peak_fp16_tflops": 257.7,
+ "r_dequant_tbs": 0.3938,
+ "t0_graph_us": 2.304,
+ "t0_eager_us": 32.768,
+ "residency_cliff_points_mb_tbs": [
+  [
+   16.0,
+   1.177
+  ],
+  [
+   19.4,
+   1.448
+  ],
+  [
+   22.8,
+   1.636
+  ],
+  [
+   26.2,
+   1.795
+  ],
+  [
+   29.5,
+   1.861
+  ],
+  [
+   32.9,
+   1.178
+  ],
+  [
+   36.3,
+   1.05
+  ],
+  [
+   39.7,
+   1.063
+  ],
+  [
+   43.1,
+   1.082
+  ],
+  [
+   46.5,
+   1.102
+  ],
+  [
+   49.8,
+   1.122
+  ],
+  [
+   53.2,
+   1.136
+  ],
+  [
+   56.6,
+   1.152
+  ],
+  [
+   60.0,
+   1.168
+  ]
+ ],
+ "r_dequant_detail_us": {
+  "256": 8.602,
+  "512": 13.926
+ },
+ "method": "graph-timed, differential slopes, timing-only residency cliff; no vendor counters, no datasheet numbers"
+}

@@ -3,23 +3,28 @@ P5 — cross-architecture transfer validation (DIRECTION.md §6 P5).
 
 Question: fit on architecture A, predict architecture B — what MAPE?
 
-Setup, honestly stated:
-  - Target: the in-repo A100-SXM4-80GB weight-size sweep
-    (results_l2_barrier_a100_extended.json; eager-event timed, 2026-06).
-  - A100 HARDWARE parameters are the carm.py estimates (bw_hbm 1.94,
-    bw_l2 4.0, C_eff 29 MB, peak 312, t0_eager 18 us) — NOT measured; the
-    portable harness (measure_params.py) exists to measure them and a few
-    hours on an A100 would replace them. MAPE below is therefore an UPPER
-    bound on what measured parameters would give.
+2026-08 A100-session update: the A100 hardware constants are now MEASURED
+(measure_params.py on an A100-SXM4-40GB, clock-locked, graph-timed), replacing
+the carm.py estimates. Two targets are scored:
+
+  PRIMARY — self-consistent: the graph-timed 48-cell sweep re-measured on the
+    SAME SXM4-40GB the parameters were measured on
+    (results_l2_barrier_a100_40gb_graphtimed.json). No hardware mismatch, no
+    eager floor. Uses t0_graph.
+  SECONDARY — the in-repo 2026-06 A100-SXM4-80GB sweep
+    (results_l2_barrier_a100_extended.json; eager-timed). Two knowing
+    mismatches, stated per guardrail 8: bw_hbm (40GB HBM2 1.51 vs 80GB HBM2e
+    ~1.94 TB/s) and t0_eager (32.8 us on this host vs ~15.5 us floor on the
+    2026-06 host). Kept because it is the original transfer claim's dataset.
+
   - fp16 predictions are ZERO-SHOT: model form + hardware constants, nothing
     fitted to any A100 kernel measurement.
-  - int4 (W4A16) predictions are TWO-POINT calibrated: the kernel's
-    (r_dequant, fixed cost) measured from two operating points on the target
-    (8 and 32 MB at bs=1) — the cheap per-kernel microbenchmark the P5
-    harness runs — then predict the remaining 22 points.
-  - A NAIVE-SCALING variant (H100 r_dequant scaled by peak-TFLOPS ratio, t0
-    from the eager floor) is also scored, to test whether kernel terms can be
-    extrapolated instead of measured. (Spoiler: they cannot.)
+  - int4 (W4A16) predictions are TWO-POINT calibrated per target: the kernel's
+    (r_dequant, fixed cost) from two operating points (8 and 32 MB at bs=1),
+    then predict the rest.
+  - A NAIVE-SCALING variant (H100 r_dequant scaled by peak-TFLOPS ratio) is
+    scored to test whether kernel terms can be extrapolated instead of
+    measured. (They cannot.)
 """
 
 import json
@@ -31,16 +36,35 @@ import matplotlib.pyplot as plt
 
 _D = os.path.dirname(os.path.abspath(__file__))
 
-# A100 hardware constants (kernel-compass carm.py — estimates, see docstring)
-A100 = dict(bw_hbm=1.94e12, bw_l2=4.0e12, c_eff=29 * 1048576,
-            peak=312e12, t0_eager=18.0)
+# A100 hardware constants — MEASURED (params_nvidia-a100-sxm4-40gb.json,
+# clock-locked 1410 MHz, graph-timed differential slopes).
+with open(os.path.join(_D, "params_nvidia-a100-sxm4-40gb.json")) as f:
+    _P = json.load(f)
+A100 = dict(bw_hbm=_P["bw_hbm_tbs"] * 1e12,
+            bw_l2=_P["bw_l2_tbs"] * 1e12,
+            c_eff=_P["effective_l2_capacity_mb"] * 1048576,
+            peak=_P["peak_fp16_tflops"] * 1e12,
+            t0_graph=_P["t0_graph_us"],
+            t0_eager=_P["t0_eager_us"])
+# 2026-08-01 estimates, superseded by the measured values above:
+# A100 = dict(bw_hbm=1.94e12, bw_l2=4.0e12, c_eff=29 * 1048576,
+#             peak=312e12, t0_eager=18.0)
 H100_R_DQ = 0.579e12   # measured by measure_params.py on H100
 H100_PEAK = 736.8e12
 
 H, K = 128, 128
 
-with open(os.path.join(_D, "..", "results_l2_barrier_a100_extended.json")) as f:
-    DATA = json.load(f)
+TARGETS = [
+    # (key, filename, t0_us, notes)
+    ("a100_40gb_graphtimed", "results_l2_barrier_a100_40gb_graphtimed.json",
+     A100["t0_graph"],
+     "PRIMARY: same GPU as measured params, graph-timed — self-consistent"),
+    ("a100_80gb_eager_2026_06", os.path.join("..", "results_l2_barrier_a100_extended.json"),
+     A100["t0_eager"],
+     "SECONDARY: 80GB HBM2e target vs 40GB-measured bw_hbm (1.51 vs ~1.94 TB/s) "
+     "and host-mismatched eager floor (32.8 us measured here vs ~15.5 us there) "
+     "— both mismatches known, stated, and the reason this target is secondary"),
+]
 
 
 def shapes(r):
@@ -53,12 +77,12 @@ def shapes(r):
     return E, act, out, flops
 
 
-def predict_fp16_us(r):
+def predict_fp16_us(r, t0):
     E, act, out, flops = shapes(r)
     wb = 2.0 * E
     bw = A100["bw_l2"] if wb < A100["c_eff"] else A100["bw_hbm"]
     mem = wb / bw + (act + out) / A100["bw_hbm"]
-    return A100["t0_eager"] + max(mem, flops / A100["peak"]) * 1e6
+    return t0 + max(mem, flops / A100["peak"]) * 1e6
 
 
 def predict_int4_us(r, r_dq, fixed_us):
@@ -74,8 +98,10 @@ def mape(pairs):
     return round(100 * sum(errs) / len(errs), 1) if errs else None
 
 
-def main():
-    rows = [r for r in DATA["results"]]
+def score_target(fname, t0, notes):
+    with open(os.path.join(_D, fname)) as f:
+        data = json.load(f)
+    rows = data["results"]
     bs1 = {r["weight_mb"]: r for r in rows if r["batch_size"] == 1}
 
     # Two-point calibration of the W4A16 kernel on the target (8 and 32 MB)
@@ -92,9 +118,9 @@ def main():
     table = []
     for r in rows:
         m_f, m_i = r["fp16_ms"] * 1000, r["int4_ms"] * 1000
-        p_f = predict_fp16_us(r)
+        p_f = predict_fp16_us(r, t0)
         p_ic = predict_int4_us(r, r_dq_cal, fixed_cal)
-        p_in = predict_int4_us(r, r_dq_naive, A100["t0_eager"])
+        p_in = predict_int4_us(r, r_dq_naive, t0)
         wb = 2.0 * H * K * r["d_lora"]
         (fp16_below if wb < A100["c_eff"] else fp16_above).append((m_f, p_f))
         is_cal = r["batch_size"] == 1 and r["weight_mb"] in (8.0, 32.0)
@@ -102,19 +128,23 @@ def main():
             int4_cal_pairs.append((m_i, p_ic))
         int4_naive_pairs.append((m_i, p_in))
         table.append(dict(bs=r["batch_size"], w_mb=r["weight_mb"],
-                          fp16_us=m_f, fp16_pred=round(p_f, 1),
-                          int4_us=m_i, int4_pred_cal=round(p_ic, 1),
+                          fp16_us=round(m_f, 2), fp16_pred=round(p_f, 1),
+                          int4_us=round(m_i, 2), int4_pred_cal=round(p_ic, 1),
                           int4_pred_naive=round(p_in, 1), calibration_point=is_cal))
 
-    out = {
-        "target": DATA["gpu"],
-        "a100_hw_params_are_estimates": True,
+    return {
+        "target_gpu": data["gpu"],
+        "target_file": fname.replace("\\", "/"),
+        "timing": data.get("timing", "eager CUDA events (2026-06)"),
+        "t0_us_used": round(t0, 3),
+        "notes": notes,
         "calibrated_kernel_terms": {
             "r_dequant_tbs": round(r_dq_cal / 1e12, 4),
             "fixed_us": round(fixed_cal, 1),
             "calibration_points_mb": [8, 32],
             "h100_reference_r_dequant_tbs": round(H100_R_DQ / 1e12, 4),
             "naive_peak_scaled_r_dequant_tbs": round(r_dq_naive / 1e12, 4),
+            "harness_measured_r_dequant_tbs": _P["r_dequant_tbs"],
         },
         "mape": {
             "fp16_zero_shot_below_gate_pct": mape(fp16_below),
@@ -123,37 +153,60 @@ def main():
             "int4_naive_scaled_pct": mape(int4_naive_pairs),
         },
         "rows": table,
+    }, bs1, r_dq_cal, fixed_cal, r_dq_naive
+
+
+def main():
+    out = {
+        "a100_hw_params_are_estimates": False,
+        "a100_hw_params_source": "params_nvidia-a100-sxm4-40gb.json (measured, "
+                                 "clock-locked 1410 MHz)",
+        "measured_params": {k: _P[k] for k in (
+            "gpu", "effective_l2_capacity_mb", "bw_l2_tbs", "bw_hbm_tbs",
+            "peak_fp16_tflops", "r_dequant_tbs", "t0_graph_us", "t0_eager_us")},
+        "targets": {},
     }
+    fig_data = None
+    for key, fname, t0, notes in TARGETS:
+        scored, bs1, r_dq_cal, fixed_cal, r_dq_naive = score_target(fname, t0, notes)
+        out["targets"][key] = scored
+        print(f"\n=== {key} ({scored['target_gpu']}) ===")
+        print(json.dumps(scored["calibrated_kernel_terms"], indent=2))
+        print(json.dumps(scored["mape"], indent=2))
+        if key == "a100_40gb_graphtimed":
+            fig_data = (bs1, t0, r_dq_cal, fixed_cal, r_dq_naive)
+
     path = os.path.join(_D, "results_transfer_a100.json")
     with open(path, "w") as f:
         json.dump(out, f, indent=1)
-    print(json.dumps(out["calibrated_kernel_terms"], indent=2))
-    print(json.dumps(out["mape"], indent=2))
 
-    # Figure (bs=1)
+    # Figure: primary (self-consistent 40GB) target, bs=1
+    bs1, t0, r_dq_cal, fixed_cal, r_dq_naive = fig_data
+    c_eff_mb = _P["effective_l2_capacity_mb"]
     ws = sorted(bs1)
     fig, axes = plt.subplots(1, 2, figsize=(9.5, 3.8), sharex=True)
     axes[0].plot(ws, [bs1[w]["fp16_ms"] * 1000 for w in ws], "o-", c="#2171B5", label="measured")
-    axes[0].plot(ws, [predict_fp16_us(bs1[w]) for w in ws], "--", c="#2171B5",
+    axes[0].plot(ws, [predict_fp16_us(bs1[w], t0) for w in ws], "--", c="#2171B5",
                  label="predicted (zero-shot)")
     axes[0].set_title("A100 fp16 cuBLAS — no A100 fitting", fontsize=10)
     axes[1].plot(ws, [bs1[w]["int4_ms"] * 1000 for w in ws], "o-", c="#E6550D", label="measured")
     axes[1].plot(ws, [predict_int4_us(bs1[w], r_dq_cal, fixed_cal) for w in ws], "--",
                  c="#E6550D", label="predicted (2-pt calibrated)")
-    axes[1].plot(ws, [predict_int4_us(bs1[w], r_dq_naive, A100["t0_eager"]) for w in ws], ":",
+    axes[1].plot(ws, [predict_int4_us(bs1[w], r_dq_naive, t0) for w in ws], ":",
                  c="gray", label="naive H100 scaling (fails)")
     axes[1].set_title("A100 W4A16 Triton — 2-point kernel calibration", fontsize=10)
     for ax in axes:
-        ax.axvline(29, color="crimson", ls=":", lw=1, label="C$_{eff}$ est. 29 MB")
+        ax.axvline(c_eff_mb, color="crimson", ls=":", lw=1,
+                   label=f"C$_{{eff}}$ measured {c_eff_mb:.1f} MB")
         ax.set_xlabel("weight working set (MB)")
         ax.grid(alpha=0.25)
         ax.legend(fontsize=7.5)
-    axes[0].set_ylabel("latency (µs, eager-timed)")
-    fig.suptitle("Transfer: CARM form + cheap per-target microbenchmarks predict an unseen GPU",
-                 fontsize=11)
+    axes[0].set_ylabel("latency (µs, graph-timed)")
+    fig.suptitle("Transfer: CARM form + measured constants + cheap per-target "
+                 "microbenchmarks predict an unseen GPU", fontsize=11)
     fig.tight_layout(rect=[0, 0, 1, 0.93])
     fig.savefig(os.path.join(_D, "fig_transfer_a100.png"), dpi=180)
-    print("saved results_transfer_a100.json, fig_transfer_a100.png")
+    print("\nsaved results_transfer_a100.json, fig_transfer_a100.png")
 
 
 if __name__ == "__main__":
