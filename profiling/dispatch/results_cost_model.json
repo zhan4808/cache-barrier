@@ -30,6 +30,25 @@
    "feasible": true
   }
  },
+ "kv_precision_lever": {
+  "note": "fp8 KV halves bytes/token. It is a CONCURRENCY lever (memory), not a speed lever: e2e decode-speed ceiling <=0.2% (kv_serving/, full attn = 2.67% of runtime), but it roughly doubles max concurrency at fixed memory and re-opens dual-residency headroom on large-memory parts.",
+  "h100_80gb_kv_fp8": {
+   "gpu_mem_gb": 80,
+   "kv_gb_per_seq": 1.11,
+   "concurrency_single": 18,
+   "concurrency_dual": 0,
+   "throughput_cost_pct": 100.0,
+   "feasible": false
+  },
+  "h200_141gb_kv_fp8": {
+   "gpu_mem_gb": 141,
+   "kv_gb_per_seq": 1.11,
+   "concurrency_single": 73,
+   "concurrency_dual": 48,
+   "throughput_cost_pct": 34.2,
+   "feasible": true
+  }
+ },
  "policy_b_repack": {
   "repack_s_unfused_measured": 0.203,
   "repack_s_fused_bound": 0.025,

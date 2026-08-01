@@ -135,3 +135,21 @@ artifact for browser viewing. Flow for a cold reader: promise → contradiction
 (MARLIN vs us) → missing capacity term → the gate → Figure 1 → the
 three-parameter model → measurement hazards → boundary conditions → A100
 transfer → dispatch storage policies → LLC growth trend + takeaways.
+
+## 2026-08-01 (session 3) — deck completion + the KV question
+
+**KV-cache quantization, placed** (extends `dispatch/cost_model.py`): fp8 KV
+is a *memory* lever, not a speed lever. Speed: e2e ceiling ≤0.2% (KV reads not
+L2-limited, full attn 2.67% of runtime, fp8 decode kernel BW-ceiling-bound).
+Memory: halving the 2.21 GB/seq budget doubles max concurrency (9→18 on
+H100-80GB, 36→73 on H200) — and decode throughput scales with concurrency.
+Verdict: outside the gate (KV is not a GEMM operand), inside the budget —
+quantize KV for concurrency, not kernel speed. Deep KV-compression research
+(KVQuant etc.) stays out of scope: crowded field, orthogonal mechanism.
+
+**Deck finished** (12 → 17 slides): added Amdahl motivation (mm = 86.2%),
+dense-Qwen operand-aware boundary (new deck render of
+results_l2_boundary_h100.json), contention step upgraded from sketch SVG to
+the real kv_proj data (results_contention_h100.json), mechanisms expanded to
+a six-panel taxonomy slide, the KV verdict slide, and a status/roadmap slide.
+Every data slide now has committed JSON behind it.

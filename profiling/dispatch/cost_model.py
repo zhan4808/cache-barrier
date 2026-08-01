@@ -62,9 +62,17 @@ ASSUMPTIONS = {
 }
 
 
-def policy_a(gpu_mem_gb, a=ASSUMPTIONS):
-    """Dual-residency: concurrency with and without the second copy."""
-    kv_seq = a["kv_bytes_per_token"] * a["tokens_per_seq"]
+def policy_a(gpu_mem_gb, a=ASSUMPTIONS, kv_scale=1.0):
+    """Dual-residency: concurrency with and without the second copy.
+
+    kv_scale: KV-cache bytes multiplier (0.5 = fp8 KV). KV quantization enters
+    the dispatch problem HERE — as a memory/concurrency lever — not as a
+    bandwidth lever: kv_serving/ showed KV reads are not L2-limited and the
+    end-to-end decode-speed ceiling of fp8 KV is <=0.2% on the Qwen3.6-27B
+    profile (full attention is 2.67% of runtime, and the fp8 decode kernel is
+    BW-ceiling-bound at ~1.6 vs bf16's ~3.0 TB/s). Orthogonal to the gate;
+    coupled through the KV budget."""
+    kv_seq = a["kv_bytes_per_token"] * a["tokens_per_seq"] * kv_scale
     base_free = gpu_mem_gb * 1e9 - a["n_params"] * a["bytes_primary"] \
         - a["runtime_overhead_gb"] * 1e9
     dual_free = base_free - a["n_params"] * a["bytes_secondary"]
@@ -118,6 +126,15 @@ def main():
         "policy_a_dual_resident": {
             "h100_80gb": policy_a(80),
             "h200_141gb": policy_a(141),
+        },
+        "kv_precision_lever": {
+            "note": "fp8 KV halves bytes/token. It is a CONCURRENCY lever "
+                    "(memory), not a speed lever: e2e decode-speed ceiling "
+                    "<=0.2% (kv_serving/, full attn = 2.67% of runtime), but "
+                    "it roughly doubles max concurrency at fixed memory and "
+                    "re-opens dual-residency headroom on large-memory parts.",
+            "h100_80gb_kv_fp8": policy_a(80, kv_scale=0.5),
+            "h200_141gb_kv_fp8": policy_a(141, kv_scale=0.5),
         },
         "policy_b_repack": policy_b(),
         "policy_c_jit_dequant": policy_c(),
