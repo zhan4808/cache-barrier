@@ -1,0 +1,75 @@
+{
+ "gpu": "NVIDIA H100 80GB HBM3",
+ "nominal_l2_mb": 50.0,
+ "sm_count": 132,
+ "effective_l2_capacity_mb": 39.0,
+ "bw_l2_tbs": 5.262,
+ "bw_hbm_tbs": 3.264,
+ "peak_fp16_tflops": 736.8,
+ "r_dequant_tbs": 0.5787,
+ "t0_graph_us": 2.326,
+ "t0_eager_us": 16.352,
+ "residency_cliff_points_mb_tbs": [
+  [
+   20.0,
+   1.743
+  ],
+  [
+   24.2,
+   2.124
+  ],
+  [
+   28.5,
+   2.394
+  ],
+  [
+   32.7,
+   2.648
+  ],
+  [
+   36.9,
+   2.81
+  ],
+  [
+   41.2,
+   2.643
+  ],
+  [
+   45.4,
+   2.013
+  ],
+  [
+   49.6,
+   2.074
+  ],
+  [
+   53.8,
+   2.126
+  ],
+  [
+   58.1,
+   2.173
+  ],
+  [
+   62.3,
+   2.231
+  ],
+  [
+   66.5,
+   2.26
+  ],
+  [
+   70.8,
+   2.311
+  ],
+  [
+   75.0,
+   2.333
+  ]
+ ],
+ "r_dequant_detail_us": {
+  "256": 6.112,
+  "512": 9.736
+ },
+ "method": "graph-timed, differential slopes, timing-only residency cliff; no vendor counters, no datasheet numbers"
+}

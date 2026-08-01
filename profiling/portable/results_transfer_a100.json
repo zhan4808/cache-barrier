@@ -1,0 +1,502 @@
+{
+ "target": "NVIDIA A100-SXM4-80GB",
+ "a100_hw_params_are_estimates": true,
+ "calibrated_kernel_terms": {
+  "r_dequant_tbs": 0.4059,
+  "fixed_us": 58.7,
+  "calibration_points_mb": [
+   8,
+   32
+  ],
+  "h100_reference_r_dequant_tbs": 0.579,
+  "naive_peak_scaled_r_dequant_tbs": 0.2452
+ },
+ "mape": {
+  "fp16_zero_shot_below_gate_pct": 28.8,
+  "fp16_zero_shot_above_gate_pct": 22.8,
+  "int4_two_point_calibrated_pct": 19.9,
+  "int4_naive_scaled_pct": 40.6
+ },
+ "rows": [
+  {
+   "bs": 1,
+   "w_mb": 8.0,
+   "fp16_us": 29.2,
+   "fp16_pred": 20.1,
+   "int4_us": 63.9,
+   "int4_pred_cal": 63.9,
+   "int4_pred_naive": 26.6,
+   "calibration_point": true
+  },
+  {
+   "bs": 1,
+   "w_mb": 12.0,
+   "fp16_us": 31.2,
+   "fp16_pred": 21.2,
+   "int4_us": 63.9,
+   "int4_pred_cal": 66.5,
+   "int4_pred_naive": 30.8,
+   "calibration_point": false
+  },
+  {
+   "bs": 1,
+   "w_mb": 16.0,
+   "fp16_us": 35.5,
+   "fp16_pred": 22.3,
+   "int4_us": 66.4,
+   "int4_pred_cal": 69.1,
+   "int4_pred_naive": 35.1,
+   "calibration_point": false
+  },
+  {
+   "bs": 1,
+   "w_mb": 24.0,
+   "fp16_us": 36.8,
+   "fp16_pred": 24.4,
+   "int4_us": 72.9,
+   "int4_pred_cal": 74.2,
+   "int4_pred_naive": 43.7,
+   "calibration_point": false
+  },
+  {
+   "bs": 1,
+   "w_mb": 32.0,
+   "fp16_us": 43.3,
+   "fp16_pred": 35.4,
+   "int4_us": 79.39999999999999,
+   "int4_pred_cal": 79.4,
+   "int4_pred_naive": 52.2,
+   "calibration_point": true
+  },
+  {
+   "bs": 1,
+   "w_mb": 40.0,
+   "fp16_us": 51.8,
+   "fp16_pred": 39.8,
+   "int4_us": 85.5,
+   "int4_pred_cal": 84.6,
+   "int4_pred_naive": 60.8,
+   "calibration_point": false
+  },
+  {
+   "bs": 1,
+   "w_mb": 48.0,
+   "fp16_us": 55.300000000000004,
+   "fp16_pred": 44.2,
+   "int4_us": 90.89999999999999,
+   "int4_pred_cal": 89.7,
+   "int4_pred_naive": 69.3,
+   "calibration_point": false
+  },
+  {
+   "bs": 1,
+   "w_mb": 56.0,
+   "fp16_us": 60.8,
+   "fp16_pred": 48.5,
+   "int4_us": 97.10000000000001,
+   "int4_pred_cal": 94.9,
+   "int4_pred_naive": 77.9,
+   "calibration_point": false
+  },
+  {
+   "bs": 1,
+   "w_mb": 64.0,
+   "fp16_us": 65.19999999999999,
+   "fp16_pred": 52.9,
+   "int4_us": 103.1,
+   "int4_pred_cal": 100.1,
+   "int4_pred_naive": 86.4,
+   "calibration_point": false
+  },
+  {
+   "bs": 1,
+   "w_mb": 80.0,
+   "fp16_us": 80.69999999999999,
+   "fp16_pred": 61.6,
+   "int4_us": 104.2,
+   "int4_pred_cal": 110.4,
+   "int4_pred_naive": 103.5,
+   "calibration_point": false
+  },
+  {
+   "bs": 1,
+   "w_mb": 96.0,
+   "fp16_us": 83.3,
+   "fp16_pred": 70.3,
+   "int4_us": 115.5,
+   "int4_pred_cal": 120.7,
+   "int4_pred_naive": 120.6,
+   "calibration_point": false
+  },
+  {
+   "bs": 1,
+   "w_mb": 128.0,
+   "fp16_us": 100.3,
+   "fp16_pred": 87.7,
+   "int4_us": 135.9,
+   "int4_pred_cal": 141.4,
+   "int4_pred_naive": 154.9,
+   "calibration_point": false
+  },
+  {
+   "bs": 4,
+   "w_mb": 8.0,
+   "fp16_us": 28.8,
+   "fp16_pred": 20.3,
+   "int4_us": 65.10000000000001,
+   "int4_pred_cal": 63.9,
+   "int4_pred_naive": 26.6,
+   "calibration_point": false
+  },
+  {
+   "bs": 4,
+   "w_mb": 12.0,
+   "fp16_us": 29.3,
+   "fp16_pred": 21.4,
+   "int4_us": 65.8,
+   "int4_pred_cal": 66.5,
+   "int4_pred_naive": 30.8,
+   "calibration_point": false
+  },
+  {
+   "bs": 4,
+   "w_mb": 16.0,
+   "fp16_us": 30.5,
+   "fp16_pred": 22.5,
+   "int4_us": 66.10000000000001,
+   "int4_pred_cal": 69.1,
+   "int4_pred_naive": 35.1,
+   "calibration_point": false
+  },
+  {
+   "bs": 4,
+   "w_mb": 24.0,
+   "fp16_us": 37.8,
+   "fp16_pred": 24.8,
+   "int4_us": 70.2,
+   "int4_pred_cal": 74.2,
+   "int4_pred_naive": 43.7,
+   "calibration_point": false
+  },
+  {
+   "bs": 4,
+   "w_mb": 32.0,
+   "fp16_us": 46.199999999999996,
+   "fp16_pred": 35.9,
+   "int4_us": 74.30000000000001,
+   "int4_pred_cal": 79.4,
+   "int4_pred_naive": 52.2,
+   "calibration_point": false
+  },
+  {
+   "bs": 4,
+   "w_mb": 40.0,
+   "fp16_us": 53.0,
+   "fp16_pred": 40.4,
+   "int4_us": 79.39999999999999,
+   "int4_pred_cal": 84.6,
+   "int4_pred_naive": 60.8,
+   "calibration_point": false
+  },
+  {
+   "bs": 4,
+   "w_mb": 48.0,
+   "fp16_us": 58.2,
+   "fp16_pred": 44.8,
+   "int4_us": 85.5,
+   "int4_pred_cal": 89.7,
+   "int4_pred_naive": 69.3,
+   "calibration_point": false
+  },
+  {
+   "bs": 4,
+   "w_mb": 56.0,
+   "fp16_us": 64.5,
+   "fp16_pred": 49.3,
+   "int4_us": 89.80000000000001,
+   "int4_pred_cal": 94.9,
+   "int4_pred_naive": 77.9,
+   "calibration_point": false
+  },
+  {
+   "bs": 4,
+   "w_mb": 64.0,
+   "fp16_us": 70.4,
+   "fp16_pred": 53.7,
+   "int4_us": 94.8,
+   "int4_pred_cal": 100.1,
+   "int4_pred_naive": 86.4,
+   "calibration_point": false
+  },
+  {
+   "bs": 4,
+   "w_mb": 80.0,
+   "fp16_us": 82.19999999999999,
+   "fp16_pred": 62.7,
+   "int4_us": 106.30000000000001,
+   "int4_pred_cal": 110.4,
+   "int4_pred_naive": 103.5,
+   "calibration_point": false
+  },
+  {
+   "bs": 4,
+   "w_mb": 96.0,
+   "fp16_us": 93.7,
+   "fp16_pred": 71.6,
+   "int4_us": 118.4,
+   "int4_pred_cal": 120.7,
+   "int4_pred_naive": 120.6,
+   "calibration_point": false
+  },
+  {
+   "bs": 4,
+   "w_mb": 128.0,
+   "fp16_us": 118.9,
+   "fp16_pred": 89.4,
+   "int4_us": 139.8,
+   "int4_pred_cal": 141.4,
+   "int4_pred_naive": 154.9,
+   "calibration_point": false
+  },
+  {
+   "bs": 16,
+   "w_mb": 8.0,
+   "fp16_us": 29.3,
+   "fp16_pred": 20.9,
+   "int4_us": 66.0,
+   "int4_pred_cal": 63.9,
+   "int4_pred_naive": 26.6,
+   "calibration_point": false
+  },
+  {
+   "bs": 16,
+   "w_mb": 12.0,
+   "fp16_us": 29.5,
+   "fp16_pred": 22.2,
+   "int4_us": 67.0,
+   "int4_pred_cal": 66.5,
+   "int4_pred_naive": 30.8,
+   "calibration_point": false
+  },
+  {
+   "bs": 16,
+   "w_mb": 16.0,
+   "fp16_us": 31.3,
+   "fp16_pred": 23.5,
+   "int4_us": 69.1,
+   "int4_pred_cal": 69.1,
+   "int4_pred_naive": 35.1,
+   "calibration_point": false
+  },
+  {
+   "bs": 16,
+   "w_mb": 24.0,
+   "fp16_us": 40.300000000000004,
+   "fp16_pred": 26.2,
+   "int4_us": 76.5,
+   "int4_pred_cal": 74.2,
+   "int4_pred_naive": 43.7,
+   "calibration_point": false
+  },
+  {
+   "bs": 16,
+   "w_mb": 32.0,
+   "fp16_us": 47.7,
+   "fp16_pred": 37.7,
+   "int4_us": 84.3,
+   "int4_pred_cal": 79.4,
+   "int4_pred_naive": 52.2,
+   "calibration_point": false
+  },
+  {
+   "bs": 16,
+   "w_mb": 40.0,
+   "fp16_us": 61.199999999999996,
+   "fp16_pred": 42.6,
+   "int4_us": 99.4,
+   "int4_pred_cal": 84.6,
+   "int4_pred_naive": 60.8,
+   "calibration_point": false
+  },
+  {
+   "bs": 16,
+   "w_mb": 48.0,
+   "fp16_us": 67.4,
+   "fp16_pred": 47.5,
+   "int4_us": 108.2,
+   "int4_pred_cal": 89.7,
+   "int4_pred_naive": 69.3,
+   "calibration_point": false
+  },
+  {
+   "bs": 16,
+   "w_mb": 56.0,
+   "fp16_us": 75.89999999999999,
+   "fp16_pred": 52.3,
+   "int4_us": 117.3,
+   "int4_pred_cal": 94.9,
+   "int4_pred_naive": 77.9,
+   "calibration_point": false
+  },
+  {
+   "bs": 16,
+   "w_mb": 64.0,
+   "fp16_us": 82.60000000000001,
+   "fp16_pred": 57.2,
+   "int4_us": 127.7,
+   "int4_pred_cal": 100.1,
+   "int4_pred_naive": 86.4,
+   "calibration_point": false
+  },
+  {
+   "bs": 16,
+   "w_mb": 80.0,
+   "fp16_us": 96.60000000000001,
+   "fp16_pred": 66.9,
+   "int4_us": 147.0,
+   "int4_pred_cal": 110.4,
+   "int4_pred_naive": 103.5,
+   "calibration_point": false
+  },
+  {
+   "bs": 16,
+   "w_mb": 96.0,
+   "fp16_us": 111.3,
+   "fp16_pred": 76.6,
+   "int4_us": 164.8,
+   "int4_pred_cal": 120.7,
+   "int4_pred_naive": 120.6,
+   "calibration_point": false
+  },
+  {
+   "bs": 16,
+   "w_mb": 128.0,
+   "fp16_us": 142.4,
+   "fp16_pred": 96.1,
+   "int4_us": 199.4,
+   "int4_pred_cal": 141.4,
+   "int4_pred_naive": 154.9,
+   "calibration_point": false
+  },
+  {
+   "bs": 64,
+   "w_mb": 8.0,
+   "fp16_us": 28.9,
+   "fp16_pred": 23.3,
+   "int4_us": 91.2,
+   "int4_pred_cal": 63.9,
+   "int4_pred_naive": 26.6,
+   "calibration_point": false
+  },
+  {
+   "bs": 64,
+   "w_mb": 12.0,
+   "fp16_us": 31.4,
+   "fp16_pred": 25.5,
+   "int4_us": 107.89999999999999,
+   "int4_pred_cal": 66.5,
+   "int4_pred_naive": 30.8,
+   "calibration_point": false
+  },
+  {
+   "bs": 64,
+   "w_mb": 16.0,
+   "fp16_us": 35.6,
+   "fp16_pred": 27.6,
+   "int4_us": 125.0,
+   "int4_pred_cal": 69.1,
+   "int4_pred_naive": 35.1,
+   "calibration_point": false
+  },
+  {
+   "bs": 64,
+   "w_mb": 24.0,
+   "fp16_us": 50.0,
+   "fp16_pred": 31.9,
+   "int4_us": 138.8,
+   "int4_pred_cal": 74.2,
+   "int4_pred_naive": 43.7,
+   "calibration_point": false
+  },
+  {
+   "bs": 64,
+   "w_mb": 32.0,
+   "fp16_us": 54.800000000000004,
+   "fp16_pred": 45.0,
+   "int4_us": 167.0,
+   "int4_pred_cal": 79.4,
+   "int4_pred_naive": 52.2,
+   "calibration_point": false
+  },
+  {
+   "bs": 64,
+   "w_mb": 40.0,
+   "fp16_us": 62.9,
+   "fp16_pred": 51.5,
+   "int4_us": 196.3,
+   "int4_pred_cal": 84.6,
+   "int4_pred_naive": 60.8,
+   "calibration_point": false
+  },
+  {
+   "bs": 64,
+   "w_mb": 48.0,
+   "fp16_us": 72.1,
+   "fp16_pred": 58.0,
+   "int4_us": 225.89999999999998,
+   "int4_pred_cal": 89.7,
+   "int4_pred_naive": 69.3,
+   "calibration_point": false
+  },
+  {
+   "bs": 64,
+   "w_mb": 56.0,
+   "fp16_us": 81.0,
+   "fp16_pred": 64.5,
+   "int4_us": 257.29999999999995,
+   "int4_pred_cal": 94.9,
+   "int4_pred_naive": 77.9,
+   "calibration_point": false
+  },
+  {
+   "bs": 64,
+   "w_mb": 64.0,
+   "fp16_us": 86.5,
+   "fp16_pred": 71.0,
+   "int4_us": 287.7,
+   "int4_pred_cal": 100.1,
+   "int4_pred_naive": 86.4,
+   "calibration_point": false
+  },
+  {
+   "bs": 64,
+   "w_mb": 80.0,
+   "fp16_us": 105.2,
+   "fp16_pred": 83.9,
+   "int4_us": 348.8,
+   "int4_pred_cal": 110.4,
+   "int4_pred_naive": 103.5,
+   "calibration_point": false
+  },
+  {
+   "bs": 64,
+   "w_mb": 96.0,
+   "fp16_us": 122.2,
+   "fp16_pred": 96.9,
+   "int4_us": 407.6,
+   "int4_pred_cal": 120.7,
+   "int4_pred_naive": 120.6,
+   "calibration_point": false
+  },
+  {
+   "bs": 64,
+   "w_mb": 128.0,
+   "fp16_us": 150.7,
+   "fp16_pred": 122.9,
+   "int4_us": 523.5999999999999,
+   "int4_pred_cal": 141.4,
+   "int4_pred_naive": 154.9,
+   "calibration_point": false
+  }
+ ]
+}
