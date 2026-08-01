@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2026.8.1)  1 AUG 2026 22:17
+This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2026.8.1)  1 AUG 2026 23:32
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1093,6 +1093,37 @@ ays L2-class un-til
  []
 
 
+Underfull \hbox (badness 1460) in paragraph at lines 229--230
+\OT1/ptm/m/n/10 (+20) HBM rate --- $\OML/cmm/m/it/10 W[]\OT1/cmr/m/n/10 16$ \OT
+1/ptm/m/n/10 (+20) MB holds through $\OML/cmm/m/it/10 T[]\OT1/cmr/m/n/10 128$ \
+OT1/ptm/m/n/10 (+20) (foot-
+ []
+
+
+Underfull \hbox (badness 1005) in paragraph at lines 229--230
+\OT1/ptm/m/n/10 (+20) print 36 MB) and col-lapses at $\OML/cmm/m/it/10 T[]\OT1/
+cmr/m/n/10 192$ \OT1/ptm/m/n/10 (+20) (46 MB), while
+ []
+
+
+Overfull \hbox (8.38173pt too wide) in paragraph at lines 229--230
+\OT1/ptm/m/n/10 (-20) (\OT1/pcr/m/n/10 profiling/portable/probe[]a100[]bw[]floo
+r.json\OT1/ptm/m/n/10 (-20) )
+ []
+
+
+Underfull \hbox (badness 1117) in paragraph at lines 229--230
+\OT1/ptm/m/n/10 (+20) show that at $\OML/cmm/m/it/10 M[]\OT1/cmr/m/n/10 1$\OT1/
+ptm/m/n/10 (+20) , sm[]80 cuBLAS dis-patches tiny-tile
+ []
+
+
+Underfull \hbox (badness 1748) in paragraph at lines 229--230
+\OT1/ptm/m/n/10 (+20) L2-resident weights, where H100's TMA-based \OT1/pcr/m/n/
+10 nvjet
+ []
+
+
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
  [5 <./figures/fig_transfer_a100.png>]
@@ -1144,28 +1175,25 @@ Underfull \hbox (badness 10000) in paragraph at lines 334--334
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
  [8]
-<figures/val_latency.pdf, id=341, 1001.42662pt x 327.16078pt>
+<figures/val_latency.pdf, id=340, 1001.42662pt x 327.16078pt>
 File: figures/val_latency.pdf Graphic file (type pdf)
 <use figures/val_latency.pdf>
 Package pdftex.def Info: figures/val_latency.pdf  used on input line 432.
 (pdftex.def)             Requested size: 505.89pt x 165.2723pt.
-<figures/val_bw.pdf, id=342, 995.82635pt x 322.26547pt>
+<figures/val_bw.pdf, id=341, 995.82635pt x 322.26547pt>
 File: figures/val_bw.pdf Graphic file (type pdf)
 <use figures/val_bw.pdf>
 Package pdftex.def Info: figures/val_bw.pdf  used on input line 439.
 (pdftex.def)             Requested size: 505.89pt x 163.71394pt.
-<figures/val_ratio.pdf, id=343, 929.53027pt x 319.9182pt>
+<figures/val_ratio.pdf, id=342, 929.53027pt x 319.9182pt>
 File: figures/val_ratio.pdf Graphic file (type pdf)
 <use figures/val_ratio.pdf>
 Package pdftex.def Info: figures/val_ratio.pdf  used on input line 446.
 (pdftex.def)             Requested size: 505.89pt x 174.1152pt.
 
-Underfull \vbox (badness 10000) has occurred while \output is active []
+Underfull \vbox (badness 2503) has occurred while \output is active []
 
  [9]
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
-
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
  [10 <./figures/val_latency.pdf> <./figures/val_bw.pdf>]
@@ -1174,16 +1202,13 @@ File: figures/carm_roofline.pdf Graphic file (type pdf)
 <use figures/carm_roofline.pdf>
 Package pdftex.def Info: figures/carm_roofline.pdf  used on input line 488.
 (pdftex.def)             Requested size: 505.89pt x 164.99129pt.
-
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
 <figures/w8a8_results.pdf, id=508, 931.81187pt x 391.63904pt>
 File: figures/w8a8_results.pdf Graphic file (type pdf)
 <use figures/w8a8_results.pdf>
 Package pdftex.def Info: figures/w8a8_results.pdf  used on input line 520.
 (pdftex.def)             Requested size: 505.89pt x 212.6293pt.
-<figures/mla_l2_stack.pdf, id=512, 569.89915pt x 353.79051pt>
+ [11 <./figures/val_ratio.pdf>]
+<figures/mla_l2_stack.pdf, id=586, 569.89915pt x 353.79051pt>
 File: figures/mla_l2_stack.pdf Graphic file (type pdf)
 <use figures/mla_l2_stack.pdf>
 Package pdftex.def Info: figures/mla_l2_stack.pdf  used on input line 529.
@@ -1193,7 +1218,6 @@ Underfull \hbox (badness 6157) in paragraph at lines 534--534
 []\OT1/ptm/b/n/12 (+20) Generalization: Mixed-Precision MoE
  []
 
-[11 <./figures/val_ratio.pdf>]
 <figures/fused_moe_extended.pdf, id=588, 863.6579pt x 337.34518pt>
 File: figures/fused_moe_extended.pdf Graphic file (type pdf)
 <use figures/fused_moe_extended.pdf>
@@ -1208,10 +1232,10 @@ Underfull \hbox (badness 1014) in paragraph at lines 547--547
 
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
-
+ [12 <./figures/carm_roofline.pdf> <./figures/w8a8_results.pdf>]
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [12 <./figures/carm_roofline.pdf> <./figures/w8a8_results.pdf>]
+ [13 <./figures/mla_l2_stack.pdf> <./figures/fused_moe_extended.pdf>]
 Underfull \hbox (badness 10000) in paragraph at lines 575--576
 []\OT1/ptm/m/n/10 (+20) Replay-based NCU coun-ters are cold-
  []
@@ -1228,7 +1252,7 @@ Underfull \hbox (badness 10000) in paragraph at lines 575--576
 and
  []
 
-[13 <./figures/mla_l2_stack.pdf> <./figures/fused_moe_extended.pdf>]
+
 Underfull \hbox (badness 10000) in paragraph at lines 587--588
 \OT1/ptm/b/n/10 (+20) Positioning (added 2026-08, DI-REC-TION.md
  []
@@ -1266,13 +1290,13 @@ Package rerunfilecheck Info: File `main.out' has not changed.
 (rerunfilecheck)             Checksum: 8B4B23F61E0E5E8B5D960C961BE7FD64;6495.
  ) 
 Here is how much of TeX's memory you used:
- 35780 strings out of 480247
- 821191 string characters out of 5896152
- 1256833 words of memory out of 5000000
+ 35774 strings out of 480247
+ 821131 string characters out of 5896152
+ 1256247 words of memory out of 5000000
  52695 multiletter control sequences out of 15000+600000
- 514406 words of font info for 321 fonts, out of 8000000 for 9000
+ 514004 words of font info for 317 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
- 99i,19n,94p,1869b,2600s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 99i,19n,94p,2007b,2600s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/share/texlive/texmf-dist/fonts/enc/dvips/base/8r.enc}</usr/share/texliv
 e/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/share/texlive/texm
 f-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texlive/texmf-dist
@@ -1292,7 +1316,7 @@ blic/amsfonts/symbols/msbm10.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw
 /courier/ucrr8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmb8a
 .pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/shar
 e/texlive/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on main.pdf (15 pages, 701275 bytes).
+Output written on main.pdf (15 pages, 702376 bytes).
 PDF statistics:
  1065 PDF objects out of 1200 (max. 8388607)
  433 compressed objects within 5 object streams

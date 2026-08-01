@@ -366,3 +366,18 @@ model form (a two-parameter transition would likely recover most of the
 below-gate MAPE on both architectures); root-cause the A100 small-kernel BW
 floor (needs A100 time + NCU); non-NVIDIA backend; B200; GitHub push (still
 no key on these boxes).
+
+**Addendum — A100 BW floor root-caused** (probe run on the still-live A100
+before shutdown; `profiling/portable/probe_a100_bw_floor.{py,json}`): at M=1,
+sm_80 cuBLAS dispatches `cutlass_80_wmma_...16x16` (8 MB) and
+`internal::gemvx` (64 MB) — no TMA path. Above the gate a single stream hits
+1.53 TB/s ≈ 98% of the 40GB card's HBM spec (no deficit; the "floor" claim
+for the HBM regime was wrong and is corrected here); below the gate the
+kernels cap at ~0.9–1.3 TB/s invariant to CTA count (H=32→1024) — they
+cannot exploit L2-resident weights, where H100's nvjet draws ~8 TB/s.
+Pricing the baseline with the same two-point calibration used for W4A16
+(below-gate BW 1.28 TB/s from the 8 & 24 MB points) drops A100 below-gate
+zero-shot MAPE **44.0% → 12.8%** on the 14 held-out cells. Closes the
+below-gate story: not model form, not constants — an unmeasured baseline
+kernel term. *Baseline kernels are kernel terms too.* Paper §Transfer +
+limitations updated; A100 clocks reset (-rgc) after the probe.
