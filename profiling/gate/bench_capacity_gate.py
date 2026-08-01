@@ -30,6 +30,7 @@ BW capacity-gated at each precision's OWN operand bytes (operand-aware gate,
 dense_qwen finding). MAPE reported per regime (guardrail 7).
 """
 
+import argparse
 import json
 import os
 import statistics
@@ -45,21 +46,39 @@ sys.path.insert(0, os.path.join(_D, "..", "w8a8"))  # profiling/w8a8/
 from bench_l2_barrier import kernel_batched_w4a16_simple, quantize_weights_int4  # noqa: E402
 from w8a8_bmm import quantize_weights_w8, quantize_acts_w8, w8a8_bmm, _pick_config  # noqa: E402
 
-with open(os.path.join(_D, "..", "carm_model.json")) as f:
+# Cross-architecture: --params selects the CARM params file. Accepts either
+# the carm_model.json key names (H100 fit) or the portable-harness names
+# (params_<gpu-slug>.json from measure_params.py).
+_ap = argparse.ArgumentParser()
+_ap.add_argument("--params", default=os.path.join(_D, "..", "carm_model.json"))
+_ap.add_argument("--tsweep", default="1,16,32,64,128,256,512",
+                 help="comma-separated token counts")
+_ap.add_argument("--out", default=os.path.join(_D, "results_capacity_gate.json"))
+ARGS = _ap.parse_args()
+
+with open(ARGS.params) as f:
     P = json.load(f)
 
-C_EFF = P["effective_l2_capacity_mb"] * 1024 * 1024
-BW_L2 = P["bw_l2_gemm_tbs"] * 1e12
-BW_HBM = P["bw_hbm_tbs"] * 1e12
-PEAK = P["peak_tflops"] * 1e12
+
+def _p(*keys):
+    for k in keys:
+        if k in P and P[k] is not None:
+            return P[k]
+    raise KeyError(keys)
+
+
+C_EFF = _p("effective_l2_capacity_mb") * 1024 * 1024
+BW_L2 = _p("bw_l2_gemm_tbs", "bw_l2_tbs") * 1e12
+BW_HBM = _p("bw_hbm_tbs") * 1e12
+PEAK = _p("peak_tflops", "peak_fp16_tflops") * 1e12
 PEAK_INT8 = PEAK  # conservative: Triton IMMA does not reach the 2x INT8 rate
-T0_US = P["t0_graph_us"]
-R_DQ = P["r_dequant_tbs"] * 1e12
+T0_US = _p("t0_graph_us")
+R_DQ = _p("r_dequant_tbs") * 1e12
 BW_ACTQ = 1.6e12  # measured act-quant kernel bandwidth (dense_qwen)
 
 H, K = 128, 128
 W_MB_SWEEP = [8, 12, 16, 24, 32, 40, 48, 56, 64, 96, 128]
-T_SWEEP = [1, 16, 32, 64, 128, 256, 512]
+T_SWEEP = [int(t) for t in ARGS.tsweep.split(",")]
 
 GRAPH_INNER = 10
 GRAPH_REPS = 30
@@ -240,7 +259,8 @@ def main():
     gpu = torch.cuda.get_device_name(0)
     clocks = os.popen(
         "nvidia-smi --query-gpu=clocks.sm --format=csv,noheader").read().strip()
-    print(f"GPU: {gpu}  SM clock: {clocks} (lock externally: nvidia-smi -lgc 1755)")
+    print(f"GPU: {gpu}  SM clock: {clocks} (lock externally: nvidia-smi -lgc <max>)")
+    print(f"params: {ARGS.params}")
     print(f"torch {torch.__version__}  triton {triton.__version__}")
     sanity_check()
 
@@ -277,13 +297,16 @@ def main():
         "torch": torch.__version__, "triton": triton.__version__,
         "H": H, "K": K, "c_eff_mb": P["effective_l2_capacity_mb"],
         "timing": f"CUDA graphs, {GRAPH_INNER} launches/graph, median of {GRAPH_REPS} replays",
-        "carm_params": {k: P[k] for k in (
-            "peak_tflops", "bw_hbm_tbs", "bw_l2_gemm_tbs",
-            "effective_l2_capacity_mb", "t0_graph_us", "r_dequant_tbs")},
+        "params_file": ARGS.params,
+        "carm_params": {
+            "peak_tflops": PEAK / 1e12, "bw_hbm_tbs": BW_HBM / 1e12,
+            "bw_l2_tbs": BW_L2 / 1e12,
+            "effective_l2_capacity_mb": C_EFF / 1048576,
+            "t0_graph_us": T0_US, "r_dequant_tbs": R_DQ / 1e12},
         "mape_regime_separated": mape,
         "results": results,
     }
-    path = os.path.join(_D, "results_capacity_gate.json")
+    path = ARGS.out
     with open(path, "w") as f:
         json.dump(out, f, indent=1)
     print(f"\nSaved {path}")
