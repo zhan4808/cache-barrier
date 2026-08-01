@@ -204,3 +204,87 @@ max_model_len 4096, deep_gemm off → cutlass fp8 path):
   level for this workload. Kernel-level bands (mechanism B) do not surface
   in a decode-dominated engine A/B; they matter for prefill batch shaping,
   which this workload doesn't exercise. Demo closed as a negative result.
+
+## 2026-08-01 (session 5, A100) — measured constants replace estimates
+
+**Environment**: A100-SXM4-**40GB** (not the 80GB the 2026-06 target data came
+from — same GA100 die, L2 and SMs, but HBM2 at ~1.5 TB/s vs the 80GB's HBM2e
+~1.94; flagged before measuring, decision below). MIG disabled, passwordless
+clock lock at 1410 MHz, system torch 2.7.0 + triton 3.3.0. NFS copy of the
+project rsynced from the east box (`robert-nfs-west-2`).
+
+**The 40-vs-80GB decision**: measured constants from this card cannot honestly
+predict the 80GB eager-timed target — bw_hbm differs by ~28% and it is the
+dominant above-gate parameter. Chosen resolution: promote the graph-timed
+re-measure (kickoff stretch #2) into the primary path and score transfer
+against a **self-consistent target** — the same 48-cell sweep re-measured on
+the same GPU the parameters come from. The 80GB eager dataset stays as a
+secondary target with both mismatches (bw_hbm, host eager floor) stated.
+
+**Harness run** (`params_nvidia-a100-sxm4-40gb.json`, committed `198b589`):
+C_eff **31.2 MB** = 0.78× nominal 40 — the same effective/nominal ratio as
+H100 (39.0/50). bw_l2 3.86, bw_hbm 1.51 (HBM2, as expected for the 40GB
+part), peak fp16 achieved 257.7 TF (vs 312 datasheet; same achieved-vs-quoted
+gap as H100's 737/989), t0 2.30 µs graphed / 32.8 µs eager (this host's eager
+floor is ~2× the 2026-06 host's 15.5 µs — floors are host properties).
+r_dequant **0.394 TB/s vs 0.406 fitted from the 2026-06 data** (3% apart,
+different host and timing discipline) — kickoff stretch #3 answered for free:
+the two-point microbenchmark and the full-sweep fit agree on this kernel.
+
+**Graph-timed re-measure of the 48-cell sweep**
+(`results_l2_barrier_a100_40gb_graphtimed.json`): removing the eager floor
+rewrites the qualitative picture of the 2026-06 dataset. The int4 kernel's
+notorious 58.7 µs "fixed cost" collapses to **3.5 µs** under graphs — it was
+eager launch overhead, not a kernel property. Kernel-level, int4 *wins* at
+bs ≤ 4 (0.72–0.94×, advantage growing past C_eff), sits at ~parity at bs=16
+(losing only below the gate, 1.25–1.32×), and loses everywhere at bs=64
+(2.4–3.8×, dequant-compute-bound) — the gate pattern, visible in raw
+latencies, on a second architecture. The measured fp16 curve shows a slope
+break at ~31 MB, i.e. C_eff is visible by eye in the latency data.
+
+**Transfer validation re-scored** (`transfer_validation.py`, both targets,
+guardrail 7/8):
+- PRIMARY (self-consistent 40GB, graph-timed): fp16 zero-shot **44.0% below
+  gate / 19.0% above**; W4A16 two-point calibrated 30.9%, naive scaling 61.4%.
+  The below-gate number is the honest headline of this leg: with every
+  constant measured on the very GPU being predicted, the split-mem CARM form
+  *underpredicts small L2-resident kernels* — same direction as H100's
+  below-gate residual (20.9% after the split-mem fix), larger here. Model-form
+  finding, not a constants problem; the constants excuse is now spent.
+- SECONDARY (2026-06 80GB eager): fp16 zero-shot **28.8→18.3% below /
+  22.8→13.0% above** — measured constants improved the original claim's
+  numbers despite the two stated mismatches. Naive kernel scaling 40.6→28.1%,
+  still ~1.4× worse than the 19.9% two-point calibration; the "kernel terms
+  must be measured" conclusion survives the constants upgrade.
+- Calibrated r_dequant on the graph-timed target: 0.418 TB/s vs harness 0.394
+  (6%) — consistent operating-point picture across three measurement routes.
+
+**Gate flip on A100** (kickoff stretch #1; `bench_capacity_gate.py`
+parameterized to `--params/--tsweep/--out`, reduced sweep T ∈ {1,16,32}):
+33 cells, sanity rel_err 3e-4 / 9e-3, results in
+`profiling/gate/results_capacity_gate_a100.json`. **The H100 sign flip does
+not replicate; the capacity structure does.** On this card w8a8 wins below
+the gate at T=1 (1.05–1.11×, no flip at all) and flips at 8–16 MB at
+T=16/32 — nowhere near C_eff. Mechanism: H100's below-gate w8a8 *loss*
+(0.67–0.70×) was act-quant overhead against a fast bf16 baseline; A100's
+bf16 is relatively slower (bw_l2 3.86 vs 5.3, 1410 vs 1755 MHz), so the
+overhead never wins. What does transfer is the gate's *derivative*
+structure: the w8a8 advantage peaks exactly in the predicted
+asymmetric-residency band 31–62 MB bf16-equivalent (T=1: 1.83× at 32 →
+**2.07× at 40** → declining once w8a8's own operand approaches capacity),
+the bf16 latency curve breaks at ~31 MB, and w4a16 at T=32 loses everywhere
+(0.54–0.77×, dequant ceiling binds). One model-refinement lead: at T=32 the
+w8a8 step-down lands at operand ~20 MB < C_eff, consistent with
+total-footprint (weights+act+output ≈ 25 MB) crossing capacity rather than
+the weight operand alone — the operand-aware gate may need a footprint term
+at larger T. MAPE repeats the transfer finding: bf16 18.6% above gate,
+53.6% below (n=12/21) — the below-gate model-form weakness is now confirmed
+on two independent A100 datasets. So the transfer claim upgrades carefully:
+**the gate's capacity structure transfers; the sign of the below-gate branch
+is architecture-dependent** (it hinges on baseline kernel quality, which is
+exactly what the per-kernel terms of the model are for).
+
+**Paper/deck**: §Transfer, contributions bullet, setup hardware paragraph,
+limitation bullet, and conclusion updated to the measured numbers; portability
+slide and status slide updated (⌁ source lines + MAPE). WeChat addendum
+drafted. Clocks reset (`-rgc`) at session end.
