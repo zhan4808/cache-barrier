@@ -35,6 +35,13 @@ Elias Frantar, Saleh Ashkboos, Torsten Hoefler, and Dan Alistarh.
   transformers.
 \newblock In {\em ICLR}, 2023.
 
+\bibitem{marlin}
+Elias Frantar, Roberto~L. Castro, Jiale Chen, Torsten Hoefler, and Dan
+  Alistarh.
+\newblock Marlin: Mixed-precision auto-regressive parallel inference on large
+  language models.
+\newblock {\em arXiv preprint arXiv:2408.11743}, 2024.
+
 \bibitem{kvquant}
 Coleman Hooper, Sehoon Kim, Hiva Mohammadi, Michael~W. Mahoney, Yakun~Sophia
   Shao, Kurt Keutzer, and Amir Gholami.
