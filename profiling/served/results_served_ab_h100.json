@@ -1,0 +1,68 @@
+[
+ {
+  "mode": "bf16",
+  "workload": "decode",
+  "max_batched": null,
+  "load_s": 384.5,
+  "wall_s": 8.09,
+  "prompt_toks": 2550,
+  "gen_toks": 16384,
+  "gen_tok_per_s": 2025.5,
+  "total_tok_per_s": 2340.7
+ },
+ {
+  "mode": "fp8",
+  "workload": "decode",
+  "max_batched": null,
+  "load_s": 113.5,
+  "wall_s": 5.59,
+  "prompt_toks": 2550,
+  "gen_toks": 16384,
+  "gen_tok_per_s": 2930.9,
+  "total_tok_per_s": 3387.1
+ },
+ {
+  "mode": "bf16",
+  "workload": "prefill",
+  "max_batched": null,
+  "load_s": 42.4,
+  "wall_s": 2.17,
+  "prompt_toks": 27254,
+  "gen_toks": 64,
+  "gen_tok_per_s": 29.4,
+  "total_tok_per_s": 12563.4
+ },
+ {
+  "mode": "fp8",
+  "workload": "prefill",
+  "max_batched": null,
+  "load_s": 53.1,
+  "wall_s": 1.81,
+  "prompt_toks": 27254,
+  "gen_toks": 64,
+  "gen_tok_per_s": 35.4,
+  "total_tok_per_s": 15096.0
+ },
+ {
+  "mode": "fp8",
+  "workload": "decode",
+  "max_batched": 512,
+  "load_s": 112.8,
+  "wall_s": 6.03,
+  "prompt_toks": 2550,
+  "gen_toks": 16384,
+  "gen_tok_per_s": 2718.4,
+  "total_tok_per_s": 3141.4
+ },
+ {
+  "mode": "fp8",
+  "workload": "decode",
+  "max_batched": 460,
+  "load_s": 113.7,
+  "wall_s": 5.82,
+  "prompt_toks": 2550,
+  "gen_toks": 16384,
+  "gen_tok_per_s": 2817.5,
+  "total_tok_per_s": 3256.0
+ }
+]

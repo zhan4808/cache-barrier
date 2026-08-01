@@ -195,6 +195,9 @@ Regime-separated accuracy (reported per guardrail; blended numbers hide where mo
 \subsection{Real dense shapes: the gate is operand-aware}
 On real Qwen3.6-27B projection GEMMs ($K$=8192, decode $M$=16), each precision falls off the residency cliff at \emph{its own operand's} size: bf16 spills near 40~MB while W8A8's int8 operand --- half the bytes --- remains L2-resident to twice the nominal weight size.  Between those two cliffs quantization wins not by saving DRAM traffic but by \emph{retaining residency the baseline has lost}: measured 2.4--3.0$\times$ warm on q/o\_proj (63~MB bf16 / 31~MB int8), reducing to 1.68--1.75$\times$ once rotation strips residency from both.  The same data shows the in-core-dequant path (W8A16) losing at every decode size.  This operand-aware form is the version of the gate a dispatcher must evaluate: compare \emph{each candidate kernel's own} working set against $C_\text{eff}$.
 
+\subsection{The served check}
+The chain from microbenchmark to deployment closes end-to-end: serving the real Qwen3.6-27B on vLLM (64 sequences, cutlass fp8 W8A8 path), fp8 delivers \textbf{1.45$\times$} decode throughput over bf16 (2931 vs.\ 2026 generated tok/s) --- inside the 1.2--1.6$\times$ band the kernel-level model projected --- and 1.20$\times$ on prefill, the compute-bound regime where the model says the benefit thins.  The accuracy cost is $\Delta$PPL $+0.032$ on wikitext-2 (7.528$\to$7.560, 49k tokens), with per-layer relative error at the Gaussian quantization floor for every W8A8 granularity, including a kurtosis-120 outlier projection.  One engine-level negative, stated plainly: shaping \texttt{max\_num\_batched\_tokens} to wave-band edges only \emph{hurt} decode throughput (2931$\to$2718--2818 tok/s) --- mechanism~B (Section~\ref{sec:boundary}) does not surface in a decode-dominated engine A/B and remains a prefill batch-shaping concern.
+
 \section{Boundary Conditions}
 \label{sec:boundary}
 

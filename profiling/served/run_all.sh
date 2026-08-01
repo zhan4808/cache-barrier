@@ -5,6 +5,10 @@
 set -uo pipefail
 cd "$(dirname "$0")"
 PY=/home/ubuntu/vllm-env/bin/python
+# deep_gemm is not installed in this venv; vLLM 0.20.2's fp8-eligibility scan
+# raises without it even on bf16 models. The cutlass fp8 path is what we want
+# anyway (it is the deployed W8A8 path this project models).
+export VLLM_USE_DEEP_GEMM=0 VLLM_MOE_USE_DEEP_GEMM=0
 log(){ echo "[$(date +%H:%M:%S)] $*"; }
 
 log "1/7 layer_relerr (no engine)"

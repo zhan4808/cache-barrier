@@ -153,3 +153,54 @@ results_l2_boundary_h100.json), contention step upgraded from sketch SVG to
 the real kv_proj data (results_contention_h100.json), mechanisms expanded to
 a six-panel taxonomy slide, the KV verdict slide, and a status/roadmap slide.
 Every data slide now has committed JSON behind it.
+
+## 2026-08-01 (session 4) — served pipeline, paper body, deck v2
+
+**Deck v2** (`docs/presentation_2026-08-01_gate.html`): horizontal
+arrow-key/swipe navigation (presentation-style, one slide at a time),
+per-slide data-source line (repo path of every number shown), viewport-fit
+constraints (figures ≤52vh), content column centered at ≤1180px. Verified
+with Playwright at 1600×900 (all 17) and 1280×720 (figure slides): caught and
+fixed (1) missing `<meta charset>` → mojibake under Chromium's windows-1252
+guess, (2) `.src` descender clipping, (3) an SVG caption overrunning its
+viewBox, (4) undersized visuals from the old narrow column.
+
+**Paper body surgery** (commit `6244190`): new §3–§6 (Capacity Gate /
+Boundary Conditions / Transfer / Dispatch) with the three new figures;
+MLA+INT4 demoted to Case Study sections; conclusion + limitations rewritten.
+**Correction of an earlier claim**: session-1's "compiles clean" checks were
+reading a stale June `main.log` — pdflatex was not installed on this
+instance. Installed TeX Live; the reframed paper genuinely compiles: 18
+pages, 0 errors, no undefined refs.
+
+**Served pipeline debugging** (fresh instance realities, in order):
+1. vLLM default `max_num_seqs=1024` > 343 Mamba cache blocks of the hybrid
+   GDN model → engine init failure. Fix: `max_num_seqs=64` in both harnesses.
+2. vLLM 0.20.2's deep_gemm fp8-eligibility scan raises when `deep_gemm` is
+   absent — even on the bf16 leg. Fix: `VLLM_USE_DEEP_GEMM=0
+   VLLM_MOE_USE_DEEP_GEMM=0` (cutlass fp8 is the deployed path we model
+   anyway).
+3. GDN linear-attn JIT needs `ninja` (lost with the old instance's apt/pip
+   state). Fix: pip+apt install.
+Also: `pkill` of the runner leaves EngineCore children holding 33 GB — kill
+via `nvidia-smi --query-compute-apps` pids before relaunching.
+
+**layer_relerr on real weights** (`served/results_layer_relerr_h100.json`):
+w8a16 rel-err ≈0.027, all w8a8 granularities ≈0.0375 ≈ the gaussian floor,
+including the kurtosis-120 o_proj — accuracy is not the discriminator between
+these precisions on this checkpoint; speed (the gate) is.
+
+**Served A/B complete** (`served/results_served_ab_h100.json`, 64 seqs,
+max_model_len 4096, deep_gemm off → cutlass fp8 path):
+- decode (256 gen tok/seq): bf16 2025.5 → fp8 **2930.9 gen tok/s = 1.447×**.
+  The e2e decode projection (dense_qwen, 2026-07: W8A8-unfused 1.19× /
+  fused ~1.6×) brackets the measured 1.45× — the projection is now a
+  measurement.
+- prefill (~27k prompt tok, 1 gen): 12563 → **15096 total tok/s = 1.20×**
+  (compute-bound regime, smaller win, as the model says).
+- band demo, stated plainly (guardrail 8): capping max_num_batched_tokens
+  (512-aligned vs 460-misaligned) only *hurts* decode throughput (2931 →
+  2718/2818) — chunked-prefill overhead swamps wave-band effects at engine
+  level for this workload. Kernel-level bands (mechanism B) do not surface
+  in a decode-dominated engine A/B; they matter for prefill batch shaping,
+  which this workload doesn't exercise. Demo closed as a negative result.

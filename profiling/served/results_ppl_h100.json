@@ -1,0 +1,14 @@
+[
+ {
+  "mode": "bf16",
+  "tokens_scored": 49128,
+  "nll_per_tok": 2.01864,
+  "ppl": 7.5281
+ },
+ {
+  "mode": "fp8",
+  "tokens_scored": 49128,
+  "nll_per_tok": 2.02288,
+  "ppl": 7.5601
+ }
+]

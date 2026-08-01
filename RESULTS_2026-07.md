@@ -91,15 +91,17 @@ lumped form 20.9% vs 25.3% on below-gate bf16):
    CARM alone cannot route; per-kernel predicates are part of the deliverable.
    This upgrades P6 from "cost model" to "routing layer spec."
 
-## Next (priority order)
+## Next (priority order) — status updated 2026-08-01 evening
 
-1. **Served A/B + accuracy** (`profiling/served/`, harnesses committed, never
-   run): needs vLLM env restore + Qwen3.6-27B re-download (`HANDOFF_2026-07-02.md` §0).
-2. **P5 portability**: generalize `measure_carm_params.py`; A100 fit-here,
-   predict-there MAPE is the one number that separates a benchmark from a paper.
-3. **Paper body surgery**: abstract/title/related-work are reframed; sections
-   still tell the MLA story.
-4. **P6 dispatch cost model** (analysis only, no GPU).
+1. ~~**Served A/B + accuracy**~~ **DONE 2026-08-01**: decode fp8 1.447×,
+   prefill 1.20×, band demo closed as negative; layer rel-err at gaussian
+   floor. See `JOURNAL_2026-08.md` session 4 and `profiling/served/results_*`.
+2. **P5 portability** — harness built + H100-validated; A100 transfer vs
+   in-repo data done (19.9–29% MAPE). *Remaining: a few hours on real A100
+   with `profiling/portable/measure_params.py` to replace estimated constants.*
+3. ~~**Paper body surgery**~~ **DONE 2026-08-01**: new Gate/Boundary/Transfer/
+   Dispatch sections; MLA→case study; compiles 18 pp, 0 errors.
+4. ~~**P6 dispatch cost model**~~ **DONE 2026-08-01** (`profiling/dispatch/`).
 
 Session artifacts, 2026-08-01: commits `8f62ad1` (P1 + direction docs) and the
 P0 reframe commit; figure `profiling/gate/fig_capacity_gate.png` with data in
