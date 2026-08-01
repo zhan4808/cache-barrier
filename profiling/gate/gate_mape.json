@@ -1,0 +1,87 @@
+{
+ "note": "operand-aware gate: regime split at each precision's own operand bytes vs C_eff. w4a16 packed operand never exceeds C_eff in this sweep, hence above=null.",
+ "mape": {
+  "lumped": {
+   "bf16": {
+    "below_gate_mape_pct": 25.3,
+    "above_gate_mape_pct": 11.6,
+    "per_token_mape_pct": {
+     "1": 7.5,
+     "16": 11.4,
+     "32": 13.9,
+     "64": 14.0,
+     "128": 18.5,
+     "256": 27.9,
+     "512": 31.7
+    }
+   },
+   "w4a16": {
+    "below_gate_mape_pct": 55.9,
+    "above_gate_mape_pct": null,
+    "per_token_mape_pct": {
+     "1": 35.0,
+     "16": 11.2,
+     "32": 38.9,
+     "64": 64.6,
+     "128": 79.7,
+     "256": 80.8,
+     "512": 81.2
+    }
+   },
+   "w8a8": {
+    "below_gate_mape_pct": 43.4,
+    "above_gate_mape_pct": 33.8,
+    "per_token_mape_pct": {
+     "1": 22.9,
+     "16": 22.6,
+     "32": 24.7,
+     "64": 43.5,
+     "128": 53.3,
+     "256": 59.6,
+     "512": 65.2
+    }
+   }
+  },
+  "split_mem": {
+   "bf16": {
+    "below_gate_mape_pct": 20.9,
+    "above_gate_mape_pct": 11.6,
+    "per_token_mape_pct": {
+     "1": 7.8,
+     "16": 15.1,
+     "32": 18.2,
+     "64": 17.4,
+     "128": 18.7,
+     "256": 16.8,
+     "512": 16.9
+    }
+   },
+   "w4a16": {
+    "below_gate_mape_pct": 55.9,
+    "above_gate_mape_pct": null,
+    "per_token_mape_pct": {
+     "1": 35.0,
+     "16": 11.2,
+     "32": 38.9,
+     "64": 64.6,
+     "128": 79.7,
+     "256": 80.8,
+     "512": 81.2
+    }
+   },
+   "w8a8": {
+    "below_gate_mape_pct": 33.8,
+    "above_gate_mape_pct": 33.8,
+    "per_token_mape_pct": {
+     "1": 22.6,
+     "16": 18.6,
+     "32": 17.3,
+     "64": 34.5,
+     "128": 42.6,
+     "256": 47.6,
+     "512": 53.1
+    }
+   }
+  }
+ }
+}
