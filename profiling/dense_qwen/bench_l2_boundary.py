@@ -13,6 +13,7 @@ everything flat at HBM tier.
 Output: results_l2_boundary_h100.json
 """
 
+import argparse
 import os
 import sys
 
@@ -28,12 +29,21 @@ from vllm.model_executor.layers.quantization.utils.marlin_utils_fp8 import (  # 
 )
 
 DEV, DT = "cuda", torch.bfloat16
-C_EFF_MB = 36.0
-T0 = 2.78
+_ap = argparse.ArgumentParser()
+_ap.add_argument("--c-eff-mb", type=float, default=36.0,
+                 help="effective LLC capacity of THIS card (b200: 98.8)")
+_ap.add_argument("--t0-us", type=float, default=2.78,
+                 help="graph launch floor of THIS card (b200: 2.29)")
+_ap.add_argument("--targets-mb", type=str, default="8,16,24,32,40,48,64,96,128",
+                 help="bf16 weight sizes; on b200 extend above the gate, "
+                      "e.g. 8,...,128,160,192,256,320")
+ARGS = _ap.parse_args()
+C_EFF_MB = ARGS.c_eff_mb
+T0 = ARGS.t0_us
 K = 8192
 M = 16
 # N chosen so bf16 weight MB = K*N*2/1e6 hits these targets
-TARGETS_MB = [8, 16, 24, 32, 40, 48, 64, 96, 128]
+TARGETS_MB = [float(x) for x in ARGS.targets_mb.split(",")]
 
 
 def one(N, rotate):

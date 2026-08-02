@@ -1,6 +1,7 @@
 {
  "gpu": "NVIDIA B200",
  "sm_clock": "705 MHz",
+ "sm_clock_note": "sm_clock above is an idle pre-run snapshot (DVFS floor at script start), NOT the run clock; sustained-load band on this B200 instance measured 1237-1320 MHz +/-3% (see params_nvidia-b200.json clock_lock). Scripts now sample under load; annotation added 2026-08-02 session 9.",
  "torch": "2.8.0+cu128",
  "triton": "3.4.0",
  "H": 128,

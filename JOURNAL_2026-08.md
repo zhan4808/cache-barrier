@@ -554,3 +554,58 @@ architecture.
 results_flashmla_sparse_b200.json, carm_cuda_params_b200.json,
 probe_blackwell_fp4.py, figures/nvfp4_ceiling_break_h100_vs_b200.{png,pdf},
 REPORT.md addendum. Env snapshot + sync + paper/deck: next.
+
+## 2026-08-02 (session 9, H100 canonical box) — ratio precision, floor-free refit, clock hygiene
+
+**Environment**: back on the canonical H100 (68.209.75.33), clock locked
+`-lgc 1755`. GitHub auth moved to a dedicated SSH key on the NFS root
+(`github-robert-ed25519`), wired into all three repos via local
+`core.sshCommand` — push/pull now works from any box that mounts the NFS.
+kernel-compass's stranded `0c582fa` (b200/b100 GPU_SPECS) pushed.
+
+**Ratio-precision correction (honest statement, guardrail 8)**: the
+0.780/0.780/0.781 "three-decimal constancy" was a grid-quantization
+artifact. `measure_c_eff`'s sweep grid is nominal-relative (0.4–1.5×, 14
+points), so the candidate C_eff/nominal ratios are the SAME rationals on
+every card; all three GPUs broke between grid indices 4 and 5, whose
+midpoint is 0.78077× nominal on any card — agreement to three decimals was
+guaranteed by construction, real resolution ±4.2% of nominal (half step).
+Fine-grid re-sweep on H100 (`cliff_finegrain.py`, 0.5 MB steps, 3 repeats,
+`results_cliff_finegrain_nvidia-h100-80gb-hbm3.json`): collapse onset
+**39.8±0.5 MB = 0.795±0.010× nominal**, rolloff completing over ~3.5 MB
+(soft, mirrors the footprint-band picture). The honest cross-architecture
+claim: a common ≈0.8× fraction (same grid cell across a 3.2× span), not a
+three-decimal constant. Paper (4 sites), deck slide 12, WeChat item 14
+corrected; WeChat item 15 states the correction explicitly.
+
+**Floor-free band refit on H100** (`refit_floorfree_band.py`,
+`results_floorfree_band_h100.json`) — the other half of session 7's open
+question, session-7 numbers reproduced exactly: binary gate 20.9/11.6,
+fitted-floor band 14.3/13.3 (below/above). Floor-free B200 form (C_hi=1.56×,
+ramp to bw_hbm): **17.3/13.4**; floor-free with C_hi refit on the footprint
+set: C_hi=1.22× C_eff, **16.8/12.1**. Conclusion: the floor is worth ~3
+points below-gate on H100 and nothing above-gate — H100's far field
+genuinely streams below HBM rate, so the floor is a REAL local kernel term,
+but (per B200) not a transferable element. Model form settles as: zero-param
+band transfers; per-architecture floors are local add-ons. Paper
+§limitations updated with the numbers.
+
+**sm_clock metadata fix**: five bench scripts (gate ×3, portable sweeps ×2)
+recorded a startup idle nvidia-smi read — the B200 files' 705/750 MHz was
+the DVFS floor, not the run clock. All five now use `sm_clock_loaded()`
+(samples during a saturating GEMM loop); the three affected B200 JSONs got
+an `sm_clock_note` annotation (measured data untouched). Found in passing:
+even with `-lgc 1755`, saturating compute pulls this H100 to ~1380–1395 MHz
+(power-limited) — the lock is a cap, not a floor; "clock-locked" claims
+bound compute-heavy cells from above only. Memory-bound cells (the cliff
+sweeps) draw less power and sit at the lock.
+
+**B200 w8a8 prep** (handoff item 4, box gone):
+`dense_qwen/bench_l2_boundary.py` parameterized (--c-eff-mb, --t0-us,
+--targets-mb; defaults preserve H100 behavior; compile-checked, needs vLLM
+env to run) — it is the tuned-CUDA w8a8 instrument (cutlass_scaled_mm).
+B200_RUNBOOK §6 added with the exact invocation and readout criteria.
+
+**Open**: FlagOS/non-NVIDIA leg; wave/tile sawtooth attribution; fine-grid
+cliff re-sweeps on the NEXT A100/B200 (tighten their ±4% ratios the same
+way); venue formatting pass.

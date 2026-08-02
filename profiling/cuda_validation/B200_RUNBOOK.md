@@ -129,3 +129,29 @@ thesis.
   Marlin-W4A16-crosses-over figure on the SAME B200 — the cross-hardware money
   plot (H100 EMU loses at high T ↔ B200 native wins at high T).
 - Snapshot the B200 env to NFS (mirror `env/vllm-0.20.2/`).
+
+---
+
+## 6. NEXT B200 SESSION — tuned-CUDA w8a8 gate sweep (confound magnitude)
+
+Open item from the 2026-08-02 session (handoff item 4): the goal-1 gate
+sweep's Triton w8a8 never reached its above-gate advantage on sm_100
+(sp8 0.77–0.82 out to 3.2× C_eff, vs H100's 1.19–1.46). Direction is
+resolved (kernel immaturity, not architecture physics — tuned Marlin fp8
+wins 1.85× at T=16 on the same card); the MAGNITUDE with a tuned CUDA
+w8a8 kernel is still unmeasured.
+
+The instrument is ready: `profiling/dense_qwen/bench_l2_boundary.py`
+(bf16 mm vs cutlass_scaled_mm w8a8 vs Marlin w8a16, graph-timed,
+gpu_key-named output). It is now parameterized — run it in the B200 vLLM
+env (`~/vllm-b200-env`, restore via `env/vllm-b200-0.26.0/restore.sh`):
+
+    python3 bench_l2_boundary.py --c-eff-mb 98.8 --t0-us 2.29 \
+        --targets-mb 8,16,24,32,40,48,64,96,128,160,192,256,320
+
+Read out: sp8 = bf16_us / w8a8_us on the above-gate cells (>128 MB bf16
+weight). If cutlass w8a8 recovers ~byte-ratio wins there (like H100's
+1.19–1.46), the Triton gap is fully kernel-maturity; record the number in
+the journal and paper §limitations (currently says "magnitude open").
+Note: sm_clock in older results files was an idle snapshot; the bench
+scripts now sample under load (see session-9 journal entry).

@@ -1,0 +1,34 @@
+{
+ "question": "session 7 open item: what does H100's above-gate branch pay with the floor-free band, now that B200 refuted the floor",
+ "held_out_on": "results_capacity_gate.json bf16 cells",
+ "c_eff_mb_fixed": 36.0,
+ "c_hi_refit_floor_free_mb": 44,
+ "c_hi_refit_over_c_eff": 1.22,
+ "train_mape_floor_free_pct": 16.2,
+ "scores": {
+  "A binary operand gate": {
+   "below_gate_pct": 20.9,
+   "above_gate_pct": 11.6,
+   "n_below": 35,
+   "n_above": 42
+  },
+  "B fitted-floor ramp (session 7)": {
+   "below_gate_pct": 14.3,
+   "above_gate_pct": 13.3,
+   "n_below": 35,
+   "n_above": 42
+  },
+  "C floor-free band (B200 form, C_hi=1.56x)": {
+   "below_gate_pct": 17.3,
+   "above_gate_pct": 13.4,
+   "n_below": 35,
+   "n_above": 42
+  },
+  "D floor-free, C_hi refit": {
+   "below_gate_pct": 16.8,
+   "above_gate_pct": 12.1,
+   "n_below": 35,
+   "n_above": 42
+  }
+ }
+}

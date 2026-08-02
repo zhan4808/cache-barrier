@@ -80,11 +80,31 @@ def run_cell(bs, d_lora):
     return t_fp16, t_int4
 
 
+def sm_clock_loaded(samples=5, iters=60):
+    """SM clock sampled while a GEMM loop saturates the card. An idle-time
+    nvidia-smi query reads the DVFS floor, not the clock the timed kernels
+    actually run at (hundreds of MHz apart on power-limited instances)."""
+    a = torch.randn(8192, 8192, device="cuda", dtype=torch.float16)
+    b = torch.randn(8192, 8192, device="cuda", dtype=torch.float16)
+    vals = []
+    for _ in range(samples):
+        for _ in range(iters):
+            a @ b
+        v = os.popen("nvidia-smi --query-gpu=clocks.sm "
+                     "--format=csv,noheader,nounits").read().strip().splitlines()[0]
+        torch.cuda.synchronize()
+        vals.append(int(v))
+    del a, b
+    torch.cuda.empty_cache()
+    vals.sort()
+    return (f"{vals[0]}-{vals[-1]} MHz sampled under load "
+            f"(median {vals[len(vals) // 2]})")
+
+
 def main():
     torch.manual_seed(0)
     gpu = torch.cuda.get_device_name(0)
-    clocks = os.popen(
-        "nvidia-smi --query-gpu=clocks.sm --format=csv,noheader").read().strip()
+    clocks = sm_clock_loaded()
     print(f"GPU: {gpu}  SM clock now: {clocks} "
           f"(lock UNAVAILABLE on this instance; sustained band 1237-1320 MHz)")
 
