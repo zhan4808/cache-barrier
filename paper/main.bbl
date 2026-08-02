@@ -61,11 +61,6 @@ Ji~Lin, Jiaming Tang, Haotian Tang, Shang Yang, Wei-Ming Chen, Wei-Chen Wang,
   acceleration.
 \newblock In {\em MLSys}, 2024.
 
-\bibitem{hopper}
-NVIDIA.
-\newblock Nvidia h100 tensor core gpu architecture.
-\newblock \url{https://resources.nvidia.com/en-us-tensor-core}, 2022.
-
 \bibitem{triton}
 Philippe Tillet, H.~T. Kung, and David Cox.
 \newblock Triton: An intermediate language and compiler for tiled neural
