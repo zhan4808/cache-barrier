@@ -65,3 +65,32 @@ Clock: locked cap 1755, ~1380–1485 under this load, sampled and recorded.
   is the next fidelity step.
 
 Data: `results_state_residency_nvidia-h100-80gb-hbm3.json`.
+
+---
+
+# Addendum (autoloop, 2026-08-03) — the REAL fused GDN kernel changes the story
+
+`bench_fla_gdn.py` (fla 0.5.2 `fused_recurrent_gated_delta_rule`, the
+production kernel family for Qwen3-Next/Kimi-Linear decode, fp32 state,
+graph-timed, warm vs rotated):
+
+1. **The kernel is saturation-limited at ~2.3-2.4 TB/s — BELOW the HBM
+   streaming rate (3.15)** — flat from 8 to 160 MB of state. Warm
+   advantage is <=1.13x and only below ~16 MB; by 24 MB it is 1.00.
+   Today's fused GDN decode kernel cannot see the L2 tier at all.
+2. **Reframing of D1's implication**: the predicted batch knee
+   B* = C_eff/state exists in the emulation but is HIDDEN in production
+   kernels behind a kernel floor — the same phenomenon as the A100 sm_80
+   baseline and the B200 triton w8a8. The concrete opportunity: a
+   residency-aware GDN decode kernel has ~2.7x headroom (bw_l2 6.3 vs
+   2.35 achieved) at below-gate footprints (B <= ~40 at H=16), and the
+   gate predicts exactly where that speedup lives and where it dies.
+3. **Washout, measured with the real kernel**: 4-layer round-robin
+   (4 MB state + 12 MB weight stream per layer, 64 MB total) costs
+   1.29x the sum of its isolated parts — mutual eviction beyond C_eff,
+   confirming that per-layer hot sets, not per-operand sizes, are the
+   unit the gate prices in real decode.
+
+Data: `results_fla_gdn_h100.json`; washout one-off in scratchpad,
+numbers quoted here (state 14.56 us, 12 MB stream 9.17 us, RR 122.82 vs
+94.92 us sum).
