@@ -1,0 +1,541 @@
+{
+ "gpu": "NVIDIA B200",
+ "sm_clock": "720 MHz",
+ "clock_lock": "UNAVAILABLE (lgc denied w/ sudo, ac deprecated); sustained-load band 1237-1320 MHz, +/-3%",
+ "H": 128,
+ "D_NOPE": 128,
+ "d_lora_sweep": [
+  256,
+  384,
+  512,
+  768,
+  1024,
+  1280,
+  1536,
+  1792,
+  2048,
+  2560,
+  3072,
+  4096,
+  5120,
+  6144,
+  8192,
+  10240
+ ],
+ "timing": "CUDA graphs, 10 launches/graph, median of 30 replays",
+ "note": "B200 self-consistent transfer target: same GPU as params_nvidia-b200.json; original A100/H100 grid + 4 above-gate extension sizes (C_eff 98.8 MB needs W > 154 MB for clean above-band cells)",
+ "results": [
+  {
+   "batch_size": 1,
+   "d_lora": 256,
+   "weight_mb": 8.0,
+   "fp16_ms": 0.00363,
+   "int4_ms": 0.00491,
+   "int4_fp16_ratio": 1.353
+  },
+  {
+   "batch_size": 1,
+   "d_lora": 384,
+   "weight_mb": 12.0,
+   "fp16_ms": 0.0037,
+   "int4_ms": 0.00628,
+   "int4_fp16_ratio": 1.698
+  },
+  {
+   "batch_size": 1,
+   "d_lora": 512,
+   "weight_mb": 16.0,
+   "fp16_ms": 0.0061,
+   "int4_ms": 0.00696,
+   "int4_fp16_ratio": 1.141
+  },
+  {
+   "batch_size": 1,
+   "d_lora": 768,
+   "weight_mb": 24.0,
+   "fp16_ms": 0.00755,
+   "int4_ms": 0.00934,
+   "int4_fp16_ratio": 1.238
+  },
+  {
+   "batch_size": 1,
+   "d_lora": 1024,
+   "weight_mb": 32.0,
+   "fp16_ms": 0.00613,
+   "int4_ms": 0.01127,
+   "int4_fp16_ratio": 1.837
+  },
+  {
+   "batch_size": 1,
+   "d_lora": 1280,
+   "weight_mb": 40.0,
+   "fp16_ms": 0.00695,
+   "int4_ms": 0.01386,
+   "int4_fp16_ratio": 1.995
+  },
+  {
+   "batch_size": 1,
+   "d_lora": 1536,
+   "weight_mb": 48.0,
+   "fp16_ms": 0.00668,
+   "int4_ms": 0.016,
+   "int4_fp16_ratio": 2.394
+  },
+  {
+   "batch_size": 1,
+   "d_lora": 1792,
+   "weight_mb": 56.0,
+   "fp16_ms": 0.0141,
+   "int4_ms": 0.01841,
+   "int4_fp16_ratio": 1.306
+  },
+  {
+   "batch_size": 1,
+   "d_lora": 2048,
+   "weight_mb": 64.0,
+   "fp16_ms": 0.00725,
+   "int4_ms": 0.02042,
+   "int4_fp16_ratio": 2.817
+  },
+  {
+   "batch_size": 1,
+   "d_lora": 2560,
+   "weight_mb": 80.0,
+   "fp16_ms": 0.00854,
+   "int4_ms": 0.02496,
+   "int4_fp16_ratio": 2.925
+  },
+  {
+   "batch_size": 1,
+   "d_lora": 3072,
+   "weight_mb": 96.0,
+   "fp16_ms": 0.01163,
+   "int4_ms": 0.02944,
+   "int4_fp16_ratio": 2.531
+  },
+  {
+   "batch_size": 1,
+   "d_lora": 4096,
+   "weight_mb": 128.0,
+   "fp16_ms": 0.02297,
+   "int4_ms": 0.03824,
+   "int4_fp16_ratio": 1.664
+  },
+  {
+   "batch_size": 1,
+   "d_lora": 5120,
+   "weight_mb": 160.0,
+   "fp16_ms": 0.02683,
+   "int4_ms": 0.0474,
+   "int4_fp16_ratio": 1.766
+  },
+  {
+   "batch_size": 1,
+   "d_lora": 6144,
+   "weight_mb": 192.0,
+   "fp16_ms": 0.0322,
+   "int4_ms": 0.0563,
+   "int4_fp16_ratio": 1.748
+  },
+  {
+   "batch_size": 1,
+   "d_lora": 8192,
+   "weight_mb": 256.0,
+   "fp16_ms": 0.04154,
+   "int4_ms": 0.07409,
+   "int4_fp16_ratio": 1.784
+  },
+  {
+   "batch_size": 1,
+   "d_lora": 10240,
+   "weight_mb": 320.0,
+   "fp16_ms": 0.0504,
+   "int4_ms": 0.09312,
+   "int4_fp16_ratio": 1.848
+  },
+  {
+   "batch_size": 4,
+   "d_lora": 256,
+   "weight_mb": 8.0,
+   "fp16_ms": 0.00342,
+   "int4_ms": 0.00513,
+   "int4_fp16_ratio": 1.498
+  },
+  {
+   "batch_size": 4,
+   "d_lora": 384,
+   "weight_mb": 12.0,
+   "fp16_ms": 0.00368,
+   "int4_ms": 0.00649,
+   "int4_fp16_ratio": 1.763
+  },
+  {
+   "batch_size": 4,
+   "d_lora": 512,
+   "weight_mb": 16.0,
+   "fp16_ms": 0.00608,
+   "int4_ms": 0.00715,
+   "int4_fp16_ratio": 1.176
+  },
+  {
+   "batch_size": 4,
+   "d_lora": 768,
+   "weight_mb": 24.0,
+   "fp16_ms": 0.00751,
+   "int4_ms": 0.0096,
+   "int4_fp16_ratio": 1.279
+  },
+  {
+   "batch_size": 4,
+   "d_lora": 1024,
+   "weight_mb": 32.0,
+   "fp16_ms": 0.00608,
+   "int4_ms": 0.01177,
+   "int4_fp16_ratio": 1.935
+  },
+  {
+   "batch_size": 4,
+   "d_lora": 1280,
+   "weight_mb": 40.0,
+   "fp16_ms": 0.00696,
+   "int4_ms": 0.01407,
+   "int4_fp16_ratio": 2.02
+  },
+  {
+   "batch_size": 4,
+   "d_lora": 1536,
+   "weight_mb": 48.0,
+   "fp16_ms": 0.00671,
+   "int4_ms": 0.01624,
+   "int4_fp16_ratio": 2.419
+  },
+  {
+   "batch_size": 4,
+   "d_lora": 1792,
+   "weight_mb": 56.0,
+   "fp16_ms": 0.01408,
+   "int4_ms": 0.01859,
+   "int4_fp16_ratio": 1.32
+  },
+  {
+   "batch_size": 4,
+   "d_lora": 2048,
+   "weight_mb": 64.0,
+   "fp16_ms": 0.00747,
+   "int4_ms": 0.02061,
+   "int4_fp16_ratio": 2.758
+  },
+  {
+   "batch_size": 4,
+   "d_lora": 2560,
+   "weight_mb": 80.0,
+   "fp16_ms": 0.00867,
+   "int4_ms": 0.02513,
+   "int4_fp16_ratio": 2.898
+  },
+  {
+   "batch_size": 4,
+   "d_lora": 3072,
+   "weight_mb": 96.0,
+   "fp16_ms": 0.01278,
+   "int4_ms": 0.02963,
+   "int4_fp16_ratio": 2.319
+  },
+  {
+   "batch_size": 4,
+   "d_lora": 4096,
+   "weight_mb": 128.0,
+   "fp16_ms": 0.02357,
+   "int4_ms": 0.03825,
+   "int4_fp16_ratio": 1.623
+  },
+  {
+   "batch_size": 4,
+   "d_lora": 5120,
+   "weight_mb": 160.0,
+   "fp16_ms": 0.0274,
+   "int4_ms": 0.04744,
+   "int4_fp16_ratio": 1.731
+  },
+  {
+   "batch_size": 4,
+   "d_lora": 6144,
+   "weight_mb": 192.0,
+   "fp16_ms": 0.0334,
+   "int4_ms": 0.05626,
+   "int4_fp16_ratio": 1.685
+  },
+  {
+   "batch_size": 4,
+   "d_lora": 8192,
+   "weight_mb": 256.0,
+   "fp16_ms": 0.04285,
+   "int4_ms": 0.07442,
+   "int4_fp16_ratio": 1.737
+  },
+  {
+   "batch_size": 4,
+   "d_lora": 10240,
+   "weight_mb": 320.0,
+   "fp16_ms": 0.0521,
+   "int4_ms": 0.0935,
+   "int4_fp16_ratio": 1.794
+  },
+  {
+   "batch_size": 16,
+   "d_lora": 256,
+   "weight_mb": 8.0,
+   "fp16_ms": 0.00343,
+   "int4_ms": 0.00669,
+   "int4_fp16_ratio": 1.948
+  },
+  {
+   "batch_size": 16,
+   "d_lora": 384,
+   "weight_mb": 12.0,
+   "fp16_ms": 0.00388,
+   "int4_ms": 0.0085,
+   "int4_fp16_ratio": 2.19
+  },
+  {
+   "batch_size": 16,
+   "d_lora": 512,
+   "weight_mb": 16.0,
+   "fp16_ms": 0.0061,
+   "int4_ms": 0.00945,
+   "int4_fp16_ratio": 1.55
+  },
+  {
+   "batch_size": 16,
+   "d_lora": 768,
+   "weight_mb": 24.0,
+   "fp16_ms": 0.00766,
+   "int4_ms": 0.01308,
+   "int4_fp16_ratio": 1.707
+  },
+  {
+   "batch_size": 16,
+   "d_lora": 1024,
+   "weight_mb": 32.0,
+   "fp16_ms": 0.00622,
+   "int4_ms": 0.01608,
+   "int4_fp16_ratio": 2.583
+  },
+  {
+   "batch_size": 16,
+   "d_lora": 1280,
+   "weight_mb": 40.0,
+   "fp16_ms": 0.00711,
+   "int4_ms": 0.01977,
+   "int4_fp16_ratio": 2.782
+  },
+  {
+   "batch_size": 16,
+   "d_lora": 1536,
+   "weight_mb": 48.0,
+   "fp16_ms": 0.00751,
+   "int4_ms": 0.02284,
+   "int4_fp16_ratio": 3.04
+  },
+  {
+   "batch_size": 16,
+   "d_lora": 1792,
+   "weight_mb": 56.0,
+   "fp16_ms": 0.0145,
+   "int4_ms": 0.02618,
+   "int4_fp16_ratio": 1.806
+  },
+  {
+   "batch_size": 16,
+   "d_lora": 2048,
+   "weight_mb": 64.0,
+   "fp16_ms": 0.00767,
+   "int4_ms": 0.02922,
+   "int4_fp16_ratio": 3.81
+  },
+  {
+   "batch_size": 16,
+   "d_lora": 2560,
+   "weight_mb": 80.0,
+   "fp16_ms": 0.00978,
+   "int4_ms": 0.03565,
+   "int4_fp16_ratio": 3.647
+  },
+  {
+   "batch_size": 16,
+   "d_lora": 3072,
+   "weight_mb": 96.0,
+   "fp16_ms": 0.0192,
+   "int4_ms": 0.04214,
+   "int4_fp16_ratio": 2.195
+  },
+  {
+   "batch_size": 16,
+   "d_lora": 4096,
+   "weight_mb": 128.0,
+   "fp16_ms": 0.02521,
+   "int4_ms": 0.05507,
+   "int4_fp16_ratio": 2.184
+  },
+  {
+   "batch_size": 16,
+   "d_lora": 5120,
+   "weight_mb": 160.0,
+   "fp16_ms": 0.02944,
+   "int4_ms": 0.06811,
+   "int4_fp16_ratio": 2.313
+  },
+  {
+   "batch_size": 16,
+   "d_lora": 6144,
+   "weight_mb": 192.0,
+   "fp16_ms": 0.03554,
+   "int4_ms": 0.08127,
+   "int4_fp16_ratio": 2.286
+  },
+  {
+   "batch_size": 16,
+   "d_lora": 8192,
+   "weight_mb": 256.0,
+   "fp16_ms": 0.04612,
+   "int4_ms": 0.10782,
+   "int4_fp16_ratio": 2.338
+  },
+  {
+   "batch_size": 16,
+   "d_lora": 10240,
+   "weight_mb": 320.0,
+   "fp16_ms": 0.05619,
+   "int4_ms": 0.13362,
+   "int4_fp16_ratio": 2.378
+  },
+  {
+   "batch_size": 64,
+   "d_lora": 256,
+   "weight_mb": 8.0,
+   "fp16_ms": 0.00397,
+   "int4_ms": 0.01604,
+   "int4_fp16_ratio": 4.044
+  },
+  {
+   "batch_size": 64,
+   "d_lora": 384,
+   "weight_mb": 12.0,
+   "fp16_ms": 0.00448,
+   "int4_ms": 0.02281,
+   "int4_fp16_ratio": 5.093
+  },
+  {
+   "batch_size": 64,
+   "d_lora": 512,
+   "weight_mb": 16.0,
+   "fp16_ms": 0.00654,
+   "int4_ms": 0.02917,
+   "int4_fp16_ratio": 4.461
+  },
+  {
+   "batch_size": 64,
+   "d_lora": 768,
+   "weight_mb": 24.0,
+   "fp16_ms": 0.0077,
+   "int4_ms": 0.04209,
+   "int4_fp16_ratio": 5.465
+  },
+  {
+   "batch_size": 64,
+   "d_lora": 1024,
+   "weight_mb": 32.0,
+   "fp16_ms": 0.00751,
+   "int4_ms": 0.05506,
+   "int4_fp16_ratio": 7.329
+  },
+  {
+   "batch_size": 64,
+   "d_lora": 1280,
+   "weight_mb": 40.0,
+   "fp16_ms": 0.0088,
+   "int4_ms": 0.06809,
+   "int4_fp16_ratio": 7.74
+  },
+  {
+   "batch_size": 64,
+   "d_lora": 1536,
+   "weight_mb": 48.0,
+   "fp16_ms": 0.00938,
+   "int4_ms": 0.0809,
+   "int4_fp16_ratio": 8.624
+  },
+  {
+   "batch_size": 64,
+   "d_lora": 1792,
+   "weight_mb": 56.0,
+   "fp16_ms": 0.01166,
+   "int4_ms": 0.09382,
+   "int4_fp16_ratio": 8.045
+  },
+  {
+   "batch_size": 64,
+   "d_lora": 2048,
+   "weight_mb": 64.0,
+   "fp16_ms": 0.01319,
+   "int4_ms": 0.10662,
+   "int4_fp16_ratio": 8.083
+  },
+  {
+   "batch_size": 64,
+   "d_lora": 2560,
+   "weight_mb": 80.0,
+   "fp16_ms": 0.02109,
+   "int4_ms": 0.1324,
+   "int4_fp16_ratio": 6.278
+  },
+  {
+   "batch_size": 64,
+   "d_lora": 3072,
+   "weight_mb": 96.0,
+   "fp16_ms": 0.0251,
+   "int4_ms": 0.15877,
+   "int4_fp16_ratio": 6.325
+  },
+  {
+   "batch_size": 64,
+   "d_lora": 4096,
+   "weight_mb": 128.0,
+   "fp16_ms": 0.03236,
+   "int4_ms": 0.21073,
+   "int4_fp16_ratio": 6.511
+  },
+  {
+   "batch_size": 64,
+   "d_lora": 5120,
+   "weight_mb": 160.0,
+   "fp16_ms": 0.04054,
+   "int4_ms": 0.26279,
+   "int4_fp16_ratio": 6.482
+  },
+  {
+   "batch_size": 64,
+   "d_lora": 6144,
+   "weight_mb": 192.0,
+   "fp16_ms": 0.04791,
+   "int4_ms": 0.31462,
+   "int4_fp16_ratio": 6.567
+  },
+  {
+   "batch_size": 64,
+   "d_lora": 8192,
+   "weight_mb": 256.0,
+   "fp16_ms": 0.063,
+   "int4_ms": 0.41821,
+   "int4_fp16_ratio": 6.638
+  },
+  {
+   "batch_size": 64,
+   "d_lora": 10240,
+   "weight_mb": 320.0,
+   "fp16_ms": 0.0768,
+   "int4_ms": 0.52172,
+   "int4_fp16_ratio": 6.793
+  }
+ ]
+}

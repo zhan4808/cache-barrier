@@ -1,0 +1,574 @@
+{
+ "gpu": "NVIDIA B200",
+ "clock_lock": "UNAVAILABLE (lgc denied w/ sudo, ac deprecated); sustained-load band 1237-1320 MHz, +/-3%",
+ "params_source": "params_nvidia-b200.json (measured this session)",
+ "band_source": "results_footprint_transition.json (H100-fitted, transferred normalized, zero-shot)",
+ "band_applied": {
+  "c_hi_mb": 154.1,
+  "floor_tbs": 4.54
+ },
+ "baseline_kernel_check": {
+  "two_point_below_gate_bw_tbs": 4.28,
+  "harness_bw_l2_tbs": 13.34,
+  "matches_harness_within_25pct": false,
+  "calibration_points_mb": [
+   8,
+   24
+  ],
+  "note": "H100 analogue was 6.51 vs 6.3 (no hidden term); A100 was 1.28 vs 3.85 (sm_80 kernel floor)"
+ },
+ "calibrated_kernel_terms": {
+  "r_dequant_tbs": 0.9892,
+  "fixed_us": 2.79,
+  "calibration_points_mb": [
+   8,
+   32
+  ],
+  "harness_measured_r_dequant_tbs": 1.0914,
+  "naive_peak_scaled_r_dequant_tbs": 1.2158
+ },
+ "mape_fp16_zero_shot_held_out": {
+  "measured constants only": {
+   "below_gate_pct": 17.6,
+   "above_gate_pct": 1.8,
+   "n_below": 42,
+   "n_above": 20
+  },
+  "+ baseline kernel term": {
+   "below_gate_pct": 66.6,
+   "above_gate_pct": 1.8,
+   "n_below": 42,
+   "n_above": 20
+  },
+  "+ transferred band": {
+   "below_gate_pct": 66.4,
+   "above_gate_pct": 41.1,
+   "n_below": 42,
+   "n_above": 20
+  },
+  "zero-param band (ramp to bw_hbm)": {
+   "below_gate_pct": 16.6,
+   "above_gate_pct": 3.9,
+   "n_below": 42,
+   "n_above": 20
+  }
+ },
+ "mape_int4": {
+  "two_point_calibrated_pct": 30.9,
+  "naive_scaled_pct": 42.9
+ },
+ "rows": [
+  {
+   "bs": 1,
+   "w_mb": 8.0,
+   "fp16_us": 3.63,
+   "fp16_pred": 2.9,
+   "int4_us": 4.91,
+   "int4_pred_cal": 4.9
+  },
+  {
+   "bs": 1,
+   "w_mb": 12.0,
+   "fp16_us": 3.7,
+   "fp16_pred": 3.2,
+   "int4_us": 6.28,
+   "int4_pred_cal": 6.0
+  },
+  {
+   "bs": 1,
+   "w_mb": 16.0,
+   "fp16_us": 6.1,
+   "fp16_pred": 3.6,
+   "int4_us": 6.96,
+   "int4_pred_cal": 7.0
+  },
+  {
+   "bs": 1,
+   "w_mb": 24.0,
+   "fp16_us": 7.55,
+   "fp16_pred": 4.2,
+   "int4_us": 9.34,
+   "int4_pred_cal": 9.2
+  },
+  {
+   "bs": 1,
+   "w_mb": 32.0,
+   "fp16_us": 6.13,
+   "fp16_pred": 4.8,
+   "int4_us": 11.27,
+   "int4_pred_cal": 11.3
+  },
+  {
+   "bs": 1,
+   "w_mb": 40.0,
+   "fp16_us": 6.95,
+   "fp16_pred": 5.5,
+   "int4_us": 13.86,
+   "int4_pred_cal": 13.4
+  },
+  {
+   "bs": 1,
+   "w_mb": 48.0,
+   "fp16_us": 6.68,
+   "fp16_pred": 6.1,
+   "int4_us": 16.0,
+   "int4_pred_cal": 15.5
+  },
+  {
+   "bs": 1,
+   "w_mb": 56.0,
+   "fp16_us": 14.1,
+   "fp16_pred": 6.8,
+   "int4_us": 18.41,
+   "int4_pred_cal": 17.6
+  },
+  {
+   "bs": 1,
+   "w_mb": 64.0,
+   "fp16_us": 7.25,
+   "fp16_pred": 7.4,
+   "int4_us": 20.42,
+   "int4_pred_cal": 19.8
+  },
+  {
+   "bs": 1,
+   "w_mb": 80.0,
+   "fp16_us": 8.54,
+   "fp16_pred": 8.7,
+   "int4_us": 24.96,
+   "int4_pred_cal": 24.0
+  },
+  {
+   "bs": 1,
+   "w_mb": 96.0,
+   "fp16_us": 11.63,
+   "fp16_pred": 10.0,
+   "int4_us": 29.44,
+   "int4_pred_cal": 28.2
+  },
+  {
+   "bs": 1,
+   "w_mb": 128.0,
+   "fp16_us": 22.97,
+   "fp16_pred": 17.8,
+   "int4_us": 38.24,
+   "int4_pred_cal": 36.7
+  },
+  {
+   "bs": 1,
+   "w_mb": 160.0,
+   "fp16_us": 26.83,
+   "fp16_pred": 27.2,
+   "int4_us": 47.4,
+   "int4_pred_cal": 45.2
+  },
+  {
+   "bs": 1,
+   "w_mb": 192.0,
+   "fp16_us": 32.2,
+   "fp16_pred": 32.1,
+   "int4_us": 56.3,
+   "int4_pred_cal": 53.7
+  },
+  {
+   "bs": 1,
+   "w_mb": 256.0,
+   "fp16_us": 41.54,
+   "fp16_pred": 42.1,
+   "int4_us": 74.09,
+   "int4_pred_cal": 70.6
+  },
+  {
+   "bs": 1,
+   "w_mb": 320.0,
+   "fp16_us": 50.4,
+   "fp16_pred": 52.0,
+   "int4_us": 93.12,
+   "int4_pred_cal": 87.6
+  },
+  {
+   "bs": 4,
+   "w_mb": 8.0,
+   "fp16_us": 3.42,
+   "fp16_pred": 3.0,
+   "int4_us": 5.13,
+   "int4_pred_cal": 4.9
+  },
+  {
+   "bs": 4,
+   "w_mb": 12.0,
+   "fp16_us": 3.68,
+   "fp16_pred": 3.3,
+   "int4_us": 6.49,
+   "int4_pred_cal": 6.0
+  },
+  {
+   "bs": 4,
+   "w_mb": 16.0,
+   "fp16_us": 6.08,
+   "fp16_pred": 3.6,
+   "int4_us": 7.15,
+   "int4_pred_cal": 7.0
+  },
+  {
+   "bs": 4,
+   "w_mb": 24.0,
+   "fp16_us": 7.51,
+   "fp16_pred": 4.3,
+   "int4_us": 9.6,
+   "int4_pred_cal": 9.2
+  },
+  {
+   "bs": 4,
+   "w_mb": 32.0,
+   "fp16_us": 6.08,
+   "fp16_pred": 5.0,
+   "int4_us": 11.77,
+   "int4_pred_cal": 11.3
+  },
+  {
+   "bs": 4,
+   "w_mb": 40.0,
+   "fp16_us": 6.96,
+   "fp16_pred": 5.6,
+   "int4_us": 14.07,
+   "int4_pred_cal": 13.4
+  },
+  {
+   "bs": 4,
+   "w_mb": 48.0,
+   "fp16_us": 6.71,
+   "fp16_pred": 6.3,
+   "int4_us": 16.24,
+   "int4_pred_cal": 15.5
+  },
+  {
+   "bs": 4,
+   "w_mb": 56.0,
+   "fp16_us": 14.08,
+   "fp16_pred": 7.0,
+   "int4_us": 18.59,
+   "int4_pred_cal": 17.6
+  },
+  {
+   "bs": 4,
+   "w_mb": 64.0,
+   "fp16_us": 7.47,
+   "fp16_pred": 7.6,
+   "int4_us": 20.61,
+   "int4_pred_cal": 19.8
+  },
+  {
+   "bs": 4,
+   "w_mb": 80.0,
+   "fp16_us": 8.67,
+   "fp16_pred": 9.0,
+   "int4_us": 25.13,
+   "int4_pred_cal": 24.0
+  },
+  {
+   "bs": 4,
+   "w_mb": 96.0,
+   "fp16_us": 12.78,
+   "fp16_pred": 10.4,
+   "int4_us": 29.63,
+   "int4_pred_cal": 28.2
+  },
+  {
+   "bs": 4,
+   "w_mb": 128.0,
+   "fp16_us": 23.57,
+   "fp16_pred": 18.8,
+   "int4_us": 38.25,
+   "int4_pred_cal": 36.7
+  },
+  {
+   "bs": 4,
+   "w_mb": 160.0,
+   "fp16_us": 27.4,
+   "fp16_pred": 27.8,
+   "int4_us": 47.44,
+   "int4_pred_cal": 45.2
+  },
+  {
+   "bs": 4,
+   "w_mb": 192.0,
+   "fp16_us": 33.4,
+   "fp16_pred": 32.8,
+   "int4_us": 56.26,
+   "int4_pred_cal": 53.7
+  },
+  {
+   "bs": 4,
+   "w_mb": 256.0,
+   "fp16_us": 42.85,
+   "fp16_pred": 43.0,
+   "int4_us": 74.42,
+   "int4_pred_cal": 70.6
+  },
+  {
+   "bs": 4,
+   "w_mb": 320.0,
+   "fp16_us": 52.1,
+   "fp16_pred": 53.2,
+   "int4_us": 93.5,
+   "int4_pred_cal": 87.6
+  },
+  {
+   "bs": 16,
+   "w_mb": 8.0,
+   "fp16_us": 3.43,
+   "fp16_pred": 3.1,
+   "int4_us": 6.69,
+   "int4_pred_cal": 4.9
+  },
+  {
+   "bs": 16,
+   "w_mb": 12.0,
+   "fp16_us": 3.88,
+   "fp16_pred": 3.5,
+   "int4_us": 8.5,
+   "int4_pred_cal": 6.0
+  },
+  {
+   "bs": 16,
+   "w_mb": 16.0,
+   "fp16_us": 6.1,
+   "fp16_pred": 3.9,
+   "int4_us": 9.45,
+   "int4_pred_cal": 7.0
+  },
+  {
+   "bs": 16,
+   "w_mb": 24.0,
+   "fp16_us": 7.66,
+   "fp16_pred": 4.7,
+   "int4_us": 13.08,
+   "int4_pred_cal": 9.2
+  },
+  {
+   "bs": 16,
+   "w_mb": 32.0,
+   "fp16_us": 6.22,
+   "fp16_pred": 5.5,
+   "int4_us": 16.08,
+   "int4_pred_cal": 11.3
+  },
+  {
+   "bs": 16,
+   "w_mb": 40.0,
+   "fp16_us": 7.11,
+   "fp16_pred": 6.3,
+   "int4_us": 19.77,
+   "int4_pred_cal": 13.4
+  },
+  {
+   "bs": 16,
+   "w_mb": 48.0,
+   "fp16_us": 7.51,
+   "fp16_pred": 7.1,
+   "int4_us": 22.84,
+   "int4_pred_cal": 15.5
+  },
+  {
+   "bs": 16,
+   "w_mb": 56.0,
+   "fp16_us": 14.5,
+   "fp16_pred": 7.8,
+   "int4_us": 26.18,
+   "int4_pred_cal": 17.6
+  },
+  {
+   "bs": 16,
+   "w_mb": 64.0,
+   "fp16_us": 7.67,
+   "fp16_pred": 8.6,
+   "int4_us": 29.22,
+   "int4_pred_cal": 19.8
+  },
+  {
+   "bs": 16,
+   "w_mb": 80.0,
+   "fp16_us": 9.78,
+   "fp16_pred": 10.2,
+   "int4_us": 35.65,
+   "int4_pred_cal": 24.0
+  },
+  {
+   "bs": 16,
+   "w_mb": 96.0,
+   "fp16_us": 19.2,
+   "fp16_pred": 13.0,
+   "int4_us": 42.14,
+   "int4_pred_cal": 28.2
+  },
+  {
+   "bs": 16,
+   "w_mb": 128.0,
+   "fp16_us": 25.21,
+   "fp16_pred": 22.9,
+   "int4_us": 55.07,
+   "int4_pred_cal": 36.7
+  },
+  {
+   "bs": 16,
+   "w_mb": 160.0,
+   "fp16_us": 29.44,
+   "fp16_pred": 30.1,
+   "int4_us": 68.11,
+   "int4_pred_cal": 45.2
+  },
+  {
+   "bs": 16,
+   "w_mb": 192.0,
+   "fp16_us": 35.54,
+   "fp16_pred": 35.7,
+   "int4_us": 81.27,
+   "int4_pred_cal": 53.7
+  },
+  {
+   "bs": 16,
+   "w_mb": 256.0,
+   "fp16_us": 46.12,
+   "fp16_pred": 46.8,
+   "int4_us": 107.82,
+   "int4_pred_cal": 70.6
+  },
+  {
+   "bs": 16,
+   "w_mb": 320.0,
+   "fp16_us": 56.19,
+   "fp16_pred": 57.9,
+   "int4_us": 133.62,
+   "int4_pred_cal": 87.6
+  },
+  {
+   "bs": 64,
+   "w_mb": 8.0,
+   "fp16_us": 3.97,
+   "fp16_pred": 3.8,
+   "int4_us": 16.04,
+   "int4_pred_cal": 4.9
+  },
+  {
+   "bs": 64,
+   "w_mb": 12.0,
+   "fp16_us": 4.48,
+   "fp16_pred": 4.5,
+   "int4_us": 22.81,
+   "int4_pred_cal": 6.0
+  },
+  {
+   "bs": 64,
+   "w_mb": 16.0,
+   "fp16_us": 6.54,
+   "fp16_pred": 5.1,
+   "int4_us": 29.17,
+   "int4_pred_cal": 7.0
+  },
+  {
+   "bs": 64,
+   "w_mb": 24.0,
+   "fp16_us": 7.7,
+   "fp16_pred": 6.3,
+   "int4_us": 42.09,
+   "int4_pred_cal": 9.2
+  },
+  {
+   "bs": 64,
+   "w_mb": 32.0,
+   "fp16_us": 7.51,
+   "fp16_pred": 7.6,
+   "int4_us": 55.06,
+   "int4_pred_cal": 11.3
+  },
+  {
+   "bs": 64,
+   "w_mb": 40.0,
+   "fp16_us": 8.8,
+   "fp16_pred": 8.8,
+   "int4_us": 68.09,
+   "int4_pred_cal": 13.4
+  },
+  {
+   "bs": 64,
+   "w_mb": 48.0,
+   "fp16_us": 9.38,
+   "fp16_pred": 10.1,
+   "int4_us": 80.9,
+   "int4_pred_cal": 15.5
+  },
+  {
+   "bs": 64,
+   "w_mb": 56.0,
+   "fp16_us": 11.66,
+   "fp16_pred": 11.3,
+   "int4_us": 93.82,
+   "int4_pred_cal": 17.6
+  },
+  {
+   "bs": 64,
+   "w_mb": 64.0,
+   "fp16_us": 13.19,
+   "fp16_pred": 12.6,
+   "int4_us": 106.62,
+   "int4_pred_cal": 19.8
+  },
+  {
+   "bs": 64,
+   "w_mb": 80.0,
+   "fp16_us": 21.09,
+   "fp16_pred": 17.6,
+   "int4_us": 132.4,
+   "int4_pred_cal": 24.0
+  },
+  {
+   "bs": 64,
+   "w_mb": 96.0,
+   "fp16_us": 25.1,
+   "fp16_pred": 23.7,
+   "int4_us": 158.77,
+   "int4_pred_cal": 28.2
+  },
+  {
+   "bs": 64,
+   "w_mb": 128.0,
+   "fp16_us": 32.36,
+   "fp16_pred": 32.2,
+   "int4_us": 210.73,
+   "int4_pred_cal": 36.7
+  },
+  {
+   "bs": 64,
+   "w_mb": 160.0,
+   "fp16_us": 40.54,
+   "fp16_pred": 39.6,
+   "int4_us": 262.79,
+   "int4_pred_cal": 45.2
+  },
+  {
+   "bs": 64,
+   "w_mb": 192.0,
+   "fp16_us": 47.91,
+   "fp16_pred": 47.0,
+   "int4_us": 314.62,
+   "int4_pred_cal": 53.7
+  },
+  {
+   "bs": 64,
+   "w_mb": 256.0,
+   "fp16_us": 63.0,
+   "fp16_pred": 61.8,
+   "int4_us": 418.21,
+   "int4_pred_cal": 70.6
+  },
+  {
+   "bs": 64,
+   "w_mb": 320.0,
+   "fp16_us": 76.8,
+   "fp16_pred": 76.6,
+   "int4_us": 521.72,
+   "int4_pred_cal": 87.6
+  }
+ ]
+}

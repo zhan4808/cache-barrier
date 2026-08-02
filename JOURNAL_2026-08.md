@@ -421,3 +421,80 @@ Paper updated (§Transfer closes both residuals + counter sentence;
 §Boundary mechanism B gains the engine bridge): 16 pp, 0 errors.
 Remaining open: non-NVIDIA backend, B200, GitHub push, wave/tile
 attribution of the sawtooth.
+
+## 2026-08-02 (session 8, B200) — the third architecture point
+
+**Environment**: B200 (sm_100, 183 GB, driver 595.71.05), fresh box, project
+rsynced from the H100-region NFS over ssh (regime-router excluded). System
+torch 2.8.0+cu128 + triton 3.4.0 for goal 1. **Clock locking is UNAVAILABLE
+on this instance** — `nvidia-smi -lgc` is denied even with sudo (virtualized
+tier), `-ac` deprecated. Measured mitigation: sustained-load SM clock sits in
+a stable 1237–1320 MHz power-limited band (±3%); noted in every results file.
+MIG disabled, graph-timed medians of 30 throughout.
+
+**Harness** (`params_nvidia-b200.json`): C_eff **98.8 MB = 0.781× nominal
+126.5** — the effective/nominal ratio is now **0.780 / 0.780 / 0.781 on
+A100 / H100 / B200**. Across a 3.2× span of nominal LLC and three
+generations, effective residency capacity is a constant fraction of nominal;
+slide 12's LLC-growth story gets its cleanest data point. bw_l2 13.34, bw_hbm
+6.80, peak fp16 achieved 1547 TF (same achieved-vs-quoted pattern as
+H100/A100 under power-limited clocks), r_dequant 1.09 TB/s, t0 2.29 µs —
+t0 is now 2.30±0.02 µs on three architectures; the graph floor is a
+host-software property, not a GPU one.
+
+**Reduced gate sweep** (`results_capacity_gate_b200.json`, T ∈ {1,16,32},
+sanity rel_err 3e-4/9e-3, + extension run W ∈ {160..320} MB in
+`results_capacity_gate_b200_ext.json`): the below-gate regime expands exactly
+as the thesis predicts — the ENTIRE original W grid (8–128 MB) sits at ≤1.3×
+the gate on this card; weight sets that are deep HBM territory on H100 are
+L2-resident here. Below the gate w8a8 never wins (sp8 0.5–0.9) — the H100
+pattern (act-quant overhead vs a fast bf16 baseline at bw_l2 13.3), not the
+A100 one, confirming the sign of the below-gate branch is baseline-quality-
+dependent as claimed. **Negative result, stated plainly (guardrail 8): the
+above-gate w8a8 advantage does not materialize on B200 with these Triton
+kernels** — sp8 plateaus at 0.77–0.82 out to 3.2× C_eff where H100 shows
+1.19–1.46. The bf16 baseline streams at full HBM rate (above-gate model MAPE
+1.5–2.5%); the Triton w8a8 kernel achieves only ~2.6 TB/s effective weight
+BW on sm_100 (2.6× off streaming rate). Guardrail-5 confound until the FP4
+leg's tuned-CUDA kernels rule: triton 3.4's int8 path on Blackwell, not
+architecture physics — do not read this as "quantization stopped working on
+B200" before `bench_cuda_moe.py` runs.
+
+**Transfer, third architecture** (`remeasure_sweep_b200.py` — original grid
++ four above-gate sizes {160,192,256,320} MB since C_eff 98.8 leaves the
+stock grid gateless; `transfer_validation_b200.py`,
+`results_transfer_b200.json`): scored as a variant ladder, held-out,
+regime-separated. Constants only: **17.6% below / 1.8% above** — the best
+constants-only architecture yet (A100 was 44/19). Then the A100-recipe terms
+BOTH FAIL here, and the failures are informative:
+- the two-point baseline calibration (8 & 24 MB) reads 4.28 TB/s against
+  harness bw_l2 13.34 and blows below-gate MAPE to 66.6% — B200's below-gate
+  bf16 latency is jagged from per-shape cuBLAS kernel selection (the 56 MB
+  cell costs 2× its neighbors at every T; marginal BW swings 1.1↔60 TB/s
+  cell-to-cell). No two-point slope is meaningful on a curve like that; the
+  per-kernel-term recipe needs a robustness caveat: it presumes the target's
+  baseline latency is locally smooth in W.
+- the transferred H100 band applied verbatim wrecks the above-gate branch
+  (1.8→41.1%): B200's far field streams at FULL bw_hbm (marginal BW 6.2–7.6
+  TB/s from 160→320 MB) — **the fitted persistent floor is an H100-specific
+  artifact, answering session 7's open question: a regime-dependent floor is
+  not justified as a transferable model element.** The band's EXTENT is real
+  and does transfer: marginal BW dips to ~3 TB/s exactly in the transferred
+  window (96→128 MB, C_eff..1.56×C_eff).
+- keeping the normalized C_hi ratio but ramping to bw_hbm with NO fitted
+  floor and NO baseline term — a **zero-parameter band** — gives the final
+  B200 numbers: **16.6% below / 3.9% above, fully zero-shot** (n=42/20
+  held-out). The transfer story simplifies on this card: constants + one
+  normalized band-extent ratio, no per-kernel terms needed.
+
+W4A16 two-point calibration: r_dequant 0.989 TB/s calibrated vs 1.091
+harness (9% apart — three-route consistency again), int4 MAPE 30.9%
+calibrated vs 42.9% naive-scaled; measured-kernel-terms conclusion survives
+unchanged.
+
+**Open after this leg**: goal 2 (native FP4, B200_RUNBOOK) — fresh Blackwell
+vLLM env building at session time; the w8a8 CUDA reproduction folds into it.
+Model-form lead: the A100/H100/B200 evidence now reads as "one zero-param
+band + architecture-specific kernel terms where the target's kernels are
+non-smooth" — consider refitting H100 with the floor-free band to see what
+its above-gate branch pays.

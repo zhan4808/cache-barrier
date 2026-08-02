@@ -1,0 +1,76 @@
+{
+ "gpu": "NVIDIA B200",
+ "nominal_l2_mb": 126.5,
+ "sm_count": 148,
+ "effective_l2_capacity_mb": 98.8,
+ "bw_l2_tbs": 13.34,
+ "bw_hbm_tbs": 6.799,
+ "peak_fp16_tflops": 1547.1,
+ "r_dequant_tbs": 1.0914,
+ "t0_graph_us": 2.285,
+ "t0_eager_us": 14.928,
+ "residency_cliff_points_mb_tbs": [
+  [
+   50.6,
+   3.165
+  ],
+  [
+   61.3,
+   3.187
+  ],
+  [
+   72.0,
+   5.176
+  ],
+  [
+   82.7,
+   5.905
+  ],
+  [
+   93.4,
+   5.906
+  ],
+  [
+   104.1,
+   4.926
+  ],
+  [
+   114.8,
+   4.388
+  ],
+  [
+   125.5,
+   4.511
+  ],
+  [
+   136.2,
+   4.624
+  ],
+  [
+   146.9,
+   4.726
+  ],
+  [
+   157.6,
+   4.818
+  ],
+  [
+   168.3,
+   4.929
+  ],
+  [
+   179.0,
+   5.036
+  ],
+  [
+   189.8,
+   5.087
+  ]
+ ],
+ "r_dequant_detail_us": {
+  "256": 5.019,
+  "512": 6.941
+ },
+ "method": "graph-timed, differential slopes, timing-only residency cliff; no vendor counters, no datasheet numbers",
+ "clock_lock": "UNAVAILABLE: nvidia-smi -lgc denied even with sudo on this virtualized instance; -ac deprecated. Sustained-load SM clock band measured 1237-1320 MHz (power-limited DVFS, stable +/-3%); max boost 1965 MHz transient. Graph-timed medians of 30."
+}
