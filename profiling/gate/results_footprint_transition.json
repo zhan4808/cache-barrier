@@ -1,0 +1,26 @@
+{
+ "fitted_on": "results_footprint_gate.json (55 cells, H100)",
+ "c_eff_mb_fixed": 36.0,
+ "fitted_c_hi_mb": 56,
+ "fitted_bw_floor_tbs": 2.1,
+ "train_mape_pct": 14.2,
+ "normalized_band": {
+  "c_hi_over_c_eff": 1.56,
+  "floor_over_bw_hbm": 0.668
+ },
+ "a100_validation": {
+  "measured constants only": {
+   "below": 44.0,
+   "above": 19.0
+  },
+  "+ sm80 kernel floor": {
+   "below": 11.2,
+   "above": 19.0
+  },
+  "+ kernel floor + transferred ramp": {
+   "below": 10.9,
+   "above": 13.2
+  }
+ },
+ "note": "ramp = inverse-BW linear interpolation in footprint between C_eff and C_hi; A100 applies the H100-fitted band normalized by each card's C_eff and bw_hbm (zero-shot band transfer)"
+}
