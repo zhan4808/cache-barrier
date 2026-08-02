@@ -381,3 +381,43 @@ zero-shot MAPE **44.0% → 12.8%** on the 14 held-out cells. Closes the
 below-gate story: not model form, not constants — an unmeasured baseline
 kernel term. *Baseline kernels are kernel terms too.* Paper §Transfer +
 limitations updated; A100 clocks reset (-rgc) after the probe.
+
+## 2026-08-02 (session 7, H100) — the residuals close
+
+Four items, all landed (commits `dbfd795`+):
+
+**Symmetry check**: two-point baseline calibration on H100 = 6.51 TB/s ≈
+harness 6.3 — nvjet carries no hidden kernel term; H100's below-gate
+residual lives at T≥64 (23.3% vs 17.6% at T≤32), i.e. the band. Perfect
+division with A100 (whose residual was the baseline kernel).
+
+**Soft transition term** (`profiling/gate/fit_footprint_transition.py`):
+inverse-BW interpolated in footprint from bw_l2 at C_eff to a fitted floor
+at C_hi; fitted ONLY on the 55-cell footprint dataset (C_hi=56 MB, floor
+2.10 TB/s; C_eff held at measured 36). Held-out H100 gate sweep: below-gate
+**20.9→14.3%** (above pays 11.6→13.3 — floor binds large-footprint
+above-gate cells, stated). Transferred to A100 *normalized* (C_hi/C_eff,
+floor/bw_hbm) on top of the sm_80 baseline floor: held-out zero-shot fp16
+**12.4% below / 13.2% above** — from 28.8/22.8 (estimates) via 44/19
+(constants only). The transfer story is now: constants (harness) +
+per-kernel two-point terms + one normalized band shape.
+
+**Kernel↔engine bridge for the prefill band step**
+(`bench_prefill_band_bridge.py`): the model's own prefill GEMM shapes
+(qkv/o/gate_up/down from the 27B config), graph-timed at M∈{768..1152},
+show a per-token sawtooth: 1024 is a local minimum (639 ns/tok fp8),
+896 costs **+17%**, 832 +25%, 1088 +15% — same shape in bf16. The engine's
++24% step at 896→1024 is mechanism B in the served GEMMs plus chunk-count
+overhead. Precise wave/tile attribution left open (nvjet tile configs vary
+per M; grid is clustered (2,66)).
+
+**NCU counter corroboration** (`ncu_footprint_target.py`,
+`results_ncu_footprint.json`; nsight-compute installed): warm-state
+`--cache-control none` DRAM reads at fixed W=24 MB: 0.2 MB → 18.1 → 29.3 →
+31.5 per launch as T pushes footprint 30.5 → 38.6 → 53 → 67 MB; W=16 shows
+the same ramp. Footprint gating and the soft collapse, in counters.
+
+Paper updated (§Transfer closes both residuals + counter sentence;
+§Boundary mechanism B gains the engine bridge): 16 pp, 0 errors.
+Remaining open: non-NVIDIA backend, B200, GitHub push, wave/tile
+attribution of the sawtooth.

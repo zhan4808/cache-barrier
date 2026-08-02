@@ -1,0 +1,50 @@
+{
+ "method": "ncu --cache-control none --launch-skip 30 --launch-count 1, metric dram__bytes_read.sum, warm-loop bmm (ncu_footprint_target.py), clock-locked 1755",
+ "gpu": "NVIDIA H100 80GB HBM3",
+ "c_eff_mb": 36.0,
+ "finding": "at fixed W below the operand gate, DRAM re-reads switch on when the launch FOOTPRINT (W+act+out) crosses ~C_eff and ramp softly to full weight re-read - counter-grade corroboration of results_footprint_gate.json and the fitted transition band; dram_read includes ~act bytes (re-read once per launch)",
+ "results": [
+  {
+   "w_mb": 24,
+   "T": 16,
+   "footprint_mb": 30.5,
+   "dram_read_bytes": 225792,
+   "kernel": "nvjet_hsh_384x16_64x4_2x1_v_bz_NNT"
+  },
+  {
+   "w_mb": 24,
+   "T": 64,
+   "footprint_mb": 38.6,
+   "dram_read_bytes": 18117120,
+   "kernel": "nvjet_hsh_384x64_64x3_2x1_v_bz_coopB_NNN"
+  },
+  {
+   "w_mb": 24,
+   "T": 128,
+   "footprint_mb": 53.0,
+   "dram_read_bytes": 29329920,
+   "kernel": "nvjet_hsh_192x128_64x5_2x1_v_bz_coopB_NNT"
+  },
+  {
+   "w_mb": 24,
+   "T": 192,
+   "footprint_mb": 67.0,
+   "dram_read_bytes": 31485696,
+   "kernel": "nvjet_hsh_192x192_64x3_2x1_v_bz_coopB_NNN"
+  },
+  {
+   "w_mb": 16,
+   "T": 128,
+   "footprint_mb": 36.2,
+   "dram_read_bytes": 10635520,
+   "kernel": "nvjet_hsh_256x128_64x4_2x1_v_bz_coopA_NNT"
+  },
+  {
+   "w_mb": 16,
+   "T": 192,
+   "footprint_mb": 46.0,
+   "dram_read_bytes": 22806272,
+   "kernel": "nvjet_hsh_128x192_64x5_2x1_v_bz_coopB_NNN"
+  }
+ ]
+}

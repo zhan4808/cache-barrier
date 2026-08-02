@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2026.8.1)  1 AUG 2026 23:32
+This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2026.8.1)  2 AUG 2026 00:29
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1014,6 +1014,26 @@ Package pdftex.def Info: figures/fig_capacity_gate.pdf  used on input line 186.
 Underfull \vbox (badness 1122) has occurred while \output is active []
 
  [3]
+Underfull \hbox (badness 1776) in paragraph at lines 207--209
+\OT1/ptm/m/n/10 (+20) Five kernel-implementation mech-a-nisms, each mea-sured
+ []
+
+
+Underfull \hbox (badness 2478) in paragraph at lines 207--209
+\OT1/ptm/m/n/10 (+20) CUT-LASS im-mune); (B) mis-aligned wave-quantization
+ []
+
+
+Underfull \hbox (badness 2126) in paragraph at lines 207--209
+\OT1/ptm/m/n/10 (+20) the serv-ing en-gine: on served Qwen3.6-27B, ad-ja-cent
+ []
+
+
+Overfull \hbox (28.74931pt too wide) in paragraph at lines 207--209
+\OT1/pcr/m/n/10 profiling/gate/results[]prefill[]band[]bridge.json\OT1/ptm/m/n/
+10 (-20) ;
+ []
+
 [4 <./figures/fig_capacity_gate.pdf>]
 <figures/fig_transfer_a100.png, id=286, 686.565pt x 274.626pt>
 File: figures/fig_transfer_a100.png Graphic file (type png)
@@ -1047,6 +1067,9 @@ Underfull \hbox (badness 10000) in paragraph at lines 223--224
 \OT1/ptm/m/n/10 (+20) (\OT1/pcr/m/n/10 profiling/portable/measure[]params.py\OT
 1/ptm/m/n/10 (+20) ) mea-
  []
+
+
+Underfull \vbox (badness 10000) has occurred while \output is active []
 
 
 Underfull \hbox (badness 10000) in paragraph at lines 227--228
@@ -1124,147 +1147,174 @@ Underfull \hbox (badness 1748) in paragraph at lines 229--230
  []
 
 
-Underfull \vbox (badness 10000) has occurred while \output is active []
+Underfull \vbox (badness 1490) has occurred while \output is active []
 
  [5 <./figures/fig_transfer_a100.png>]
+Underfull \hbox (badness 1360) in paragraph at lines 231--232
+\OT1/ptm/m/n/10 (+20) in-verse band-width in-ter-po-lated in foot-print from $[
+][]$
+ []
+
+
+Underfull \hbox (badness 2521) in paragraph at lines 231--232
+\OT1/ptm/m/n/10 (+20) floor$\OML/cmm/m/it/10 =[][]$\OT1/ptm/m/n/10 (+20) ) on t
+op of the cal-i-brated base-line floor,
+ []
+
+
+Overfull \hbox (39.21837pt too wide) in paragraph at lines 231--232
+\OT1/pcr/m/n/10 profiling/gate/results[]footprint[]transition.json\OT1/ptm/m/n/
+10 (-20) ).
+ []
+
 <figures/fig_cost_model.png, id=295, 686.565pt x 260.172pt>
 File: figures/fig_cost_model.png Graphic file (type png)
 <use figures/fig_cost_model.png>
-Package pdftex.def Info: figures/fig_cost_model.png  used on input line 236.
+Package pdftex.def Info: figures/fig_cost_model.png  used on input line 238.
 (pdftex.def)             Requested size: 247.94499pt x 93.95561pt.
 
-Underfull \hbox (badness 1259) in paragraph at lines 237--237
+Underfull \hbox (badness 1259) in paragraph at lines 239--239
 []\OT1/ptm/m/n/10 (+20) Figure 3: |\OT1/ptm/b/n/10 (+20) Stor-age poli-cies for
  run-time pre-ci-sion dis-
  []
 
 
-Underfull \hbox (badness 1210) in paragraph at lines 237--237
+Underfull \hbox (badness 1210) in paragraph at lines 239--239
 \OT1/ptm/m/n/10 (+20) a sec-ond weight for-mat is paid out of the KV bud-get
  []
 
 
-Underfull \hbox (badness 2213) in paragraph at lines 237--237
+Underfull \hbox (badness 2213) in paragraph at lines 239--239
 \OT1/ptm/m/n/10 (+20) --- in-fea-si-ble on 80 GB, $\OMS/cmsy/m/n/10 ^^@\OT1/cmr
 /m/n/10 33%$ \OT1/ptm/m/n/10 (+20) con-cur-rency on H200
  []
 
 
-Underfull \hbox (badness 1389) in paragraph at lines 237--237
+Underfull \hbox (badness 1389) in paragraph at lines 239--239
 \OT1/ptm/m/n/10 (+20) 141 GB. Right: repack-ing on a dis-patch switch amor-
  []
 
 
-Underfull \hbox (badness 4913) in paragraph at lines 237--237
+Underfull \hbox (badness 4913) in paragraph at lines 239--239
 \OT1/ptm/m/n/10 (+20) tizes be-low 1% over-head only at $\OMS/cmsy/m/n/10 ^^U$\
 OT1/ptm/m/n/10 (+20) 20 s (mea-sured
  []
 
 
-Overfull \hbox (1.70502pt too wide) in paragraph at lines 237--237
+Overfull \hbox (1.70502pt too wide) in paragraph at lines 239--239
 \OT1/pcr/m/n/10 profiling/dispatch/results[]cost[]model.json\OT1/ptm/m/n/10 (-2
 0) .| 
  []
 
-[6 <./figures/fig_cost_model.png>]
-Underfull \hbox (badness 10000) in paragraph at lines 334--334
+
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [6 <./figures/fig_cost_model.png>] [7]
+Underfull \hbox (badness 10000) in paragraph at lines 336--336
 []\OT1/ptm/b/n/12 (+20) Why Re-con-struc-tion Weights Are
  []
 
-[7]
-Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [8]
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+[8]
 <figures/val_latency.pdf, id=340, 1001.42662pt x 327.16078pt>
 File: figures/val_latency.pdf Graphic file (type pdf)
 <use figures/val_latency.pdf>
-Package pdftex.def Info: figures/val_latency.pdf  used on input line 432.
+Package pdftex.def Info: figures/val_latency.pdf  used on input line 434.
 (pdftex.def)             Requested size: 505.89pt x 165.2723pt.
 <figures/val_bw.pdf, id=341, 995.82635pt x 322.26547pt>
 File: figures/val_bw.pdf Graphic file (type pdf)
 <use figures/val_bw.pdf>
-Package pdftex.def Info: figures/val_bw.pdf  used on input line 439.
+Package pdftex.def Info: figures/val_bw.pdf  used on input line 441.
 (pdftex.def)             Requested size: 505.89pt x 163.71394pt.
 <figures/val_ratio.pdf, id=342, 929.53027pt x 319.9182pt>
 File: figures/val_ratio.pdf Graphic file (type pdf)
 <use figures/val_ratio.pdf>
-Package pdftex.def Info: figures/val_ratio.pdf  used on input line 446.
+Package pdftex.def Info: figures/val_ratio.pdf  used on input line 448.
 (pdftex.def)             Requested size: 505.89pt x 174.1152pt.
+
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
 
 Underfull \vbox (badness 2503) has occurred while \output is active []
 
  [9]
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
+
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
  [10 <./figures/val_latency.pdf> <./figures/val_bw.pdf>]
-<figures/carm_roofline.pdf, id=507, 1292.99725pt x 421.70335pt>
+<figures/carm_roofline.pdf, id=503, 1292.99725pt x 421.70335pt>
 File: figures/carm_roofline.pdf Graphic file (type pdf)
 <use figures/carm_roofline.pdf>
-Package pdftex.def Info: figures/carm_roofline.pdf  used on input line 488.
+Package pdftex.def Info: figures/carm_roofline.pdf  used on input line 490.
 (pdftex.def)             Requested size: 505.89pt x 164.99129pt.
-<figures/w8a8_results.pdf, id=508, 931.81187pt x 391.63904pt>
+ [11 <./figures/val_ratio.pdf>]
+<figures/w8a8_results.pdf, id=579, 931.81187pt x 391.63904pt>
 File: figures/w8a8_results.pdf Graphic file (type pdf)
 <use figures/w8a8_results.pdf>
-Package pdftex.def Info: figures/w8a8_results.pdf  used on input line 520.
+Package pdftex.def Info: figures/w8a8_results.pdf  used on input line 522.
 (pdftex.def)             Requested size: 505.89pt x 212.6293pt.
- [11 <./figures/val_ratio.pdf>]
-<figures/mla_l2_stack.pdf, id=586, 569.89915pt x 353.79051pt>
+<figures/mla_l2_stack.pdf, id=583, 569.89915pt x 353.79051pt>
 File: figures/mla_l2_stack.pdf Graphic file (type pdf)
 <use figures/mla_l2_stack.pdf>
-Package pdftex.def Info: figures/mla_l2_stack.pdf  used on input line 529.
+Package pdftex.def Info: figures/mla_l2_stack.pdf  used on input line 531.
 (pdftex.def)             Requested size: 173.56073pt x 107.74669pt.
 
-Underfull \hbox (badness 6157) in paragraph at lines 534--534
+Underfull \hbox (badness 6157) in paragraph at lines 536--536
 []\OT1/ptm/b/n/12 (+20) Generalization: Mixed-Precision MoE
  []
 
-<figures/fused_moe_extended.pdf, id=588, 863.6579pt x 337.34518pt>
+<figures/fused_moe_extended.pdf, id=585, 863.6579pt x 337.34518pt>
 File: figures/fused_moe_extended.pdf Graphic file (type pdf)
 <use figures/fused_moe_extended.pdf>
-Package pdftex.def Info: figures/fused_moe_extended.pdf  used on input line 541
+Package pdftex.def Info: figures/fused_moe_extended.pdf  used on input line 543
 .
 (pdftex.def)             Requested size: 247.94499pt x 96.84442pt.
 
-Underfull \hbox (badness 1014) in paragraph at lines 547--547
+Underfull \hbox (badness 1014) in paragraph at lines 549--549
 []\OT1/ptm/b/n/14.4 (+20) End-to-End Con-text of the Case
  []
 
-
+[12 <./figures/carm_roofline.pdf>]
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [12 <./figures/carm_roofline.pdf> <./figures/w8a8_results.pdf>]
-Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [13 <./figures/mla_l2_stack.pdf> <./figures/fused_moe_extended.pdf>]
-Underfull \hbox (badness 10000) in paragraph at lines 575--576
+Underfull \vbox (badness 1484) has occurred while \output is active []
+
+ [13 <./figures/w8a8_results.pdf> <./figures/mla_l2_stack.pdf> <./figures/fused
+_moe_extended.pdf>]
+Underfull \hbox (badness 10000) in paragraph at lines 577--578
 []\OT1/ptm/m/n/10 (+20) Replay-based NCU coun-ters are cold-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 575--576
+Underfull \hbox (badness 10000) in paragraph at lines 577--578
 \OT1/ptm/m/n/10 (+20) cache (\OT1/pcr/m/n/10 --cache-control all\OT1/ptm/m/n/10
  (+20) ); only the
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 575--576
+Underfull \hbox (badness 10000) in paragraph at lines 577--578
 \OT1/pcr/m/n/10 --cache-control none \OT1/ptm/m/n/10 (+20) warm-loop coun-ters 
 and
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 587--588
+Underfull \hbox (badness 10000) in paragraph at lines 589--590
 \OT1/ptm/b/n/10 (+20) Positioning (added 2026-08, DI-REC-TION.md
  []
 
 
-Underfull \hbox (badness 1509) in paragraph at lines 587--588
+Underfull \hbox (badness 1509) in paragraph at lines 589--590
 \OT1/ptm/b/n/10 (+20) P0). \OT1/ptm/m/n/10 (+20) Four lines of work sit near-es
 t to ours. \OT1/ptm/m/it/10 (+20) tri-ton-
  []
 
 
-Underfull \hbox (badness 1082) in paragraph at lines 587--588
+Underfull \hbox (badness 1082) in paragraph at lines 589--590
 \OT1/ptm/m/it/10 (+20) why \OT1/ptm/m/n/10 (+20) (ca-pac-ity gate be-low, com-p
 ute roofline above) and
  []
@@ -1285,18 +1335,20 @@ Underfull \hbox (badness 6775) in paragraph at lines 65--68
 dia . com /
  []
 
-) [15] (./main.aux)
+[15]) [16
+
+] (./main.aux)
 Package rerunfilecheck Info: File `main.out' has not changed.
 (rerunfilecheck)             Checksum: 8B4B23F61E0E5E8B5D960C961BE7FD64;6495.
  ) 
 Here is how much of TeX's memory you used:
- 35774 strings out of 480247
- 821131 string characters out of 5896152
- 1256247 words of memory out of 5000000
+ 35772 strings out of 480247
+ 821114 string characters out of 5896152
+ 1258831 words of memory out of 5000000
  52695 multiletter control sequences out of 15000+600000
- 514004 words of font info for 317 fonts, out of 8000000 for 9000
+ 513888 words of font info for 315 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
- 99i,19n,94p,2007b,2600s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 99i,19n,94p,2264b,2600s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/share/texlive/texmf-dist/fonts/enc/dvips/base/8r.enc}</usr/share/texliv
 e/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/share/texlive/texm
 f-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texlive/texmf-dist
@@ -1316,10 +1368,10 @@ blic/amsfonts/symbols/msbm10.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw
 /courier/ucrr8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmb8a
 .pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/shar
 e/texlive/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on main.pdf (15 pages, 702376 bytes).
+Output written on main.pdf (16 pages, 704958 bytes).
 PDF statistics:
- 1065 PDF objects out of 1200 (max. 8388607)
- 433 compressed objects within 5 object streams
- 86 named destinations out of 1000 (max. 500000)
+ 1069 PDF objects out of 1200 (max. 8388607)
+ 436 compressed objects within 5 object streams
+ 87 named destinations out of 1000 (max. 500000)
  60743 words of extra memory for PDF output out of 61914 (max. 10000000)
 
