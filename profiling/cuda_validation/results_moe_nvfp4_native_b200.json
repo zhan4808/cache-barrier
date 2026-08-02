@@ -1,0 +1,110 @@
+{
+ "experiment": "A_native_nvfp4_w4a4_moe",
+ "gpu": "NVIDIA B200",
+ "gpu_key": "b200",
+ "versions": {
+  "gpu": "NVIDIA B200",
+  "torch": "2.11.0+cu130",
+  "cuda": "13.0",
+  "triton": "3.6.0",
+  "vllm": "0.26.0",
+  "flash_mla": "<absent: ModuleNotFoundError>",
+  "flashmla": "<absent: ModuleNotFoundError>"
+ },
+ "shape": {
+  "E": 8,
+  "H": 4096,
+  "I": 14336,
+  "topk": 2
+ },
+ "method": "graph_med_us 10 launches/graph, median of 40 replays (identical to bench_cuda_moe.py); run_cutlass_moe_fp4 (vLLM 0.26.0 cutlass SM100 grouped GEMM, W4A4 NVFP4, block-16 fp8 scales, per-expert fp32 alphas)",
+ "clock_note": "clock lock UNAVAILABLE on this instance; sustained-load SM band 1237-1320 MHz (+/-3%)",
+ "correctness_rel_err_T128": 0.22121,
+ "bf16_reference": "results_cuda_moe_b200.json (same box/session)",
+ "rows": [
+  {
+   "T": 16,
+   "nvfp4_w4a4_us": 225.5,
+   "timing": "graph",
+   "bf16_us_ref": 475.3,
+   "nvfp4_vs_bf16": 2.108
+  },
+  {
+   "T": 64,
+   "nvfp4_w4a4_us": 208.7,
+   "timing": "graph",
+   "bf16_us_ref": 487.8,
+   "nvfp4_vs_bf16": 2.337
+  },
+  {
+   "T": 128,
+   "nvfp4_w4a4_us": 222.3,
+   "timing": "graph",
+   "bf16_us_ref": 525.9,
+   "nvfp4_vs_bf16": 2.366
+  },
+  {
+   "T": 256,
+   "nvfp4_w4a4_us": 221.0,
+   "timing": "graph",
+   "bf16_us_ref": 685.7,
+   "nvfp4_vs_bf16": 3.103
+  },
+  {
+   "T": 512,
+   "nvfp4_w4a4_us": 338.7,
+   "timing": "graph",
+   "bf16_us_ref": 1039.2,
+   "nvfp4_vs_bf16": 3.068
+  },
+  {
+   "T": 640,
+   "nvfp4_w4a4_us": 389.6,
+   "timing": "graph",
+   "bf16_us_ref": 1078.9,
+   "nvfp4_vs_bf16": 2.769
+  },
+  {
+   "T": 768,
+   "nvfp4_w4a4_us": 385.1,
+   "timing": "graph",
+   "bf16_us_ref": 1119.8,
+   "nvfp4_vs_bf16": 2.908
+  },
+  {
+   "T": 896,
+   "nvfp4_w4a4_us": 394.3,
+   "timing": "graph",
+   "bf16_us_ref": 1117.8,
+   "nvfp4_vs_bf16": 2.835
+  },
+  {
+   "T": 1024,
+   "nvfp4_w4a4_us": 473.3,
+   "timing": "graph",
+   "bf16_us_ref": 1425.5,
+   "nvfp4_vs_bf16": 3.012
+  },
+  {
+   "T": 1536,
+   "nvfp4_w4a4_us": 634.2,
+   "timing": "graph",
+   "bf16_us_ref": 1691.8,
+   "nvfp4_vs_bf16": 2.668
+  },
+  {
+   "T": 2048,
+   "nvfp4_w4a4_us": 785.6,
+   "timing": "graph",
+   "bf16_us_ref": 2042.4,
+   "nvfp4_vs_bf16": 2.6
+  }
+ ],
+ "correctness_decomposition": {
+  "kernel_vs_no_act_quant_ref": 0.2212,
+  "w4a4_software_emulation_vs_same_ref": 0.2221,
+  "kernel_vs_w4a4_software_emulation": 0.1111,
+  "conclusion": "the 0.22 rel-err equals the intrinsic fp4 activation-quant noise of matched-precision W4A4 on random data (software emulation reproduces it at 0.2221); not kernel error"
+ },
+ "baseline_caveat": "bf16 reference curve (results_cuda_moe_b200.json) is vLLM fused_experts with the DEFAULT triton MoE config (no tuned E=8,N=14336 B200 config file exists) - guardrail 3: the vs-bf16 magnitudes may flatter quant paths. The native-W4A4 vs Marlin-W4A16 comparison (785.6 vs 4944.8 us at T=2048, 6.3x) shares no bf16 baseline and is the clean ceiling-break claim."
+}

@@ -35,7 +35,10 @@ from common import (  # noqa: E402
 )
 
 from vllm.model_executor.layers.fused_moe import fused_experts  # noqa: E402
-from vllm.model_executor.layers.fused_moe.fused_marlin_moe import fused_marlin_moe  # noqa: E402
+try:  # vllm <= 0.20.x
+    from vllm.model_executor.layers.fused_moe.fused_marlin_moe import fused_marlin_moe  # noqa: E402
+except ModuleNotFoundError:  # vllm >= 0.26 (B200 env): module moved
+    from vllm.model_executor.layers.fused_moe.experts.marlin_moe import fused_marlin_moe  # noqa: E402
 from vllm.scalar_type import scalar_types  # noqa: E402
 from vllm.model_executor.layers.quantization.utils.marlin_utils_fp8 import (  # noqa: E402
     marlin_quant_fp8_torch,

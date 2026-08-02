@@ -1,0 +1,204 @@
+{
+  "experiment": "B_flashmla_sparse_bf16_vs_fp8kv",
+  "gpu": "NVIDIA B200",
+  "versions": {
+    "gpu": "NVIDIA B200",
+    "torch": "2.11.0+cu130",
+    "cuda": "13.0",
+    "triton": "3.6.0",
+    "vllm": "0.26.0",
+    "flash_mla": "<absent: ModuleNotFoundError>",
+    "flashmla": "<absent: ModuleNotFoundError>"
+  },
+  "mla": {
+    "d_qk": 576,
+    "d_v": 512,
+    "h_q": 128,
+    "topk_sparse": 2048,
+    "block": 64
+  },
+  "method": "graph_med_us 10 launches/graph, median of 40 replays",
+  "dispatch": "bf16 KV -> flash_mla_sparse_fwd; fp8 KV -> flash_mla_with_kvcache(is_fp8_kvcache=True) (matches vllm flashmla_sparse backend). compute bf16 both; KV precision differs.",
+  "rows": [
+    {
+      "context": 512,
+      "batch": 1,
+      "topk": 512,
+      "s_kv": 512,
+      "sparse": false,
+      "bf16_kv_us": 11.57,
+      "fp8_kv_us": 25.31,
+      "fp8_vs_bf16": 0.457,
+      "relerr_fp8_vs_bf16": 0.3542,
+      "timing": {
+        "bf16": "graph",
+        "fp8": "graph"
+      }
+    },
+    {
+      "context": 512,
+      "batch": 8,
+      "topk": 512,
+      "s_kv": 4096,
+      "sparse": false,
+      "bf16_kv_us": 11.8,
+      "fp8_kv_us": 28.19,
+      "fp8_vs_bf16": 0.419,
+      "relerr_fp8_vs_bf16": 0.3584,
+      "timing": {
+        "bf16": "graph",
+        "fp8": "graph"
+      }
+    },
+    {
+      "context": 512,
+      "batch": 32,
+      "topk": 512,
+      "s_kv": 16384,
+      "sparse": false,
+      "bf16_kv_us": 12.21,
+      "fp8_kv_us": 36.56,
+      "fp8_vs_bf16": 0.334,
+      "relerr_fp8_vs_bf16": 0.3606,
+      "timing": {
+        "bf16": "graph",
+        "fp8": "graph"
+      }
+    },
+    {
+      "context": 2048,
+      "batch": 1,
+      "topk": 2048,
+      "s_kv": 2048,
+      "sparse": false,
+      "bf16_kv_us": 27.13,
+      "fp8_kv_us": 33.68,
+      "fp8_vs_bf16": 0.806,
+      "relerr_fp8_vs_bf16": 0.349,
+      "timing": {
+        "bf16": "graph",
+        "fp8": "graph"
+      }
+    },
+    {
+      "context": 2048,
+      "batch": 8,
+      "topk": 2048,
+      "s_kv": 16384,
+      "sparse": false,
+      "bf16_kv_us": 27.37,
+      "fp8_kv_us": 42.47,
+      "fp8_vs_bf16": 0.644,
+      "relerr_fp8_vs_bf16": 0.3575,
+      "timing": {
+        "bf16": "graph",
+        "fp8": "graph"
+      }
+    },
+    {
+      "context": 2048,
+      "batch": 32,
+      "topk": 2048,
+      "s_kv": 65536,
+      "sparse": false,
+      "bf16_kv_us": 29.3,
+      "fp8_kv_us": 58.39,
+      "fp8_vs_bf16": 0.502,
+      "relerr_fp8_vs_bf16": 0.3611,
+      "timing": {
+        "bf16": "graph",
+        "fp8": "graph"
+      }
+    },
+    {
+      "context": 4096,
+      "batch": 1,
+      "topk": 2048,
+      "s_kv": 4096,
+      "sparse": true,
+      "bf16_kv_us": 27.35,
+      "fp8_kv_us": 34.17,
+      "fp8_vs_bf16": 0.8,
+      "relerr_fp8_vs_bf16": 0.3539,
+      "timing": {
+        "bf16": "graph",
+        "fp8": "graph"
+      }
+    },
+    {
+      "context": 4096,
+      "batch": 8,
+      "topk": 2048,
+      "s_kv": 32768,
+      "sparse": true,
+      "bf16_kv_us": 27.44,
+      "fp8_kv_us": 43.24,
+      "fp8_vs_bf16": 0.635,
+      "relerr_fp8_vs_bf16": 0.3611,
+      "timing": {
+        "bf16": "graph",
+        "fp8": "graph"
+      }
+    },
+    {
+      "context": 4096,
+      "batch": 32,
+      "topk": 2048,
+      "s_kv": 131072,
+      "sparse": true,
+      "bf16_kv_us": 32.25,
+      "fp8_kv_us": 58.22,
+      "fp8_vs_bf16": 0.554,
+      "relerr_fp8_vs_bf16": 0.3601,
+      "timing": {
+        "bf16": "graph",
+        "fp8": "graph"
+      }
+    },
+    {
+      "context": 8192,
+      "batch": 1,
+      "topk": 2048,
+      "s_kv": 8192,
+      "sparse": true,
+      "bf16_kv_us": 27.0,
+      "fp8_kv_us": 33.62,
+      "fp8_vs_bf16": 0.803,
+      "relerr_fp8_vs_bf16": 0.3638,
+      "timing": {
+        "bf16": "graph",
+        "fp8": "graph"
+      }
+    },
+    {
+      "context": 8192,
+      "batch": 8,
+      "topk": 2048,
+      "s_kv": 65536,
+      "sparse": true,
+      "bf16_kv_us": 27.11,
+      "fp8_kv_us": 42.32,
+      "fp8_vs_bf16": 0.641,
+      "relerr_fp8_vs_bf16": 0.3613,
+      "timing": {
+        "bf16": "graph",
+        "fp8": "graph"
+      }
+    },
+    {
+      "context": 8192,
+      "batch": 32,
+      "topk": 2048,
+      "s_kv": 262144,
+      "sparse": true,
+      "bf16_kv_us": 32.61,
+      "fp8_kv_us": 58.88,
+      "fp8_vs_bf16": 0.554,
+      "relerr_fp8_vs_bf16": 0.3597,
+      "timing": {
+        "bf16": "graph",
+        "fp8": "graph"
+      }
+    }
+  ]
+}

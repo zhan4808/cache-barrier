@@ -192,19 +192,24 @@ def moe_crossover(gp, mode, t_max=4096):
     return None
 
 
-def fit_h100_ceilings(moe_rows):
+def fit_ceilings(key, moe_rows):
     """Fit bf16 peak and dequant ceiling from the measured CUDA MoE sweep
-    (achieved TFLOPS at the most compute-bound point)."""
-    t0 = GPU_PARAMS["h100"]["t0_us"]
+    (achieved TFLOPS at the most compute-bound point). Generalized from the
+    H100-only version for the B200 leg (2026-08-02)."""
+    t0 = GPU_PARAMS[key]["t0_us"]
     peak_bf16 = max(moe_flops(r["T"]) / ((r["bf16"] - t0) * 1e-6) / 1e12 for r in moe_rows)
     deq = max(moe_flops(r["T"]) / ((r["fp8_w8a16"] - t0) * 1e-6) / 1e12 for r in moe_rows)
-    GPU_PARAMS["h100"]["peak_bf16_tflops"] = round(peak_bf16, 1)
-    GPU_PARAMS["h100"]["dequant_ceiling_tflops"] = round(deq, 1)
+    GPU_PARAMS[key]["peak_bf16_tflops"] = round(peak_bf16, 1)
+    GPU_PARAMS[key]["dequant_ceiling_tflops"] = round(deq, 1)
     return peak_bf16, deq
 
 
-def mape_moe(moe_rows):
-    gp = GPU_PARAMS["h100"]
+def fit_h100_ceilings(moe_rows):
+    return fit_ceilings("h100", moe_rows)
+
+
+def mape_moe(moe_rows, key="h100"):
+    gp = GPU_PARAMS[key]
     errs_b, errs_q = [], []
     rows = []
     for r in moe_rows:
@@ -232,37 +237,76 @@ def measured_moe_crossover(moe_rows):
 
 
 def main():
-    print(f"GPU: {torch.cuda.get_device_name(0)}  torch={torch.__version__}\n")
-    print("== Part 1: base CARM params on CUDA-13/torch-2.11 stack ==")
+    from common import gpu_key
+    key = gpu_key()
+    print(f"GPU: {torch.cuda.get_device_name(0)} ({key})  torch={torch.__version__}\n")
+    print("== Part 1: base CARM params on this CUDA stack ==")
     base = measure_base_params()
     print(json.dumps(base, indent=2))
-    # use freshly-measured HBM/L2 if sane
-    GPU_PARAMS["h100"]["bw_hbm_tbs"] = base["hbm_read_tbs"]
-    GPU_PARAMS["h100"]["bw_l2_tbs_reduction"] = base["l2_read_tbs"]
-    GPU_PARAMS["h100"]["t0_us"] = base["kernel_floor_us"]
 
-    with open(os.path.join(_D, "results_cuda_moe.json")) as f:
+    # 2026-08-02 B200 leg: replace the PROJECTED b200 row with measured values.
+    # c_eff / gemm-class bw_l2 come from the goal-1 harness (same box, clock
+    # note recorded there); bw_hbm / reduction bw_l2 / t0 from this stack.
+    harness = os.path.join(_D, "..", "portable", f"params_nvidia-{key}.json")
+    if key != "h100" and os.path.exists(harness):
+        with open(harness) as f:
+            hp = json.load(f)
+        GPU_PARAMS[key]["c_eff_mb"] = hp["effective_l2_capacity_mb"]
+        GPU_PARAMS[key]["bw_l2_tbs"] = hp["bw_l2_tbs"]
+        print(f"  {key} c_eff/bw_l2 from harness: {hp['effective_l2_capacity_mb']} MB, "
+              f"{hp['bw_l2_tbs']} TB/s")
+    GPU_PARAMS[key]["bw_hbm_tbs"] = base["hbm_read_tbs"]
+    GPU_PARAMS[key]["bw_l2_tbs_reduction"] = base["l2_read_tbs"]
+    GPU_PARAMS[key]["t0_us"] = base["kernel_floor_us"]
+
+    moe_path = os.path.join(_D, f"results_cuda_moe_{key}.json")
+    if not os.path.exists(moe_path):
+        moe_path = os.path.join(_D, "results_cuda_moe.json")
+    with open(moe_path) as f:
         moe = json.load(f)
     moe_rows = moe["rows"]
+    print(f"  MoE sweep: {os.path.basename(moe_path)}")
 
-    print("\n== Part 2: fit H100 ceilings from measured CUDA MoE sweep ==")
-    peak, deq = fit_h100_ceilings(moe_rows)
-    print(f"  fit peak_bf16 = {peak:.1f} TFLOPS ({peak/989.4*100:.0f}% of 989 nominal)")
-    print(f"  fit dequant_ceiling (fp8 W8A16) = {deq:.1f} TFLOPS ({deq/989.4*100:.0f}% of nominal)")
+    print(f"\n== Part 2: fit {key} ceilings from measured CUDA MoE sweep ==")
+    peak, deq = fit_ceilings(key, moe_rows)
+    print(f"  fit peak_bf16 = {peak:.1f} TFLOPS")
+    print(f"  fit dequant_ceiling (fp8 W8A16) = {deq:.1f} TFLOPS")
 
-    mb, mq, mrows = mape_moe(moe_rows)
-    print(f"\n== MAPE (CARM vs measured CUDA MoE) ==")
-    print(f"  bf16 MoE MAPE = {mb:.1f}%   fp8 W8A16 MoE MAPE = {mq:.1f}%   "
-          f"(Triton recon baseline: FP16 10.2% / INT4 18.2%)")
+    # Native-FP4 peak from the measured W4A4 sweep (B200_RUNBOOK section 4):
+    # replaces the projected native_peak_mult["fp4"] = 4.0.
+    nv_path = os.path.join(_D, f"results_moe_nvfp4_native_{key}.json")
+    fp4_fit = None
+    if "fp4" in GPU_PARAMS[key]["native_mma"] and os.path.exists(nv_path):
+        with open(nv_path) as f:
+            nv = json.load(f)
+        if "rows" in nv:
+            t0 = GPU_PARAMS[key]["t0_us"]
+            fp4_peak = max(moe_flops(r["T"]) / ((r["nvfp4_w4a4_us"] - t0) * 1e-6) / 1e12
+                           for r in nv["rows"])
+            mult = round(fp4_peak / GPU_PARAMS[key]["peak_bf16_tflops"], 2)
+            GPU_PARAMS[key]["native_peak_mult"]["fp4"] = mult
+            fp4_fit = {"fp4_peak_tflops": round(fp4_peak, 1),
+                       "native_peak_mult_fp4": mult,
+                       "note": "fit from measured W4A4 sweep; replaces projected 4.0"}
+            print(f"  fit native fp4 peak = {fp4_peak:.1f} TFLOPS "
+                  f"(mult {mult}x vs fitted bf16 peak; projected was 4.0x)")
+    if key != "h100":
+        GPU_PARAMS[key]["measured"] = True
+
+    mb, mq, mrows = mape_moe(moe_rows, key)
+    print(f"\n== MAPE (CARM vs measured CUDA MoE, {key}) ==")
+    print(f"  bf16 MoE MAPE = {mb:.1f}%   fp8 W8A16 MoE MAPE = {mq:.1f}%")
     for r in mrows:
         print(f"    T={r['T']:4d}  bf16 meas={r['bf16_meas']:7.0f} pred={r['bf16_pred']:7.0f}   "
               f"fp8 meas={r['fp8_meas']:7.0f} pred={r['fp8_pred']:7.0f}")
 
     print(f"\n== MoE quant-vs-dense crossover (tokens) ==")
     meas_x = measured_moe_crossover(moe_rows)
-    print(f"  H100 measured (fp8 W8A16):           T* ~= {meas_x}")
+    print(f"  {key} measured (fp8 W8A16):           T* ~= {meas_x}")
     for gpu in ("h100", "b200", "b100"):
         gp = GPU_PARAMS[gpu]
+        if gp["peak_bf16_tflops"] is None:
+            continue  # not fit in this run
         tag = "measured" if gp["measured"] else "PROJECTED"
         line = []
         for mode in QUANT_MODES:
@@ -272,27 +316,27 @@ def main():
 
     out = {
         "experiment": "C_carm_cuda_refit_gpu_parameterized",
-        "gpu": torch.cuda.get_device_name(0), "torch": torch.__version__,
+        "gpu": torch.cuda.get_device_name(0), "gpu_key": key,
+        "torch": torch.__version__,
         "base_params_cuda_stack": base,
         "model": "t = t0 + max(B/BW(WS), F/P); P=dequant-ceiling for weight-only, "
                  "native-peak for matched-precision iff precision in GPU native_mma",
-        "fit_h100": {"peak_bf16_tflops": GPU_PARAMS["h100"]["peak_bf16_tflops"],
-                     "dequant_ceiling_tflops": GPU_PARAMS["h100"]["dequant_ceiling_tflops"]},
-        "mape": {"bf16_moe_pct": mb, "fp8_w8a16_moe_pct": mq,
-                 "triton_recon_baseline": {"fp16_pct": 10.2, "int4_pct": 18.2},
-                 "rows": mrows},
+        f"fit_{key}": {"peak_bf16_tflops": GPU_PARAMS[key]["peak_bf16_tflops"],
+                       "dequant_ceiling_tflops": GPU_PARAMS[key]["dequant_ceiling_tflops"],
+                       "native_fp4": fp4_fit},
+        "mape": {"bf16_moe_pct": mb, "fp8_w8a16_moe_pct": mq, "rows": mrows},
         "moe_crossover_tokens": {
-            "h100_measured_fp8_w8a16": meas_x,
+            f"{key}_measured_fp8_w8a16": meas_x,
             "predicted": {gpu: {m: moe_crossover(GPU_PARAMS[gpu], m) for m in QUANT_MODES}
-                          for gpu in ("h100", "b200", "b100")},
+                          for gpu in ("h100", "b200", "b100")
+                          if GPU_PARAMS[gpu]["peak_bf16_tflops"] is not None},
         },
         "gpu_params": GPU_PARAMS,
-        "note_b200": "B200 row is PROJECTED from public Blackwell specs (native FP4 MMA, "
-                     "~96 MB L2, ~8 TB/s HBM3e), not measured on this H100. It is the hook "
-                     "for the native-FP4 MXFP4 leg; the crossover moves with L2 capacity + "
-                     "native-precision support.",
+        "clock_note": "B200 instance: clock lock unavailable (lgc denied w/ sudo); "
+                      "sustained-load SM band 1237-1320 MHz (+/-3%)",
     }
-    save_json(os.path.join(_D, "carm_cuda_params.json"), out)
+    save_json(os.path.join(_D, f"carm_cuda_params_{key}.json" if key != "h100"
+                           else "carm_cuda_params.json"), out)
 
 
 if __name__ == "__main__":

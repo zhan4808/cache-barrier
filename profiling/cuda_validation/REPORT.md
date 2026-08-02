@@ -358,3 +358,55 @@ at **large** T by an uncompetitive bf16 baseline; the corrected, tuned-CUDA pict
 favorable to the cache-aware-roofline thesis, not less. Matched-precision quant (W8A8 today,
 native MXFP4 on Blackwell) is the way to win in the compute-bound regime — and CARM, now
 GPU-parameterized, says exactly when.
+
+---
+
+## Addendum — 2026-08-02 B200 session: the native-FP4 prediction CONFIRMS
+
+Environment: B200 (sm_100), fresh vLLM **0.26.0** venv (torch 2.11+cu130) —
+the H100 byte-exact venv has no SM100 FP4 ops, per the runbook. Clock lock
+unavailable on this instance (documented in every results file); sustained
+SM band 1237–1320 MHz ±3%. `probe_blackwell_fp4.py` confirms native path:
+`cutlass_fp4_moe_mm`, `scaled_fp4_quant`, `scaled_fp4_experts_quant` present
+(0.20.2's `cutlass_moe_fp4` was renamed; import shims added to the benches).
+
+**Experiment A on B200** (`results_cuda_moe_b200.json`): the dequant-path
+structure reproduces on Blackwell — fp8 W8A16 and mxfp4 W4A16 Marlin win at
+small T (1.85×/1.82× at T=16), cross under bf16 at **T\*≈159 measured**
+(CARM predicts 194; the 2026-07 projection was 294), and lose 2.4× at
+T=2048. EMU is intrinsic to Marlin on every GPU; on B200 it now has a native
+competitor.
+
+**Experiment A-native** (`results_moe_nvfp4_native_b200.json`,
+`bench_moe_nvfp4_native.py` finalized against vLLM 0.26.0
+`run_cutlass_moe_fp4`): matched-precision W4A4 NVFP4, same shape, same
+graph timing. **The native curve never crosses bf16: 2.11–3.10× across
+T=16…2048.** At T=2048 the two FP4 representations differ by **6.3×**
+(native 785.6 µs vs Marlin-EMU 4944.8 µs) — that gap IS the in-core dequant
+ceiling, measured and then removed by FP4 tensor cores. The
+`carm_cuda_fit.py` pre-registered prediction `b200 w4a4_mxfp4: none(wins)`
+is confirmed on-device.
+
+Correctness: rel-err 0.2212 vs a no-act-quant bf16 reference; a software
+W4A4 emulation scores 0.2221 vs the same reference — the error is the
+intrinsic fp4 activation-quant noise of matched precision, not kernel error
+(decomposition in the results JSON). Honest caveats: (1) the bf16 baseline
+is vLLM's DEFAULT triton MoE config (no tuned B200 config exists; guardrail
+3) — the native-vs-Marlin 6.3× shares no bf16 baseline and is the clean
+claim; (2) fp4 W4A4 costs ~22% relative error on random data — the
+speed-accuracy tradeoff belongs in any serving recommendation.
+
+**CARM refit** (`carm_cuda_params_b200.json`): b200 block now MEASURED —
+C_eff 98.8 MB / bw_l2 13.34 (goal-1 harness), bw_hbm 6.68 / t0 1.80 (this
+stack), fitted peak_bf16 1178.7 TF, dequant ceiling 488.6 TF, native-FP4
+peak 3068.6 TF → `native_peak_mult["fp4"] = 2.6` measured (projected 4.0).
+MAPE on the B200 MoE sweep: bf16 21.3% / fp8 16.2%.
+
+**Experiment B on B200** (`results_flashmla_sparse_b200.json`): fp8-KV loses
+everywhere (0.33–0.81×), reproducing the H100 conclusion — KV reads are not
+L2-limited; the toggle measures act-quant kernel overhead. FlashMLA dense is
+Hopper-only in this build; the sparse path ran natively.
+
+Money figure: `figures/nvfp4_ceiling_break_h100_vs_b200.{png,pdf}` — H100
+(every FP4 path dequantizes, crosses over) vs B200 (native W4A4 never
+crosses), same shape and timing on both panels.
