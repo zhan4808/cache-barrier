@@ -1,0 +1,239 @@
+{
+ "experiment": "recurrent_state_residency_gate",
+ "gpu": "NVIDIA H100 80GB HBM3",
+ "sm_clock_loaded": "1365-1755 MHz sampled under load (median 1605)",
+ "torch": "2.7.0",
+ "dk": 128,
+ "dv": 128,
+ "dtype": "fp16",
+ "decay": 0.99,
+ "traffic_model": "3x footprint per step (S read+write in update, read in readout)",
+ "timing": "CUDA graphs, 10 steps/graph, median of 30 replays",
+ "prediction": "warm BW cliffs L2->HBM tier as footprint crosses C_eff (h100 fine-grid onset 39.8 MB); rotated flat at HBM tier; implies batch-size cliff B* = C_eff/(H*dk*dv*2) for hybrid-model decode",
+ "rows": [
+  {
+   "target_mb": 8,
+   "n_heads": 256,
+   "footprint_mb": 8.0,
+   "warm_us": 14.618,
+   "rot_us": 17.933,
+   "warm_bw_tbs": 1.722,
+   "rot_bw_tbs": 1.403,
+   "rot_copies": 13,
+   "warm_over_rot": 1.227
+  },
+  {
+   "target_mb": 12,
+   "n_heads": 384,
+   "footprint_mb": 12.0,
+   "warm_us": 22.157,
+   "rot_us": 26.09,
+   "warm_bw_tbs": 1.704,
+   "rot_bw_tbs": 1.447,
+   "rot_copies": 9,
+   "warm_over_rot": 1.177
+  },
+  {
+   "target_mb": 16,
+   "n_heads": 512,
+   "footprint_mb": 16.0,
+   "warm_us": 27.206,
+   "rot_us": 31.715,
+   "warm_bw_tbs": 1.85,
+   "rot_bw_tbs": 1.587,
+   "rot_copies": 7,
+   "warm_over_rot": 1.166
+  },
+  {
+   "target_mb": 20,
+   "n_heads": 640,
+   "footprint_mb": 20.0,
+   "warm_us": 32.224,
+   "rot_us": 37.158,
+   "warm_bw_tbs": 1.952,
+   "rot_bw_tbs": 1.693,
+   "rot_copies": 5,
+   "warm_over_rot": 1.153
+  },
+  {
+   "target_mb": 24,
+   "n_heads": 768,
+   "footprint_mb": 24.0,
+   "warm_us": 36.866,
+   "rot_us": 42.776,
+   "warm_bw_tbs": 2.048,
+   "rot_bw_tbs": 1.765,
+   "rot_copies": 5,
+   "warm_over_rot": 1.16
+  },
+  {
+   "target_mb": 28,
+   "n_heads": 896,
+   "footprint_mb": 28.0,
+   "warm_us": 44.288,
+   "rot_us": 56.277,
+   "warm_bw_tbs": 1.989,
+   "rot_bw_tbs": 1.565,
+   "rot_copies": 4,
+   "warm_over_rot": 1.271
+  },
+  {
+   "target_mb": 32,
+   "n_heads": 1024,
+   "footprint_mb": 32.0,
+   "warm_us": 50.12,
+   "rot_us": 53.547,
+   "warm_bw_tbs": 2.008,
+   "rot_bw_tbs": 1.88,
+   "rot_copies": 4,
+   "warm_over_rot": 1.068
+  },
+  {
+   "target_mb": 36,
+   "n_heads": 1152,
+   "footprint_mb": 36.0,
+   "warm_us": 65.456,
+   "rot_us": 70.429,
+   "warm_bw_tbs": 1.73,
+   "rot_bw_tbs": 1.608,
+   "rot_copies": 3,
+   "warm_over_rot": 1.076
+  },
+  {
+   "target_mb": 38,
+   "n_heads": 1216,
+   "footprint_mb": 38.0,
+   "warm_us": 64.619,
+   "rot_us": 65.538,
+   "warm_bw_tbs": 1.85,
+   "rot_bw_tbs": 1.824,
+   "rot_copies": 3,
+   "warm_over_rot": 1.014
+  },
+  {
+   "target_mb": 40,
+   "n_heads": 1280,
+   "footprint_mb": 40.0,
+   "warm_us": 69.059,
+   "rot_us": 69.264,
+   "warm_bw_tbs": 1.822,
+   "rot_bw_tbs": 1.817,
+   "rot_copies": 3,
+   "warm_over_rot": 1.003
+  },
+  {
+   "target_mb": 42,
+   "n_heads": 1344,
+   "footprint_mb": 42.0,
+   "warm_us": 72.726,
+   "rot_us": 73.266,
+   "warm_bw_tbs": 1.817,
+   "rot_bw_tbs": 1.803,
+   "rot_copies": 3,
+   "warm_over_rot": 1.007
+  },
+  {
+   "target_mb": 44,
+   "n_heads": 1408,
+   "footprint_mb": 44.0,
+   "warm_us": 87.552,
+   "rot_us": 87.507,
+   "warm_bw_tbs": 1.581,
+   "rot_bw_tbs": 1.582,
+   "rot_copies": 3,
+   "warm_over_rot": 0.999
+  },
+  {
+   "target_mb": 48,
+   "n_heads": 1536,
+   "footprint_mb": 48.0,
+   "warm_us": 92.074,
+   "rot_us": 92.146,
+   "warm_bw_tbs": 1.64,
+   "rot_bw_tbs": 1.639,
+   "rot_copies": 3,
+   "warm_over_rot": 1.001
+  },
+  {
+   "target_mb": 56,
+   "n_heads": 1792,
+   "footprint_mb": 56.0,
+   "warm_us": 107.28,
+   "rot_us": 107.309,
+   "warm_bw_tbs": 1.642,
+   "rot_bw_tbs": 1.642,
+   "rot_copies": 2,
+   "warm_over_rot": 1.0
+  },
+  {
+   "target_mb": 64,
+   "n_heads": 2048,
+   "footprint_mb": 64.0,
+   "warm_us": 122.136,
+   "rot_us": 122.429,
+   "warm_bw_tbs": 1.648,
+   "rot_bw_tbs": 1.644,
+   "rot_copies": 2,
+   "warm_over_rot": 1.002
+  },
+  {
+   "target_mb": 80,
+   "n_heads": 2560,
+   "footprint_mb": 80.0,
+   "warm_us": 135.973,
+   "rot_us": 136.243,
+   "warm_bw_tbs": 1.851,
+   "rot_bw_tbs": 1.847,
+   "rot_copies": 2,
+   "warm_over_rot": 1.002
+  },
+  {
+   "target_mb": 96,
+   "n_heads": 3072,
+   "footprint_mb": 96.0,
+   "warm_us": 160.816,
+   "rot_us": 160.85,
+   "warm_bw_tbs": 1.878,
+   "rot_bw_tbs": 1.877,
+   "rot_copies": 2,
+   "warm_over_rot": 1.0
+  }
+ ],
+ "contended_24mb": [
+  {
+   "interleave_mb": 0,
+   "state_us": 36.998,
+   "state_bw_tbs": 2.041
+  },
+  {
+   "interleave_mb": 8,
+   "state_us": 41.208,
+   "state_bw_tbs": 1.832
+  },
+  {
+   "interleave_mb": 16,
+   "state_us": 45.632,
+   "state_bw_tbs": 1.654
+  },
+  {
+   "interleave_mb": 24,
+   "state_us": 49.093,
+   "state_bw_tbs": 1.538
+  },
+  {
+   "interleave_mb": 32,
+   "state_us": 51.336,
+   "state_bw_tbs": 1.471
+  },
+  {
+   "interleave_mb": 64,
+   "state_us": 47.491,
+   "state_bw_tbs": 1.59
+  },
+  {
+   "interleave_mb": 128,
+   "state_us": 48.232,
+   "state_bw_tbs": 1.565
+  }
+ ]
+}

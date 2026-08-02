@@ -1,0 +1,209 @@
+{
+ "experiment": "sparse_kv_hotset_gate",
+ "gpu": "NVIDIA H100 80GB HBM3",
+ "torch": "2.7.0",
+ "shape": {
+  "Hq": 32,
+  "d": 128,
+  "t_selected": 2048
+ },
+ "timing": "CUDA graphs, 10/graph, median of 30",
+ "clock_note": "locked cap 1755 MHz; memory-bound cells near the cap, see session-9 journal on lock semantics",
+ "prediction": "warm advantage below C_eff bytes regardless of Hkv (byte-governed); fp8 storage recovers the advantage fp16 loses at the same token count",
+ "rows": [
+  {
+   "mode": "fp16_hkv8",
+   "hkv": 8,
+   "B": 1,
+   "hot_mb": 8.0,
+   "warm_us": 12.45,
+   "rot_us": 13.77,
+   "rot_copies": 13,
+   "rot_over_warm": 1.106
+  },
+  {
+   "mode": "fp16_hkv8",
+   "hkv": 8,
+   "B": 2,
+   "hot_mb": 16.0,
+   "warm_us": 14.578,
+   "rot_us": 17.534,
+   "rot_copies": 7,
+   "rot_over_warm": 1.203
+  },
+  {
+   "mode": "fp16_hkv8",
+   "hkv": 8,
+   "B": 3,
+   "hot_mb": 24.0,
+   "warm_us": 16.184,
+   "rot_us": 18.987,
+   "rot_copies": 5,
+   "rot_over_warm": 1.173
+  },
+  {
+   "mode": "fp16_hkv8",
+   "hkv": 8,
+   "B": 4,
+   "hot_mb": 32.0,
+   "warm_us": 16.715,
+   "rot_us": 21.95,
+   "rot_copies": 4,
+   "rot_over_warm": 1.313
+  },
+  {
+   "mode": "fp16_hkv8",
+   "hkv": 8,
+   "B": 5,
+   "hot_mb": 40.0,
+   "warm_us": 20.53,
+   "rot_us": 24.448,
+   "rot_copies": 3,
+   "rot_over_warm": 1.191
+  },
+  {
+   "mode": "fp16_hkv8",
+   "hkv": 8,
+   "B": 6,
+   "hot_mb": 48.0,
+   "warm_us": 33.174,
+   "rot_us": 33.707,
+   "rot_copies": 3,
+   "rot_over_warm": 1.016
+  },
+  {
+   "mode": "fp16_hkv8",
+   "hkv": 8,
+   "B": 8,
+   "hot_mb": 64.0,
+   "warm_us": 31.821,
+   "rot_us": 31.955,
+   "rot_copies": 2,
+   "rot_over_warm": 1.004
+  },
+  {
+   "mode": "fp16_hkv8",
+   "hkv": 8,
+   "B": 10,
+   "hot_mb": 80.0,
+   "warm_us": 38.443,
+   "rot_us": 38.149,
+   "rot_copies": 2,
+   "rot_over_warm": 0.992
+  },
+  {
+   "mode": "fp16_hkv8",
+   "hkv": 8,
+   "B": 12,
+   "hot_mb": 96.0,
+   "warm_us": 49.224,
+   "rot_us": 49.104,
+   "rot_copies": 2,
+   "rot_over_warm": 0.998
+  },
+  {
+   "mode": "fp16_hkv4",
+   "hkv": 4,
+   "B": 2,
+   "hot_mb": 8.0,
+   "warm_us": 12.949,
+   "rot_us": 14.47,
+   "rot_copies": 13,
+   "rot_over_warm": 1.118
+  },
+  {
+   "mode": "fp16_hkv4",
+   "hkv": 4,
+   "B": 4,
+   "hot_mb": 16.0,
+   "warm_us": 15.018,
+   "rot_us": 17.691,
+   "rot_copies": 7,
+   "rot_over_warm": 1.178
+  },
+  {
+   "mode": "fp16_hkv4",
+   "hkv": 4,
+   "B": 6,
+   "hot_mb": 24.0,
+   "warm_us": 16.464,
+   "rot_us": 19.138,
+   "rot_copies": 5,
+   "rot_over_warm": 1.162
+  },
+  {
+   "mode": "fp16_hkv4",
+   "hkv": 4,
+   "B": 8,
+   "hot_mb": 32.0,
+   "warm_us": 16.688,
+   "rot_us": 21.867,
+   "rot_copies": 4,
+   "rot_over_warm": 1.31
+  },
+  {
+   "mode": "fp16_hkv4",
+   "hkv": 4,
+   "B": 10,
+   "hot_mb": 40.0,
+   "warm_us": 21.707,
+   "rot_us": 24.608,
+   "rot_copies": 3,
+   "rot_over_warm": 1.134
+  },
+  {
+   "mode": "fp16_hkv4",
+   "hkv": 4,
+   "B": 12,
+   "hot_mb": 48.0,
+   "warm_us": 34.942,
+   "rot_us": 35.102,
+   "rot_copies": 3,
+   "rot_over_warm": 1.005
+  },
+  {
+   "mode": "fp16_hkv4",
+   "hkv": 4,
+   "B": 16,
+   "hot_mb": 64.0,
+   "warm_us": 32.206,
+   "rot_us": 32.139,
+   "rot_copies": 2,
+   "rot_over_warm": 0.998
+  },
+  {
+   "mode": "fp16_hkv4",
+   "hkv": 4,
+   "B": 20,
+   "hot_mb": 80.0,
+   "warm_us": 38.872,
+   "rot_us": 38.678,
+   "rot_copies": 2,
+   "rot_over_warm": 0.995
+  },
+  {
+   "mode": "fp16_hkv4",
+   "hkv": 4,
+   "B": 24,
+   "hot_mb": 96.0,
+   "warm_us": 49.896,
+   "rot_us": 49.658,
+   "rot_copies": 2,
+   "rot_over_warm": 0.995
+  }
+ ],
+ "fp8_spot_B8": {
+  "fp16": {
+   "hot_mb": 64.0,
+   "warm_us": 32.029,
+   "rot_us": 31.797,
+   "rot_over_warm": 0.993
+  },
+  "fp8_dequant": {
+   "hot_mb": 32.0,
+   "warm_us": 155.27,
+   "rot_us": 155.442,
+   "rot_over_warm": 1.001
+  }
+ }
+}
