@@ -12,6 +12,12 @@ Tri Dao.
   partitioning.
 \newblock In {\em ICLR}, 2024.
 
+\bibitem{dao2026replayssm}
+Tri Dao et~al.
+\newblock Replayssm: Cache ssm inputs, not state.
+\newblock \url{https://tridao.me/blog/2026/replayssm/}, jun 2026.
+\newblock vLLM RFC \#47572.
+
 \bibitem{flashattention}
 Tri Dao, Dan Fu, Stefano Ermon, Atri Rudra, and Christopher R{\'e}.
 \newblock Flashattention: Fast and memory-efficient exact attention with
@@ -41,6 +47,11 @@ Elias Frantar, Roberto~L. Castro, Jiale Chen, Torsten Hoefler, and Dan
 \newblock Marlin: Mixed-precision auto-regressive parallel inference on large
   language models.
 \newblock {\em arXiv preprint arXiv:2408.11743}, 2024.
+
+\bibitem{gupta2026persistentstate}
+Neelesh Gupta, Peter Wang, Rajgopal Kannan, and Viktor~K. Prasanna.
+\newblock A persistent-state dataflow accelerator for memory-bound linear
+  attention decode on fpga, 2026.
 
 \bibitem{kvquant}
 Coleman Hooper, Sehoon Kim, Hiva Mohammadi, Michael~W. Mahoney, Yakun~Sophia

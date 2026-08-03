@@ -708,3 +708,13 @@ measured B300 numbers; 17 pp, 0 errors. Deck slide 12: fourth bar
   path bug (entry recovered) and the unsynced w8a8 patch (now landed).
 - B300 FP4 leg (P6) running in vllm-env 0.26; venue/related-work agent
   pending.
+
+**Venue/prior-art agent returned** (explorations/venue_relatedwork.md):
+prior art CLEAR on the capacity-gated residency-window claim, with two
+must-engage neighbors now cited in paper + fla draft: ReplaySSM (Dao,
+6/2026 — halves state traffic algorithmically, cache-blind; orthogonal
+and COMPOSABLE, footprint unchanged so the window stands) and the FPGA
+persistent-state GDN accelerator (2603.05931) whose "L2 cannot persist
+state" premise our 86%-warm-hit counters refute. Target venue: MLSys
+2027 (deadline Oct 30, 2026), backup ISPASS; ATC discontinued. 12
+related-work items + bib delta in the memo.

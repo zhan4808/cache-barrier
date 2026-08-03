@@ -92,6 +92,17 @@ could not be clock-locked (sustained clocks recorded per run). This is a
 decode-only claim — chunked prefill is a different regime (matmul-form
 chunking → tensor cores) where this approach does not apply.
 
+**Relation to ReplaySSM** (Dao, June 2026; vLLM RFC #47572): ReplaySSM
+attacks the same decode step by algorithmically halving state traffic
+(cache inputs, recompute state) with no cache-hierarchy awareness — it is
+orthogonal and composable with this observation. The residency window is
+set by state *footprint*, which replay does not change, so a
+replay-style kernel that is also L2-aware would stack both effects inside
+the window (fewer bytes per step × cheaper bytes). Our NCU counters on
+H100 show the current fused_recurrent misses 56% of its state traffic to
+DRAM even when the state fits in L2 — that loss applies to replayed
+traffic too, so the two fixes are complements, not competitors.
+
 **Question/offer.** Is there interest in (a) an L2-aware decode path
 (e.g., selecting a fused single-pass step when `B·H·dk·dv·4 < C_eff`), or
 (b) the benchmark harness as a repro? Happy to PR the prototype +
