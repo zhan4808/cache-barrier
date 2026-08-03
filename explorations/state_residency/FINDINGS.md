@@ -163,3 +163,29 @@ throughout; our kernel lacks varlen/beta-vector/headdim!=128 paths; the
 second-order (state fp32 in both).
 
 Data: `results_gdn_full_h100.json`.
+
+---
+
+# Addendum 4 (2026-08-03) — B300: the window moves exactly as C_eff says
+
+Fourth architecture (B300 SXM6 AC, nominal L2 126.5 MB — measured
+identical to B200; fine-grid C_eff 91.6±1.0 = 0.724x). Same benches,
+torch 2.13/triton 3.7 (`results_fla_gdn_b300.json`,
+`results_gdn_l2_kernel_b300.json`):
+
+- fla fused_recurrent: 4.6-5.2 TB/s (much better than on H100 — newer
+  triton + sm_103), but STILL residency-blind: warm advantage <=1.11,
+  gone by 48 MB.
+- Our kernel: warm 7.0-9.4 TB/s below the gate (peak 9.38 at 56 MB),
+  rot/warm 1.25-1.68 below, collapse at 96 MB; far field 6.1-6.2 TB/s
+  = 92% of measured bw_hbm.
+- Head-to-head: 1.5x at 16-24 MB, **2.05x at 56 MB**, 1.28x at 96, 1.18x
+  far field. **The speedup window moved from ~40 MB (H100) to ~92 MB
+  (B300), tracking measured C_eff exactly; B* ~= 92 requests at H=16.**
+
+The design-tool claim is now cross-architecture: the gate predicted the
+window's new location on unseen silicon before the kernel ran there.
+Caveats: clock lock denied on this tier (air-cooled SXM6, power-limited;
+peak fp16 1456 TF); w8a8 triton leg blocked by a triton-3.7 int8 tl.dot
+API break (see ceff_reconcile/b300_triton_w8a8_compile_error.log) — a
+kernel-port, not physics.

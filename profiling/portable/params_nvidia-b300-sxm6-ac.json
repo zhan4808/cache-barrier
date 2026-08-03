@@ -1,0 +1,72 @@
+{
+ "gpu": "NVIDIA B300 SXM6 AC",
+ "nominal_l2_mb": 126.5,
+ "sm_count": 148,
+ "effective_l2_capacity_mb": 98.8,
+ "bw_l2_tbs": 16.491,
+ "bw_hbm_tbs": 6.716,
+ "peak_fp16_tflops": 1455.9,
+ "r_dequant_tbs": null,
+ "t0_graph_us": 1.522,
+ "t0_eager_us": 22.4,
+ "residency_cliff_points_mb_tbs": [
+  [
+   50.6,
+   2.852
+  ],
+  [
+   61.3,
+   3.424
+  ],
+  [
+   72.0,
+   4.527
+  ],
+  [
+   82.7,
+   5.19
+  ],
+  [
+   93.4,
+   5.254
+  ],
+  [
+   104.1,
+   4.473
+  ],
+  [
+   114.8,
+   4.175
+  ],
+  [
+   125.5,
+   4.269
+  ],
+  [
+   136.2,
+   4.404
+  ],
+  [
+   146.9,
+   4.562
+  ],
+  [
+   157.6,
+   4.727
+  ],
+  [
+   168.3,
+   4.786
+  ],
+  [
+   179.0,
+   4.872
+  ],
+  [
+   189.8,
+   4.986
+  ]
+ ],
+ "r_dequant_detail_us": "triton kernel unavailable: No module named 'bench_l2_barrier'",
+ "method": "graph-timed, differential slopes, timing-only residency cliff; no vendor counters, no datasheet numbers"
+}

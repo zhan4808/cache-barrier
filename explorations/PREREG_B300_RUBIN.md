@@ -419,3 +419,40 @@ videocardz.com GB300 spec leak; spheron.network, server-parts.eu, slyd.com
 (192 MB L2 claims, secondary); thundercompute.com and introl.com Rubin
 roundups (HBM4 22 TB/s GTC-2026 claim; earlier 13 TB/s reporting);
 tech-insider.org GTC 2026 Rubin analysis.
+
+---
+
+# OUTCOMES — B300 SXM6 AC measured 2026-08-03 (same day as registration)
+
+Box: B300 SXM6 AC (air-cooled), driver 580.126, torch 2.13.0+cu130,
+clock lock denied (same virtualized tier as the B200 box). Data:
+`profiling/portable/params_nvidia-b300-sxm6-ac.json`,
+`results_cliff_finegrain_nvidia-b300-sxm6-ac.json`.
+
+- **Nominal branch resolved — both branches wrong in an instructive way**:
+  device-reported L2 is **126.5 MB, identical to B200** (148 SMs, also
+  identical). The 192 MB secondary-source figure is contradicted on this
+  card. (Caveat: this is the SXM6 "AC" variant at 275 GB; if a 288 GB
+  liquid-cooled B300 differs in L2, that would be new information — no
+  evidence either way.)
+- **P1: FALSIFIED at fine grid.** Fine-grid C_eff = **91.6 ± 1.0 MB =
+  0.724 ± 0.008x nominal** (5 repeats, 4 clustered, 1 first-point noise
+  trip discarded by median) — outside the pre-registered 0.77–0.82 band.
+  The coarse harness reads 0.781 (same grid cell as A100/H100/B200),
+  which is precisely the session-9 grid-quantization critique made flesh:
+  the coarse grid cannot distinguish 0.72 from 0.80. Cross-architecture
+  statement is now: **a large, architecture-varying 0.72–0.80 fraction**
+  (fine-grid H100 0.795, B300 0.724; A100/B200 coarse ±0.04).
+- **P2: matched-stack clause untestable on this box; mechanism CONFIRMED.**
+  t0 = 1.52 us on torch 2.13 — the floor tracked the stack downward again
+  (2.30 on 2.7/2.8 → 1.80 on 2.11 → 1.52 on 2.13) across four silicon
+  generations: a host-software property, exactly as claimed.
+- **P5 (Rubin direction, early data point): the ratio GROWS on B300.**
+  bw_l2 16.49 TB/s (+24% vs B200's 13.34) with bw_hbm flat at 6.72 →
+  L2:HBM = 2.46 vs B200's 1.96. On this card the barrier's latency value
+  is increasing, not compressing. (Power-limited air-cooled variant;
+  peak fp16 1456 TF, below B200's 1547.)
+- P3 (transfer), P4 (gate-expansion table), P6 (FP4 mult): pending — P4's
+  arithmetic must be redone against C_eff 91.6, not 150 (the table's
+  "27B gate_up crosses only at fp4" headline needs rechecking; at 91.6 MB
+  the 89.1 MB fp4 operand is MARGINAL, not clearly below).
