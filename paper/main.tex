@@ -249,6 +249,13 @@ The numbers force an inversion.  With bf16-primary storage, dispatch is memory-i
 \section{The Gate as a Design Tool}
 \label{sec:designtool}
 
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\columnwidth]{figures/gdn_window.pdf}
+  \caption{\textbf{The residency-aware GDN decode kernel's speedup window tracks measured $C_\text{eff}$ across architectures.}  Speedup over \texttt{flash-linear-attention} vs.\ total recurrent-state footprint (H100: vs.\ the practical 3-kernel decode chain; B300: vs.\ the fused-recurrent op).  Each curve collapses at its own card's independently measured effective capacity (dashed) --- 39.8~MB on H100, 91.6~MB on B300 --- locations predicted before the kernel ran on either card.  The $\geq$1.2$\times$ far-field floor is the kernel-fusion dividend.  Data: \texttt{explorations/state\_residency/}.}
+  \label{fig:gdnwindow}
+\end{figure}
+
 The model's constants are not only predictive --- they locate exploitable headroom.  We demonstrate this on the operator class that hybrid linear-attention models (the Gated DeltaNet family: Qwen3-Next, Kimi-Linear, Nemotron-class hybrids) made central in 2026: the recurrent-state decode step, which re-reads and rewrites a constant per-request state ($H \times d_k \times d_v$, 1~MB/request at the common $H{=}16$, $d_k{=}d_v{=}128$ fp32 geometry) every token.  The batch's total state is a warm re-read working set --- exactly what $C_\text{eff}$ governs.
 
 \textbf{The production kernel is L2-blind.}  \texttt{flash-linear-attention}'s \texttt{fused\_recurrent\_gated\_delta\_rule} (v0.5.2, graph-timed on our H100) runs at a flat 2.3--2.4~TB/s of state traffic from 8 to 160~MB of total state --- \emph{below} the measured HBM streaming rate --- with warm-vs-evicted deltas $\leq$13\% and only under 16~MB.  The gate therefore predicts a headroom window: up to $\mathrm{BW}_{L2}/2.35 \approx 2.7\times$ for batches whose state is resident ($B \leq B^* = C_\text{eff}/(H\,d_k d_v\,4\mathrm{B}) \approx 40$ on H100).

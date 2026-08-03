@@ -465,9 +465,10 @@ clock lock denied (same virtualized tier as the B200 box). Data:
   fp4 act-quant noise, reproduced). The dequant-ceiling break now has two
   Blackwell-family cards. Data: results_cuda_moe_b300.json,
   results_moe_nvfp4_native_b300.json.
-- **P6 (native_peak_mult 4.2, band 3.4-5.0): LIKELY FALSIFIED** — the
-  compute-bound time ratio at T=2048 gives ~2.7x (proper carm fit
-  pending), essentially B200's 2.6. Consistent with the box's whole
+- **P6 (native_peak_mult 4.2, band 3.4-5.0): FALSIFIED at 2.66** —
+  formal fit from the compute-bound asymptotes (bf16 756 TF, nvfp4
+  2014 TF effective at T=2048; same method as B200's 2.6), i.e. the
+  fp4:bf16 ratio did not grow from B200 to this B300 variant at all. Consistent with the box's whole
   profile: this SXM6 AC B300 carries B200 silicon parameters (L2 126.5,
   148 SMs, HBM ~6.7 TB/s, bf16 peak ~1456 TF) plus 24% more L2 BW; the
   datasheet 15 PF FP4 (6.67x ratio) does not materialize on the
