@@ -69,7 +69,7 @@ def _w8a8_bmm_kernel(
         k_mask = offs_k < K - k * BLOCK_K
         a = tl.load(a_ptrs, mask=m_mask[:, None] & k_mask[None, :], other=0)
         w = tl.load(w_ptrs, mask=k_mask[:, None] & n_mask[None, :], other=0)
-        acc = tl.dot(a, w, acc=acc)  # int8 x int8 -> int32 (IMMA)
+        acc = tl.dot(a, w, acc=acc, out_dtype=tl.int32)  # int8 x int8 -> int32 (IMMA)
         a_ptrs += BLOCK_K * stride_ak
         w_ptrs += BLOCK_K * stride_wk
 

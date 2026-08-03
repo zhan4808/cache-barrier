@@ -657,3 +657,54 @@ kernel capturing it, pre-registration noted, two-capacities finding
 (C_eff^re-read vs C_eff^GEMM, counter-corroborated). Limitations scoped
 (one GPU, fixed geometry, decode-only, harness measures re-read capacity
 only). 17 pp, 0 errors.
+
+## 2026-08-03 (session 11, B300 SXM6 AC via ssh) — the fourth architecture point
+
+Robert provided a B300 instance. Headlines, all data in repo:
+
+- **Nominal L2 = 126.5 MB, IDENTICAL to B200 (148 SMs too).** The
+  192 MB secondary-source figure is contradicted on-device; the paper's
+  softened wording (session 9) aged well.
+- **P1 FALSIFIED, and instructively**: fine-grid C_eff **91.6±1.0 MB =
+  0.724±0.008x** (5 reps), outside the pre-registered 0.77-0.82 band —
+  while the coarse harness reads 0.781 (same grid cell as all prior
+  cards), the grid-quantization critique made flesh. The cross-arch claim
+  is now "large but architecture-varying 0.72-0.80 fraction" (paper,
+  deck, prereg OUTCOMES all updated).
+- **P2 mechanism confirmed**: t0 1.52 us on torch 2.13 (2.30 -> 1.80 ->
+  1.52 across stacks, four silicon generations): host-software property.
+- **P5 early direction: the ratio GROWS** — bw_l2 16.5 TB/s (+24% vs
+  B200) at flat bw_hbm 6.7 -> L2:HBM 2.46 (B200: 1.96). r_dequant 1.13.
+- **Design-tool cross-validation**: our GDN kernel's speedup window moved
+  40 MB -> ~92 MB tracking C_eff exactly; 2.05x vs fla at 56 MB; fla
+  still residency-blind (<=1.11) despite running 2x faster than on H100.
+- Gate-sweep w8a8 leg blocked: triton 3.7 int8 tl.dot API break on the
+  3.3-era kernel (compile error logged) — port needed, honest framing:
+  compatibility break, not measured immaturity.
+- Box state: /root/bench-env (torch 2.13+cu130 + triton 3.7 + fla),
+  /root/bench/{profiling,explorations}; clock lock denied; results
+  copied back. Remaining if box persists: kv_hotset byte-governance,
+  vLLM FP4 leg (P6), w8a8 kernel port.
+
+Paper: LLC-trend passage + abstract + design-tool section updated with
+measured B300 numbers; 17 pp, 0 errors. Deck slide 12: fourth bar
+126.5/⌁91.6 with corrected caption.
+
+## 2026-08-03 (session 11 continued, both GPUs + agent fleet)
+
+- **triton 3.7 int8 break RESOLVED**: `out_dtype=tl.int32` on the int8
+  tl.dot (w8a8_bmm.py:72, now in repo, works on 3.3+). B300 gate sweep
+  ran clean: bf16 MAPE 28.9/3.5 (below/above) — sm_103 keeps the jagged
+  below-gate kernel selection; **triton w8a8 STILL never wins on sm_103**
+  (sp8 <= 0.95 out to 1.4x C_eff, current-version toolchain) — third
+  Blackwell-family point for the kernel-maturity story (far field beyond
+  128 MB unmeasured on this grid; stated).
+- **NCU on the GDN kernels (H100)**: ours 86% L2-hit below gate, exact 2x
+  streaming above (129.5 vs 128 predicted); fla misses 56% of state
+  traffic to DRAM even when resident — cache-unfriendly access, not just
+  latency-bound (FINDINGS addendum 5).
+- Docs-sync agent updated deck status slide, WeChat items 16/17, and the
+  upstream fla draft (now two-architecture). Its audit caught the journal
+  path bug (entry recovered) and the unsynced w8a8 patch (now landed).
+- B300 FP4 leg (P6) running in vllm-env 0.26; venue/related-work agent
+  pending.
