@@ -634,3 +634,26 @@ Both threads pre-registered in the autoloop report before measurement.
 Next: epilogue-complete kernel (short-conv + gating), chunked-prefill
 variant, upstream conversation with fla; NCU on the GDN kernels; fold
 into paper as the "gate as design tool" section.
+
+## 2026-08-03 (session 10 continued) — epilogue-complete kernel, upstream draft, paper section
+
+**Epilogue-complete kernel** (`gdn_l2_kernel_full.py`): the FULL decode
+step (short conv K=4 + silu with rolling cache, qk l2norm, delta rule,
+gated RMSNorm) fused into one program per (batch,head), vs fla's real
+3+-kernel chain: **2.00-2.34x below the gate, 1.21-1.30x above** — the
+decomposition is fusion (~1.25x everywhere) x residency (~1.9x in the
+window), crossover still at 40-48 MB = C_eff. Correctness 1e-8/exact.
+Chunked-prefill variant analyzed and deliberately NOT built (matmul-form
+chunking owns prefill via tensor cores; the residency claim is decode).
+
+**Upstream**: ready-to-post fla issue draft at
+`explorations/state_residency/UPSTREAM_fla_ISSUE_DRAFT.md` (hardware-
+factual framing, repro pointers, PR offer). Posting needs Robert's GitHub
+review/auth — no gh on this box, and it goes out under his name.
+
+**Paper**: new §"The Gate as a Design Tool" (before §Attention Kernel
+Validation): L2-blind production kernel, the 2.7x window, the fused
+kernel capturing it, pre-registration noted, two-capacities finding
+(C_eff^re-read vs C_eff^GEMM, counter-corroborated). Limitations scoped
+(one GPU, fixed geometry, decode-only, harness measures re-read capacity
+only). 17 pp, 0 errors.

@@ -130,3 +130,36 @@ Measured against fla 0.5.2 on identical shapes (H=16, dk=dv=128, fp32):
   replacement.
 
 Data: `results_gdn_l2_kernel_h100.json`.
+
+---
+
+# Addendum 3 (2026-08-03) — epilogue-complete: the win SURVIVES the real layer
+
+`gdn_l2_kernel_full.py`: the full decode step (short conv K=4 + silu with
+rolling cache on q/k/v, qk l2norm, delta rule, gated RMSNorm) in ONE
+program per (batch, head), vs fla's real chain (3x ShortConvolution.step
++ fused_recurrent(use_qk_l2norm_in_kernel) + FusedRMSNormGated), both
+graph-timed, correctness 1e-8/exact:
+
+  below gate: 2.00-2.34x vs the chain (peak at 16 MB state)
+  above gate: 1.21-1.30x (pure kernel-fusion dividend, no residency)
+  residency signature: rot/warm 1.34-1.58 below, 1.00 at >=40 MB
+
+Decomposition: fusing the 5-kernel chain is worth ~1.25x everywhere;
+the gate window multiplies it to ~2.2x. Both effects were predicted:
+launch/kernel count from the t0/dispatch work, the window from C_eff.
+
+**Chunked-prefill variant: analyzed, deliberately not built.** fla's
+chunk_gated_delta_rule uses matmul-form chunking precisely to hit tensor
+cores; a sequential register-resident scan spends 2*dk*dv SIMT FMAs per
+token and loses on arithmetic throughput regardless of residency.
+Residency-aware design pays where tensor-core economies are absent —
+decode — which is where serving spends its memory-bound time anyway.
+Scope of the claim stays: decode.
+
+Caveats: fla chain conv/norm run in bf16 (their defaults) vs our fp32
+throughout; our kernel lacks varlen/beta-vector/headdim!=128 paths; the
+2x-state traffic dominates both sides, so the dtype asymmetry is
+second-order (state fp32 in both).
+
+Data: `results_gdn_full_h100.json`.

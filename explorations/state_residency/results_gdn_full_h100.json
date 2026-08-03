@@ -1,0 +1,91 @@
+{
+ "experiment": "epilogue_complete_gdn_kernel_vs_fla_chain",
+ "gpu": "NVIDIA H100 80GB HBM3",
+ "torch": "2.7.0+cu126",
+ "triton": "3.3.0",
+ "config": {
+  "H": 16,
+  "dk": 128,
+  "dv": 128,
+  "conv_k": 4,
+  "state_dtype": "fp32",
+  "num_warps": 4,
+  "BV": "full-head"
+ },
+ "epilogues": "short conv K=4 + silu on q/k/v (rolling cache), qk l2norm, gated RMSNorm output \u2014 all fused; fla chain = 3x ShortConvolution.step + fused_recurrent(l2norm) + FusedRMSNormGated (bf16 conv/norm, fp32 state)",
+ "note": "fla chain includes its kernels' launch overheads inside one graph; both sides graph-timed, medians of 30",
+ "rows": [
+  {
+   "B": 8,
+   "state_mb": 8.0,
+   "ours_warm_us": 7.008,
+   "ours_rot_us": 10.824,
+   "fla_chain_us": 13.99,
+   "speedup_warm": 1.996,
+   "rot_over_warm": 1.545
+  },
+  {
+   "B": 16,
+   "state_mb": 16.0,
+   "ours_warm_us": 10.704,
+   "ours_rot_us": 16.933,
+   "fla_chain_us": 25.032,
+   "speedup_warm": 2.339,
+   "rot_over_warm": 1.582
+  },
+  {
+   "B": 24,
+   "state_mb": 24.0,
+   "ours_warm_us": 16.554,
+   "ours_rot_us": 25.258,
+   "fla_chain_us": 36.088,
+   "speedup_warm": 2.18,
+   "rot_over_warm": 1.526
+  },
+  {
+   "B": 32,
+   "state_mb": 32.0,
+   "ours_warm_us": 23.323,
+   "ours_rot_us": 31.264,
+   "fla_chain_us": 43.379,
+   "speedup_warm": 1.86,
+   "rot_over_warm": 1.34
+  },
+  {
+   "B": 40,
+   "state_mb": 40.0,
+   "ours_warm_us": 37.022,
+   "ours_rot_us": 38.181,
+   "fla_chain_us": 50.277,
+   "speedup_warm": 1.358,
+   "rot_over_warm": 1.031
+  },
+  {
+   "B": 48,
+   "state_mb": 48.0,
+   "ours_warm_us": 44.282,
+   "ours_rot_us": 44.408,
+   "fla_chain_us": 57.568,
+   "speedup_warm": 1.3,
+   "rot_over_warm": 1.003
+  },
+  {
+   "B": 64,
+   "state_mb": 64.0,
+   "ours_warm_us": 57.018,
+   "ours_rot_us": 57.067,
+   "fla_chain_us": 71.13,
+   "speedup_warm": 1.248,
+   "rot_over_warm": 1.001
+  },
+  {
+   "B": 96,
+   "state_mb": 96.0,
+   "ours_warm_us": 82.04,
+   "ours_rot_us": 82.325,
+   "fla_chain_us": 99.378,
+   "speedup_warm": 1.211,
+   "rot_over_warm": 1.003
+  }
+ ]
+}

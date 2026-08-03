@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2026.8.2)  2 AUG 2026 23:39
+This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2026.8.2)  3 AUG 2026 00:28
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -980,9 +980,9 @@ Underfull \hbox (badness 1430) in paragraph at lines 89--90
 
 
 ]
-Underfull \hbox (badness 4341) in paragraph at lines 99--100
+Underfull \hbox (badness 2277) in paragraph at lines 99--100
 []\OT1/ptm/b/n/10 (+20) A three-parameter pre-dic-tive model \OT1/ptm/m/n/10 (+
-20) (Sec-tion []9.6[]):
+20) (Sec-tion []10.6[]):
  []
 
 [2]
@@ -998,7 +998,7 @@ Overfull \hbox (38.97484pt too wide) detected at line 180
 /n/10 ) = []
  []
 
-<figures/fig_capacity_gate.pdf, id=175, 794.97pt x 317.98799pt>
+<figures/fig_capacity_gate.pdf, id=179, 794.97pt x 317.98799pt>
 File: figures/fig_capacity_gate.pdf Graphic file (type pdf)
 <use figures/fig_capacity_gate.pdf>
 Package pdftex.def Info: figures/fig_capacity_gate.pdf  used on input line 186.
@@ -1031,7 +1031,7 @@ Overfull \hbox (28.74931pt too wide) in paragraph at lines 207--209
 
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
-<figures/fig_transfer_a100.png, id=287, 686.565pt x 274.626pt>
+<figures/fig_transfer_a100.png, id=291, 686.565pt x 274.626pt>
 File: figures/fig_transfer_a100.png Graphic file (type png)
 <use figures/fig_transfer_a100.png>
 Package pdftex.def Info: figures/fig_transfer_a100.png  used on input line 218.
@@ -1175,7 +1175,7 @@ Overfull \hbox (22.08266pt too wide) in paragraph at lines 233--234
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
  [6]
-<figures/fig_cost_model.png, id=300, 686.565pt x 260.172pt>
+<figures/fig_cost_model.png, id=304, 686.565pt x 260.172pt>
 File: figures/fig_cost_model.png Graphic file (type png)
 <use figures/fig_cost_model.png>
 Package pdftex.def Info: figures/fig_cost_model.png  used on input line 240.
@@ -1217,33 +1217,46 @@ Overfull \hbox (1.70502pt too wide) in paragraph at lines 241--241
 
 Underfull \vbox (badness 1107) has occurred while \output is active []
 
- [7 <./figures/fig_cost_model.png>]
-Underfull \hbox (badness 10000) in paragraph at lines 338--338
+
+Underfull \hbox (badness 10000) in paragraph at lines 254--255
+[]\OT1/ptm/b/n/10 (+20) The pro-duc-tion ker-nel is L2-
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 254--255
+\OT1/ptm/b/n/10 (+20) blind. \OT1/pcr/m/n/10 flash-linear-attention\OT1/ptm/m/n
+/10 (+20) 's
+ []
+
+
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [7 <./figures/fig_cost_model.png>] [8]
+Underfull \hbox (badness 10000) in paragraph at lines 349--349
 []\OT1/ptm/b/n/12 (+20) Why Re-con-struc-tion Weights Are
  []
 
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
-[8]
-<figures/val_latency.pdf, id=335, 1001.42662pt x 327.16078pt>
+[9]
+<figures/val_latency.pdf, id=350, 1001.42662pt x 327.16078pt>
 File: figures/val_latency.pdf Graphic file (type pdf)
 <use figures/val_latency.pdf>
-Package pdftex.def Info: figures/val_latency.pdf  used on input line 436.
+Package pdftex.def Info: figures/val_latency.pdf  used on input line 447.
 (pdftex.def)             Requested size: 505.89pt x 165.2723pt.
 
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [9]
-<figures/val_bw.pdf, id=347, 995.82635pt x 322.26547pt>
+<figures/val_bw.pdf, id=351, 995.82635pt x 322.26547pt>
 File: figures/val_bw.pdf Graphic file (type pdf)
 <use figures/val_bw.pdf>
-Package pdftex.def Info: figures/val_bw.pdf  used on input line 443.
+Package pdftex.def Info: figures/val_bw.pdf  used on input line 454.
 (pdftex.def)             Requested size: 505.89pt x 163.71394pt.
-<figures/val_ratio.pdf, id=348, 929.53027pt x 319.9182pt>
+<figures/val_ratio.pdf, id=352, 929.53027pt x 319.9182pt>
 File: figures/val_ratio.pdf Graphic file (type pdf)
 <use figures/val_ratio.pdf>
-Package pdftex.def Info: figures/val_ratio.pdf  used on input line 450.
+Package pdftex.def Info: figures/val_ratio.pdf  used on input line 461.
 (pdftex.def)             Requested size: 505.89pt x 174.1152pt.
 
 Underfull \vbox (badness 2503) has occurred while \output is active []
@@ -1251,110 +1264,105 @@ Underfull \vbox (badness 2503) has occurred while \output is active []
  [10]
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
-<figures/carm_roofline.pdf, id=361, 1292.99725pt x 421.70335pt>
-File: figures/carm_roofline.pdf Graphic file (type pdf)
-<use figures/carm_roofline.pdf>
-Package pdftex.def Info: figures/carm_roofline.pdf  used on input line 492.
-(pdftex.def)             Requested size: 505.89pt x 164.99129pt.
 
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
  [11 <./figures/val_latency.pdf> <./figures/val_bw.pdf>]
-Underfull \vbox (badness 10000) has occurred while \output is active []
+<figures/carm_roofline.pdf, id=514, 1292.99725pt x 421.70335pt>
+File: figures/carm_roofline.pdf Graphic file (type pdf)
+<use figures/carm_roofline.pdf>
+Package pdftex.def Info: figures/carm_roofline.pdf  used on input line 503.
+(pdftex.def)             Requested size: 505.89pt x 164.99129pt.
 
+Underfull \hbox (badness 1708) in paragraph at lines 508--508
+[]\OT1/ptm/b/n/12 (+20) Closing the Loop: W8A8 with INT8
+ []
 
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-<figures/w8a8_results.pdf, id=513, 931.81187pt x 391.63904pt>
+[12 <./figures/val_ratio.pdf>]
+<figures/w8a8_results.pdf, id=589, 931.81187pt x 391.63904pt>
 File: figures/w8a8_results.pdf Graphic file (type pdf)
 <use figures/w8a8_results.pdf>
-Package pdftex.def Info: figures/w8a8_results.pdf  used on input line 524.
+Package pdftex.def Info: figures/w8a8_results.pdf  used on input line 535.
 (pdftex.def)             Requested size: 505.89pt x 212.6293pt.
-
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [12 <./figures/val_ratio.pdf> <./figures/carm_roofline.pdf>]
-<figures/mla_l2_stack.pdf, id=699, 569.89915pt x 353.79051pt>
+<figures/mla_l2_stack.pdf, id=593, 569.89915pt x 353.79051pt>
 File: figures/mla_l2_stack.pdf Graphic file (type pdf)
 <use figures/mla_l2_stack.pdf>
-Package pdftex.def Info: figures/mla_l2_stack.pdf  used on input line 533.
+Package pdftex.def Info: figures/mla_l2_stack.pdf  used on input line 544.
 (pdftex.def)             Requested size: 173.56073pt x 107.74669pt.
 
-Underfull \hbox (badness 6157) in paragraph at lines 538--538
+Underfull \hbox (badness 2285) in paragraph at lines 549--549
 []\OT1/ptm/b/n/12 (+20) Generalization: Mixed-Precision MoE
  []
 
-<figures/fused_moe_extended.pdf, id=701, 863.6579pt x 337.34518pt>
+<figures/fused_moe_extended.pdf, id=595, 863.6579pt x 337.34518pt>
 File: figures/fused_moe_extended.pdf Graphic file (type pdf)
 <use figures/fused_moe_extended.pdf>
-Package pdftex.def Info: figures/fused_moe_extended.pdf  used on input line 545
+Package pdftex.def Info: figures/fused_moe_extended.pdf  used on input line 556
 .
 (pdftex.def)             Requested size: 247.94499pt x 96.84442pt.
 
-Underfull \hbox (badness 1014) in paragraph at lines 551--551
+Underfull \hbox (badness 1014) in paragraph at lines 562--562
 []\OT1/ptm/b/n/14.4 (+20) End-to-End Con-text of the Case
  []
 
-
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [13 <./figures/w8a8_results.pdf> <./figures/mla_l2_stack.pdf>] [14 <./figures/
-fused_moe_extended.pdf>]
-Underfull \hbox (badness 10000) in paragraph at lines 579--580
+[13 <./figures/carm_roofline.pdf>] [14 <./figures/w8a8_results.pdf> <./figures/
+mla_l2_stack.pdf> <./figures/fused_moe_extended.pdf>]
+Underfull \hbox (badness 10000) in paragraph at lines 590--591
 []\OT1/ptm/m/n/10 (+20) Replay-based NCU coun-ters are cold-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 579--580
+Underfull \hbox (badness 10000) in paragraph at lines 590--591
 \OT1/ptm/m/n/10 (+20) cache (\OT1/pcr/m/n/10 --cache-control all\OT1/ptm/m/n/10
  (+20) ); only the
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 579--580
+Underfull \hbox (badness 10000) in paragraph at lines 590--591
 \OT1/pcr/m/n/10 --cache-control none \OT1/ptm/m/n/10 (+20) warm-loop coun-ters 
 and
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 591--592
+Underfull \hbox (badness 10000) in paragraph at lines 602--603
 \OT1/ptm/b/n/10 (+20) Positioning (added 2026-08, DI-REC-TION.md
  []
 
 
-Underfull \hbox (badness 1509) in paragraph at lines 591--592
+Underfull \hbox (badness 1509) in paragraph at lines 602--603
 \OT1/ptm/b/n/10 (+20) P0). \OT1/ptm/m/n/10 (+20) Four lines of work sit near-es
 t to ours. \OT1/ptm/m/it/10 (+20) tri-ton-
  []
 
 
-Underfull \hbox (badness 1082) in paragraph at lines 591--592
+Underfull \hbox (badness 1082) in paragraph at lines 602--603
 \OT1/ptm/m/it/10 (+20) why \OT1/ptm/m/n/10 (+20) (ca-pac-ity gate be-low, com-p
 ute roofline above) and
  []
 
-
-Overfull \hbox (108.14603pt too wide) in paragraph at lines 606--607
+[15]
+Overfull \hbox (108.14603pt too wide) in paragraph at lines 617--618
 \OT1/ptm/m/n/10 (-20) (\OT1/pcr/m/n/10 profiling/cuda[]validation/results[]moe[
 ]nvfp4[]native[]b200.json\OT1/ptm/m/n/10 (-20) );
  []
 
-[15] (./main.bbl
+(./main.bbl [16]
 Underfull \hbox (badness 1460) in paragraph at lines 46--51
 []\OT1/ptm/m/n/10 (+20) Coleman Hooper, Se-hoon Kim, Hiva Mo-ham-madi,
  []
 
-) [16] (./main.aux)
+) [17
+
+] (./main.aux)
 Package rerunfilecheck Info: File `main.out' has not changed.
-(rerunfilecheck)             Checksum: 8B4B23F61E0E5E8B5D960C961BE7FD64;6495.
+(rerunfilecheck)             Checksum: 12199737FE31CDDA3A47D68713FCCA8D;6680.
  ) 
 Here is how much of TeX's memory you used:
- 35776 strings out of 480247
- 821149 string characters out of 5896152
- 1256833 words of memory out of 5000000
- 52694 multiletter control sequences out of 15000+600000
- 514290 words of font info for 319 fonts, out of 8000000 for 9000
+ 35781 strings out of 480247
+ 821203 string characters out of 5896152
+ 1257831 words of memory out of 5000000
+ 52696 multiletter control sequences out of 15000+600000
+ 514438 words of font info for 320 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
  99i,19n,94p,2450b,2600s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/share/texlive/texmf-dist/fonts/enc/dvips/base/8r.enc}</usr/share/texliv
@@ -1376,10 +1384,10 @@ blic/amsfonts/symbols/msbm10.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw
 /courier/ucrr8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmb8a
 .pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/shar
 e/texlive/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on main.pdf (16 pages, 712222 bytes).
+Output written on main.pdf (17 pages, 718796 bytes).
 PDF statistics:
- 1067 PDF objects out of 1200 (max. 8388607)
- 434 compressed objects within 5 object streams
- 86 named destinations out of 1000 (max. 500000)
- 60743 words of extra memory for PDF output out of 61914 (max. 10000000)
+ 1077 PDF objects out of 1200 (max. 8388607)
+ 443 compressed objects within 5 object streams
+ 88 named destinations out of 1000 (max. 500000)
+ 60751 words of extra memory for PDF output out of 61914 (max. 10000000)
 
