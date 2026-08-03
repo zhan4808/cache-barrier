@@ -189,3 +189,24 @@ Caveats: clock lock denied on this tier (air-cooled SXM6, power-limited;
 peak fp16 1456 TF); w8a8 triton leg blocked by a triton-3.7 int8 tl.dot
 API break (see ceff_reconcile/b300_triton_w8a8_compile_error.log) — a
 kernel-port, not physics.
+
+---
+
+# Addendum 5 (2026-08-03) — NCU: WHY fla is slow, and our traffic model in counters
+
+Warm-state DRAM traffic (`--cache-control none`, launch-skip 12, avg 3,
+H100, r+w MB per step; `ncu_gdn_target.py`):
+
+|            | ours   | fla    |
+|------------|--------|--------|
+| 24 MB (below gate) | **6.6** (86% L2 hit) | **26.8** (56% MISS) |
+| 64 MB (above gate) | 129.5 (= 2x64, exact streaming) | 85.4 (partial hit) |
+
+Two conclusions. (1) Our kernel's 2x-footprint traffic model is exact in
+counters (129.5 vs 128 predicted), and below the gate it is genuinely
+L2-resident — the speedup is residency, not a timing artifact. (2) fla's
+fused_recurrent misses 56% of its state traffic to DRAM even when the
+state FITS in L2: its access pattern (layout/eviction behavior) defeats
+retention — the kernel is cache-unfriendly, not merely latency-bound.
+This sharpens the upstream message: the fix is not "add a fast path",
+the default path is leaving cache hits on the table at every size.
