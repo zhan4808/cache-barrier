@@ -456,3 +456,22 @@ clock lock denied (same virtualized tier as the B200 box). Data:
   arithmetic must be redone against C_eff 91.6, not 150 (the table's
   "27B gate_up crosses only at fp4" headline needs rechecking; at 91.6 MB
   the 89.1 MB fp4 operand is MARGINAL, not clearly below).
+
+## OUTCOMES addendum 2 (session 11, FP4 leg)
+
+- **The native-FP4 qualitative prediction HOLDS on sm_103**: W4A4 NVFP4
+  never crosses bf16 (2.66-2.95x, T=16..2048); Marlin W4A16 dies to 0.40x
+  at T=2048; W4A4 rel-err 0.2212 = B200's to four decimals (intrinsic
+  fp4 act-quant noise, reproduced). The dequant-ceiling break now has two
+  Blackwell-family cards. Data: results_cuda_moe_b300.json,
+  results_moe_nvfp4_native_b300.json.
+- **P6 (native_peak_mult 4.2, band 3.4-5.0): LIKELY FALSIFIED** — the
+  compute-bound time ratio at T=2048 gives ~2.7x (proper carm fit
+  pending), essentially B200's 2.6. Consistent with the box's whole
+  profile: this SXM6 AC B300 carries B200 silicon parameters (L2 126.5,
+  148 SMs, HBM ~6.7 TB/s, bf16 peak ~1456 TF) plus 24% more L2 BW; the
+  datasheet 15 PF FP4 (6.67x ratio) does not materialize on the
+  air-cooled variant. Falsification caveat: variant- and power-limit-
+  specific; a 1400 W liquid-cooled B300 may differ.
+- w8a8 gate sweep (triton 3.7 port): sp8 <= 0.95 to 1.4x C_eff — triton
+  int8 still never wins on Blackwell-family, third data point.

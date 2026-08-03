@@ -718,3 +718,10 @@ persistent-state GDN accelerator (2603.05931) whose "L2 cannot persist
 state" premise our 86%-warm-hit counters refute. Target venue: MLSys
 2027 (deadline Oct 30, 2026), backup ISPASS; ATC discontinued. 12
 related-work items + bib delta in the memo.
+
+**Session 11 close-out (box released)**: FP4 leg completed and copied —
+ceiling-break reproduces on sm_103 (native 2.66-2.95x, Marlin 0.40x at
+T=2048, rel-err 0.2212 == B200); P6 likely falsified at ~2.7x vs band
+3.4-5.0 (this SXM6 AC = B200 silicon + 24% L2 BW; proper carm fit
+pending). All artifacts local: params, fine-grid cliff, gate sweep, GDN
+kernel pair, MoE trio. B300 box state documented; safe to terminate.

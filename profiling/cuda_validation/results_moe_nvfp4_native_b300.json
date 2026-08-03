@@ -1,0 +1,104 @@
+{
+ "experiment": "A_native_nvfp4_w4a4_moe",
+ "gpu": "NVIDIA B300 SXM6 AC",
+ "gpu_key": "b200",
+ "versions": {
+  "gpu": "NVIDIA B300 SXM6 AC",
+  "torch": "2.11.0+cu130",
+  "cuda": "13.0",
+  "triton": "3.6.0",
+  "vllm": "0.26.0",
+  "flash_mla": "<absent: ModuleNotFoundError>",
+  "flashmla": "<absent: ModuleNotFoundError>"
+ },
+ "shape": {
+  "E": 8,
+  "H": 4096,
+  "I": 14336,
+  "topk": 2
+ },
+ "method": "graph_med_us 10 launches/graph, median of 40 replays (identical to bench_cuda_moe.py); run_cutlass_moe_fp4 (vLLM 0.26.0 cutlass SM100 grouped GEMM, W4A4 NVFP4, block-16 fp8 scales, per-expert fp32 alphas)",
+ "clock_note": "clock lock UNAVAILABLE on this instance; sustained-load SM band 1237-1320 MHz (+/-3%)",
+ "correctness_rel_err_T128": 0.22121,
+ "bf16_reference": "results_cuda_moe_b200.json (same box/session)",
+ "rows": [
+  {
+   "T": 16,
+   "nvfp4_w4a4_us": 220.5,
+   "timing": "graph",
+   "bf16_us_ref": 475.0,
+   "nvfp4_vs_bf16": 2.154
+  },
+  {
+   "T": 64,
+   "nvfp4_w4a4_us": 211.3,
+   "timing": "graph",
+   "bf16_us_ref": 467.0,
+   "nvfp4_vs_bf16": 2.21
+  },
+  {
+   "T": 128,
+   "nvfp4_w4a4_us": 222.7,
+   "timing": "graph",
+   "bf16_us_ref": 501.0,
+   "nvfp4_vs_bf16": 2.25
+  },
+  {
+   "T": 256,
+   "nvfp4_w4a4_us": 226.7,
+   "timing": "graph",
+   "bf16_us_ref": 644.8,
+   "nvfp4_vs_bf16": 2.844
+  },
+  {
+   "T": 512,
+   "nvfp4_w4a4_us": 327.1,
+   "timing": "graph",
+   "bf16_us_ref": 957.4,
+   "nvfp4_vs_bf16": 2.927
+  },
+  {
+   "T": 640,
+   "nvfp4_w4a4_us": 369.6,
+   "timing": "graph",
+   "bf16_us_ref": 1000.2,
+   "nvfp4_vs_bf16": 2.706
+  },
+  {
+   "T": 768,
+   "nvfp4_w4a4_us": 359.0,
+   "timing": "graph",
+   "bf16_us_ref": 1038.7,
+   "nvfp4_vs_bf16": 2.893
+  },
+  {
+   "T": 896,
+   "nvfp4_w4a4_us": 356.9,
+   "timing": "graph",
+   "bf16_us_ref": 1050.8,
+   "nvfp4_vs_bf16": 2.944
+  },
+  {
+   "T": 1024,
+   "nvfp4_w4a4_us": 452.9,
+   "timing": "graph",
+   "bf16_us_ref": 1337.4,
+   "nvfp4_vs_bf16": 2.953
+  },
+  {
+   "T": 1536,
+   "nvfp4_w4a4_us": 587.6,
+   "timing": "graph",
+   "bf16_us_ref": 1586.3,
+   "nvfp4_vs_bf16": 2.7
+  },
+  {
+   "T": 2048,
+   "nvfp4_w4a4_us": 716.4,
+   "timing": "graph",
+   "bf16_us_ref": 1909.1,
+   "nvfp4_vs_bf16": 2.665
+  }
+ ],
+ "gpu_note": "ran on NVIDIA B300 SXM6 AC; gpu_key helper predates B300, filename corrected on copy"
+}
