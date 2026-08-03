@@ -210,3 +210,25 @@ state FITS in L2: its access pattern (layout/eviction behavior) defeats
 retention — the kernel is cache-unfriendly, not merely latency-bound.
 This sharpens the upstream message: the fix is not "add a fast path",
 the default path is leaving cache hits on the table at every size.
+
+---
+
+# Addendum 6 (session 12) — serving-level baseline: the knee is masked, as predicted
+
+vLLM 0.26 + Qwen3-Next-80B-A3B-Instruct-FP8 on the B200, offline decode
+throughput vs batch (128 tok/req, 1024 ctx, graph mode;
+`results_serving_knee_b200.json`): 580 -> 13,074 tok/s from B=8 -> 256,
+smooth sublinear scaling, per-request efficiency declining gently
+(72 -> 51 tok/s/req) with NO sharp knee anywhere in the sweep.
+
+This is the pre-registered conditional playing out at serving level:
+vLLM's GDN decode path is the fla kernel family we measured L2-blind, so
+the B* residency knee is hidden behind the kernel floor. The curve is
+the BASELINE against which an L2-aware decode-kernel integration would
+show its serving-level delta (predicted: efficiency plateau extension up
+to B*~=C_eff/state, then convergence to this curve).
+
+Caveats: on an 80B-A3B MoE hybrid, expert weights and attention KV
+dominate per-step traffic — recurrent state is a minor term at this
+scale; a small dense hybrid (fewer confounds) is the cleaner instrument
+for the serving-level knee once a residency-aware kernel is integrated.

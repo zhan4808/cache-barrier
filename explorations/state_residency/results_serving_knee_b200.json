@@ -1,0 +1,50 @@
+{
+ "model": "Qwen/Qwen3-Next-80B-A3B-Instruct-FP8",
+ "rows": [
+  {
+   "B": 8,
+   "wall_s": 1.76,
+   "decode_tok_s": 580.3
+  },
+  {
+   "B": 16,
+   "wall_s": 1.12,
+   "decode_tok_s": 1829.7
+  },
+  {
+   "B": 32,
+   "wall_s": 1.4,
+   "decode_tok_s": 2920.4
+  },
+  {
+   "B": 48,
+   "wall_s": 1.72,
+   "decode_tok_s": 3580.1
+  },
+  {
+   "B": 64,
+   "wall_s": 1.81,
+   "decode_tok_s": 4518.2
+  },
+  {
+   "B": 96,
+   "wall_s": 1.88,
+   "decode_tok_s": 6523.1
+  },
+  {
+   "B": 128,
+   "wall_s": 1.99,
+   "decode_tok_s": 8217.4
+  },
+  {
+   "B": 192,
+   "wall_s": 2.21,
+   "decode_tok_s": 11125.7
+  },
+  {
+   "B": 256,
+   "wall_s": 2.51,
+   "decode_tok_s": 13073.6
+  }
+ ]
+}

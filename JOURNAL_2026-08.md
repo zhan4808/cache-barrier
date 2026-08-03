@@ -763,3 +763,16 @@ Work, redundant clause removed. Paper now 18 pp, 0 errors. Pre-submission
 TODO flagged by agent: five inline arXiv citations in the Positioning
 paragraph lack bib entries (tritonBLAS, QServe, APEX4, two rooflines) and
 MARLIN should use \cite{marlin}.
+
+**Session 12 close (board complete, tasks 16-24 all done)**: serving
+baseline landed after a three-step blocker chain (ninja in venv -> PATH
+isolation -> silent apt failure -> symlink): Qwen3-Next-80B-FP8 decode
+scales smoothly 580->13,074 tok/s (B=8->256) with NO knee — the
+pre-registered conditional confirmed at serving level (vLLM's GDN path
+is the L2-blind fla family; the knee is kernel-masked, and this curve is
+the baseline a residency-aware integration must beat). FlagGems leg,
+related-work integration (18pp 0 errors), sawtooth attribution, family-
+clustered C_eff, w8a8 magnitude — all committed this session. Remaining
+user actions: post fla issue, MI300X budget. Remaining research: A100
+fine-grid (needs an A100), residency-aware kernel upstreaming/serving
+integration, MLSys formatting (Oct 30).
