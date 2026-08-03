@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cache-Aware Mixed-Precision Inference — Progress &amp; Open Questions</title>
+<style>
+  :root{
+    --bg:#f7f6f3; --panel:#ffffff; --ink:#1b1b1a; --muted:#6f6e69;
+    --line:#e4e2db; --win:#1a6b5f; --loss:#b4532a; --accent:#1a6b5f;
+    --accent-soft:#e7f0ee; --loss-soft:#f6e9e2; --mid-soft:#eef3ec;
+    --shadow:0 1px 2px rgba(0,0,0,.04),0 8px 30px rgba(0,0,0,.05);
+    --font:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",Roboto,Helvetica,Arial,"PingFang SC","Microsoft YaHei",sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{background:var(--bg);color:var(--ink);font-family:var(--font);
+    -webkit-font-smoothing:antialiased;overflow:hidden;line-height:1.5}
+  .stage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:5.5vh 7vw}
+  .slide{display:none;width:100%;max-width:1060px;animation:fade .38s ease}
+  .slide.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .kicker{font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:700;margin-bottom:1.1rem}
+  h1{font-size:3.1rem;line-height:1.08;letter-spacing:-.02em;font-weight:750;margin-bottom:1rem}
+  h2{font-size:2.0rem;line-height:1.13;letter-spacing:-.015em;font-weight:720;margin-bottom:1.25rem}
+  .lead{font-size:1.15rem;color:var(--muted);max-width:62ch}
+  .sub{font-size:1.05rem;color:var(--muted);margin-top:.4rem}
+  ul{list-style:none;display:flex;flex-direction:column;gap:.78rem;margin-top:.35rem}
+  li{position:relative;padding-left:1.5rem;font-size:1.08rem;max-width:76ch}
+  li::before{content:"";position:absolute;left:0;top:.62em;width:7px;height:7px;border-radius:50%;background:var(--accent)}
+  li b{font-weight:680}
+  .num-tag{font-variant-numeric:tabular-nums;font-weight:700}
+  .win{color:var(--win)} .loss{color:var(--loss)} .em{color:var(--accent);font-weight:680}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-top:.55rem}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:1.25rem 1.35rem;box-shadow:var(--shadow)}
+  .card .n{font-size:2.1rem;font-weight:760;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+  .card .l{font-size:.92rem;color:var(--muted);margin-top:.35rem}
+  .card.good{border-top:3px solid var(--win)} .card.bad{border-top:3px solid var(--loss)}
+  table{width:100%;border-collapse:collapse;margin-top:.45rem;font-size:1rem}
+  th,td{text-align:left;padding:.6rem .7rem;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+  th{font-size:.74rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700}
+  td.c,th.c{text-align:center} tr:last-child td{border-bottom:none}
+  .pill{display:inline-block;padding:.12rem .55rem;border-radius:999px;font-size:.82rem;font-weight:650}
+  .p-meas{background:var(--accent-soft);color:var(--win)}
+  .p-proj{background:#eee9df;color:#8a7a52}
+  .p-none{background:var(--loss-soft);color:var(--loss)}
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-top:.35rem}
+  .cols h3{font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:.65rem}
+  .box{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:1.15rem 1.3rem;box-shadow:var(--shadow)}
+  /* three-regime flow (from v2 core model) */
+  .regimes{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.9rem;margin-top:.6rem}
+  .rg{border-radius:14px;padding:1.1rem 1.15rem;border:1px solid var(--line);box-shadow:var(--shadow);background:var(--panel)}
+  .rg .edge{font-size:.72rem;letter-spacing:.09em;text-transform:uppercase;font-weight:700;color:var(--muted)}
+  .rg .verdict{font-size:1.35rem;font-weight:760;margin:.35rem 0 .5rem}
+  .rg .op{font-size:.92rem;color:var(--muted)}
+  .rg.lose{background:var(--loss-soft)} .rg.lose .verdict{color:var(--loss)}
+  .rg.winr{background:var(--mid-soft)} .rg.winr .verdict{color:var(--win)}
+  .axis{display:flex;justify-content:space-between;font-size:.8rem;color:var(--muted);margin-top:.5rem;padding:0 .2rem}
+  .note{font-size:.92rem;color:var(--muted);margin-top:1.15rem;padding-top:.9rem;border-top:1px solid var(--line)}
+  .q{font-size:1.15rem;color:var(--ink);background:var(--accent-soft);border-left:3px solid var(--accent);padding:.7rem 1rem;border-radius:0 10px 10px 0;margin-top:.5rem}
+  .bar{position:fixed;top:0;left:0;height:3px;background:var(--accent);transition:width .3s;z-index:10}
+  .hud{position:fixed;bottom:18px;left:0;right:0;display:flex;justify-content:center;gap:14px;align-items:center;z-index:10}
+  .hud .dot{width:7px;height:7px;border-radius:50%;background:var(--line);cursor:pointer;transition:.2s}
+  .hud .dot.on{background:var(--accent);transform:scale(1.25)}
+  .ctrl{position:fixed;top:16px;right:18px;display:flex;gap:8px;z-index:10}
+  .btn{font:inherit;font-size:.8rem;font-weight:650;border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:.35rem .7rem;border-radius:8px;cursor:pointer;box-shadow:var(--shadow)}
+  .btn:hover{border-color:var(--accent);color:var(--accent)}
+  .pg{position:fixed;bottom:16px;right:20px;font-size:.8rem;color:var(--muted);font-variant-numeric:tabular-nums;z-index:10}
+  .brand{position:fixed;bottom:16px;left:20px;font-size:.8rem;color:var(--muted);z-index:10}
+  @media(max-width:760px){.grid,.cols,.regimes{grid-template-columns:1fr}h1{font-size:2.2rem}h2{font-size:1.55rem}}
+</style>
+</head>
+<body>
+<div class="bar" id="bar"></div>
+<div class="ctrl">
+  <button class="btn" id="langBtn" onclick="toggleLang()">中文</button>
+  <button class="btn" onclick="fs()">⛶</button>
+</div>
+<div class="stage"><div id="deck"></div></div>
+<div class="hud" id="hud"></div>
+<div class="brand" id="brand"></div>
+<div class="pg" id="pg"></div>
+
+<script>
+const S = [
+{ // 0 title (v1)
+ en:`<div class="slide"><div class="kicker">Robert Zhang · Update for Dr. Xiao · 2026-07-01</div>
+   <h1>Cache-Aware<br>Mixed-Precision Inference</h1>
+   <p class="lead">When does quantization actually make inference <em>faster</em>? A measured, cache-aware answer — and where we go next.</p>
+   <p class="sub">Progress since last meeting · the 3 action items · project vision &amp; open gaps</p></div>`,
+ zh:`<div class="slide"><div class="kicker">张同学 · 向肖老师汇报 · 2026-07-01</div>
+   <h1>缓存感知的<br>混合精度推理</h1>
+   <p class="lead">量化到底在什么情况下能让推理<em>更快</em>？一个可测量的、缓存感知的答案 —— 以及下一步方向。</p>
+   <p class="sub">上次会议以来的进展 · 三项行动项 · 项目愿景与待补空白</p></div>`},
+
+{ // 1 agenda (v1)
+ en:`<div class="slide"><div class="kicker">Agenda</div><h2>Two parts</h2>
+   <div class="cols">
+   <div class="box"><h3>Part 1 — Your 3 action items</h3>
+     <ul><li>CUDA operators, not Triton</li><li><b>fused_moe</b> + <b>flashmla_sparse</b> experiments</li><li>Cache-aware dispatch for DeepSeek-V4-Flash &amp; Qwen3.6-35B</li></ul></div>
+   <div class="box"><h3>Part 2 — Zooming out</h3>
+     <ul><li>Where we started → where we are</li><li>The vision — does it match yours?</li><li>The gaps: losses, precisions, models</li><li>What we actually measured, and what's next</li></ul></div>
+   </div></div>`,
+ zh:`<div class="slide"><div class="kicker">议程</div><h2>两个部分</h2>
+   <div class="cols">
+   <div class="box"><h3>第一部分 —— 您提出的三项</h3>
+     <ul><li>用 CUDA 算子，而非 Triton</li><li><b>fused_moe</b> 与 <b>flashmla_sparse</b> 实验</li><li>为 DeepSeek-V4-Flash 与 Qwen3.6-35B 做缓存感知调度</li></ul></div>
+   <div class="box"><h3>第二部分 —— 拉远看全局</h3>
+     <ul><li>起点 → 现状</li><li>项目愿景 —— 是否与您一致？</li><li>空白：损失、精度、模型</li><li>究竟测了什么，以及下一步</li></ul></div>
+   </div></div>`},
+
+{ // 2 section 1 (v1)
+ en:`<div class="slide"><div class="kicker">Part 1</div><h1>The three action items<br>from last meeting</h1>
+   <p class="lead">All three addressed on a tuned CUDA stack (vLLM 0.20.2 + FlashMLA), reproduced within noise on a fresh H100 this week.</p></div>`,
+ zh:`<div class="slide"><div class="kicker">第一部分</div><h1>上次会议的<br>三项行动项</h1>
+   <p class="lead">三项均已在调优后的 CUDA 栈上完成（vLLM 0.20.2 + FlashMLA），本周在全新 H100 上于噪声范围内复现。</p></div>`},
+
+{ // 3 item1 (SWAPPED IN from v2)
+ en:`<div class="slide"><div class="kicker">Action item 1 · rule out Triton</div><h2>Same conclusion on tuned CUDA operators</h2>
+   <ul>
+     <li>Re-ran on <b>vLLM Marlin MoE</b> + <b>FlashMLA</b> — the quant kernels are CUDA now, not Triton.</li>
+     <li>Base cache-model constants are <b>identical</b> across stacks (HBM <span class="num-tag">3.12 TB/s</span>, torch 2.7→2.11) → the stack is not a confound.</li>
+     <li>Triton was <b>right at small T</b>; its high-T "win" came from a <span class="loss">weak bf16 baseline</span>. (Also: at small T, Triton itself struggles — a kernel-quality issue, not a precision one.)</li>
+   </ul>
+   <p class="note">Reproduced within noise on a fresh H100 this week.</p></div>`,
+ zh:`<div class="slide"><div class="kicker">行动项 1 · 排除 Triton</div><h2>在调优 CUDA 算子上得到相同结论</h2>
+   <ul>
+     <li>改用 <b>vLLM Marlin MoE</b> + <b>FlashMLA</b> 重跑 —— 量化核现为 CUDA，而非 Triton。</li>
+     <li>缓存模型基础常数跨栈<b>完全一致</b>（HBM <span class="num-tag">3.12 TB/s</span>，torch 2.7→2.11）→ 软件栈不是混淆因素。</li>
+     <li>Triton 在<b>小 T 正确</b>；其大 T "获胜"来自<span class="loss">较弱的 bf16 基线</span>。（另：小 T 时 Triton 本身表现挣扎 —— 是核质量问题，非精度问题。）</li>
+   </ul>
+   <p class="note">本周在全新 H100 上于噪声范围内复现。</p></div>`},
+
+{ // 4 item2 moe (v1)
+ en:`<div class="slide"><div class="kicker">Item 2 · fused_moe (Marlin: fp8_w8a16 / mxfp4_w4a16)</div><h2>Weight-only quant wins small, loses large</h2>
+   <div class="grid">
+     <div class="card good"><div class="n">1.9×</div><div class="l">fp8 vs bf16 at small T (≤128) — memory-bound</div></div>
+     <div class="card"><div class="n">≈300</div><div class="l">crossover (tokens) vs a properly-tuned bf16</div></div>
+     <div class="card bad"><div class="n">0.59×</div><div class="l">fp8 vs bf16 at T=2048 — compute-bound loss</div></div>
+   </div>
+   <p class="note"><span class="em">Operand = expert weights streamed from HBM (not L2).</span> So quant wins while memory-bound and loses once compute-bound — both paths dequantize to bf16 and pin at an <span class="em">in-core dequant ceiling ≈423 TFLOPS</span> (bf16 reaches 727). This is the <b>middle + right</b> edges of the model on slide 8. fp8 rel-err 0.006.</p></div>`,
+ zh:`<div class="slide"><div class="kicker">第二项 · fused_moe（Marlin：fp8_w8a16 / mxfp4_w4a16）</div><h2>仅权重量化：小赢，大输</h2>
+   <div class="grid">
+     <div class="card good"><div class="n">1.9×</div><div class="l">小 T（≤128）时 fp8 对 bf16 —— 访存受限</div></div>
+     <div class="card"><div class="n">≈300</div><div class="l">与调优 bf16 相比的交叉点（token 数）</div></div>
+     <div class="card bad"><div class="n">0.59×</div><div class="l">T=2048 时 fp8 对 bf16 —— 计算受限，转为亏损</div></div>
+   </div>
+   <p class="note"><span class="em">操作数 = 从 HBM 流式读取的专家权重（非 L2 驻留）。</span>因此访存受限时量化获胜，计算受限后亏损 —— 两条路径都反量化到 bf16，卡在<span class="em">核内反量化上限 ≈423 TFLOPS</span>（bf16 可达 727）。这是第 8 页模型的<b>中段 + 右缘</b>。fp8 相对误差 0.006。</p></div>`},
+
+{ // 5 item2 mla (v1)
+ en:`<div class="slide"><div class="kicker">Item 2 · flashmla_sparse (flash_mla_sparse_fwd / flash_mla_with_kvcache)</div><h2>FP8 KV: a third mechanism, on the batch axis</h2>
+   <div class="grid">
+     <div class="card good"><div class="n">≈3×</div><div class="l">FP8 KV vs bf16 KV at low batch (B=1)</div></div>
+     <div class="card"><div class="n">B≈32</div><div class="l">parity point as batch grows</div></div>
+     <div class="card bad"><div class="n">0.71×</div><div class="l">net loss at high batch (B≥64)</div></div>
+   </div>
+   <p class="note">Here the operand is the <b>KV cache</b> and the axis is <b>batch</b>. The fp8 decode kernel saturates KV bandwidth at <span class="em">~0.8 TB/s</span>, below bf16 sparse_fwd's ~1.9 — a <em>kernel-bandwidth ceiling</em>, distinct from L2-residency and the compute wall. The robust, deployment-relevant signal is the high-batch loss.</p></div>`,
+ zh:`<div class="slide"><div class="kicker">第二项 · flashmla_sparse（flash_mla_sparse_fwd / flash_mla_with_kvcache）</div><h2>FP8 KV：第三种机制，在批大小轴上</h2>
+   <div class="grid">
+     <div class="card good"><div class="n">≈3×</div><div class="l">低批（B=1）时 FP8 KV 对 bf16 KV</div></div>
+     <div class="card"><div class="n">B≈32</div><div class="l">随批增大到达持平点</div></div>
+     <div class="card bad"><div class="n">0.71×</div><div class="l">高批（B≥64）时转为净亏损</div></div>
+   </div>
+   <p class="note">这里操作数是 <b>KV 缓存</b>，轴是<b>批大小</b>。fp8 解码核把 KV 带宽饱和在 <span class="em">~0.8 TB/s</span>，低于 bf16 sparse_fwd 的 ~1.9 —— 这是<em>核带宽上限</em>，与 L2 驻留和计算墙都不同。稳健且贴合部署的信号是高批亏损。</p></div>`},
+
+{ // 6 item3 (v1, with honest dense caveat)
+ en:`<div class="slide"><div class="kicker">Item 3 · Cache-aware dispatch for the real targets (MoE)</div><h2>The crossover moves with model shape</h2>
+   <table>
+     <tr><th>Model</th><th>MoE shape (E/H/I/topk)</th><th class="c">Crossover T*</th><th class="c">Rule</th></tr>
+     <tr><td>Mixtral-8x7B <span class="pill p-proj">coarse</span></td><td>8 / 4096 / 14336 / 2</td><td class="c">~300–1024</td><td class="c">dispatch</td></tr>
+     <tr><td><b>DeepSeek-V4-Flash</b> <span class="pill p-meas">fine</span></td><td>256 / 4096 / 2048 / 6</td><td class="c win">none</td><td class="c win">always-quantize</td></tr>
+     <tr><td><b>Qwen3.6-35B-A3B</b> <span class="pill p-meas">fine</span></td><td>256 / 2048 / 512 / 8</td><td class="c">~1900</td><td class="c win">always-quantize</td></tr>
+   </table>
+   <p class="note">Fine-grained MoE streams 256 small expert weights from HBM with little reuse → HBM-byte-bound across the practical range → fp8 wins everywhere (1.4–2.0×). CARM tells you <em>which</em> models even need a dispatch. Model MAPE 12.2%. <b>Open (your ask):</b> what does a <em>dense</em> model do here? — untested, top of next steps.</p></div>`,
+ zh:`<div class="slide"><div class="kicker">第三项 · 为真实目标做缓存感知调度（MoE）</div><h2>交叉点随模型形状而移动</h2>
+   <table>
+     <tr><th>模型</th><th>MoE 形状 (E/H/I/topk)</th><th class="c">交叉点 T*</th><th class="c">策略</th></tr>
+     <tr><td>Mixtral-8x7B <span class="pill p-proj">粗粒度</span></td><td>8 / 4096 / 14336 / 2</td><td class="c">~300–1024</td><td class="c">需调度</td></tr>
+     <tr><td><b>DeepSeek-V4-Flash</b> <span class="pill p-meas">细粒度</span></td><td>256 / 4096 / 2048 / 6</td><td class="c win">无</td><td class="c win">始终量化</td></tr>
+     <tr><td><b>Qwen3.6-35B-A3B</b> <span class="pill p-meas">细粒度</span></td><td>256 / 2048 / 512 / 8</td><td class="c">~1900</td><td class="c win">始终量化</td></tr>
+   </table>
+   <p class="note">细粒度 MoE 从 HBM 流式读取 256 个小专家权重、几乎无复用 → 在实用区间内受 HBM 字节约束 → fp8 处处获胜（1.4–2.0×）。CARM 能指出<em>哪些</em>模型才需要调度。模型 MAPE 12.2%。<b>开放问题（您的提议）：</b>在此，<em>稠密</em>模型会怎样？—— 尚未测试，列为下一步之首。</p></div>`},
+
+{ // 7 CORE MODEL (SWAPPED IN from v2, replaces "the core thesis")
+ en:`<div class="slide"><div class="kicker">The core model — resolves the "contradiction"</div><h2>One bounded window, three regimes</h2>
+   <div class="regimes">
+     <div class="rg lose"><div class="edge">Left edge</div><div class="verdict">quant loses</div><div class="op"><b>Operand fits in L2.</b> bf16 already reads it cheaply from cache — halving bytes saves traffic that wasn't the bottleneck.</div></div>
+     <div class="rg winr"><div class="edge">Middle</div><div class="verdict">quant wins</div><div class="op"><b>Operand streamed from HBM.</b> You're byte-bound — halving the bytes helps directly.</div></div>
+     <div class="rg lose"><div class="edge">Right edge</div><div class="verdict">quant loses</div><div class="op"><b>Compute-bound.</b> Bytes aren't the wall; you hit the in-core dequant ceiling (or a kernel BW ceiling).</div></div>
+   </div>
+   <div class="axis"><span>small / L2-resident operand</span><span>→ working-set size / arithmetic intensity →</span><span>large / compute-bound</span></div>
+   <p class="note"><span class="em">Our findings are the edges of one window.</span> They don't contradict — they key off <em>different operands</em>: weights for a GEMM, KV cache for attention. The original L2-residency result is the <b>left edge</b>; MoE spans the <b>middle → right</b>. Which regime you're in = what the operand is and where it lives.</p></div>`,
+ zh:`<div class="slide"><div class="kicker">核心模型 —— 化解"矛盾"</div><h2>一个有界窗口，三个区间</h2>
+   <div class="regimes">
+     <div class="rg lose"><div class="edge">左缘</div><div class="verdict">量化亏损</div><div class="op"><b>操作数装进 L2。</b> bf16 已能从缓存廉价读取 —— 减半字节省下的不是瓶颈。</div></div>
+     <div class="rg winr"><div class="edge">中段</div><div class="verdict">量化获胜</div><div class="op"><b>操作数从 HBM 流式读取。</b> 受字节约束 —— 减半字节直接见效。</div></div>
+     <div class="rg lose"><div class="edge">右缘</div><div class="verdict">量化亏损</div><div class="op"><b>计算受限。</b> 字节不是瓶颈；撞上核内反量化上限（或核带宽上限）。</div></div>
+   </div>
+   <div class="axis"><span>小 / 驻留 L2 的操作数</span><span>→ 工作集大小 / 算术强度 →</span><span>大 / 计算受限</span></div>
+   <p class="note"><span class="em">我们的发现是同一窗口的各条边。</span>它们并不矛盾 —— 而是针对<em>不同操作数</em>：GEMM 看权重，注意力看 KV 缓存。最初的 L2 驻留结果是<b>左缘</b>；MoE 横跨<b>中段 → 右缘</b>。你处于哪个区间 = 操作数是什么、以及它在哪里。</p></div>`},
+
+{ // 8 section 2 (v1)
+ en:`<div class="slide"><div class="kicker">Part 2</div><h1>Zooming out:<br>vision &amp; the gaps</h1>
+   <p class="lead">The 3 items are answered. I'd like your read on the bigger arc — and which gaps are worth our time.</p></div>`,
+ zh:`<div class="slide"><div class="kicker">第二部分</div><h1>拉远看：<br>愿景与空白</h1>
+   <p class="lead">三项已回答。我想听听您对整体走向的判断 —— 以及哪些空白值得我们投入。</p></div>`},
+
+{ // 9 arc (v1)
+ en:`<div class="slide"><div class="kicker">Where we started → where we are</div><h2>The arc</h2>
+   <div class="cols">
+   <div class="box"><h3>Started</h3><ul>
+     <li>Claim: "weight-only quant gives little benefit at small token counts" (Triton).</li>
+     <li>One operator family, one precision lens, one GPU.</li></ul></div>
+   <div class="box"><h3>Now</h3><ul>
+     <li>A <b>measured, cache-aware roofline</b> (CARM) that predicts the crossover (MAPE 12%).</li>
+     <li>Validated on CUDA for MoE + MLA; a per-shape "quantize / dispatch" rule for real target models.</li></ul></div>
+   </div>
+   <p class="note">From a single observation → a predictive model + a deployment rule. Reproduced on a fresh H100 this week within noise.</p></div>`,
+ zh:`<div class="slide"><div class="kicker">起点 → 现状</div><h2>发展脉络</h2>
+   <div class="cols">
+   <div class="box"><h3>起点</h3><ul>
+     <li>论断："仅权重量化在小 token 数下收益甚微"（Triton）。</li>
+     <li>单一算子族、单一精度视角、单一 GPU。</li></ul></div>
+   <div class="box"><h3>现状</h3><ul>
+     <li>一个<b>可测量、缓存感知的屋顶线模型</b>（CARM），能预测交叉点（MAPE 12%）。</li>
+     <li>在 CUDA 上对 MoE + MLA 验证；对真实目标模型给出按形状的"量化/调度"规则。</li></ul></div>
+   </div>
+   <p class="note">从一个观察 → 一个预测模型 + 一条部署规则。本周在全新 H100 上于噪声范围内复现。</p></div>`},
+
+{ // 10 vision (v1, edited: Blackwell line -> operator/architecture generality)
+ en:`<div class="slide"><div class="kicker">The vision — alignment check</div><h2>Where I'd like to take it</h2>
+   <ul>
+     <li>A <b>cache-aware decision layer</b>: given (operator, shape), CARM emits the optimal precision &amp; kernel — a compile-time / load-time table, no kernel changes.</li>
+     <li>Make it <b>operator- and architecture-general</b>: the same three-regime window should govern dense GEMMs, MoE, and hybrid models — the crossover moves with operand size + where the operand lives.</li>
+     <li>End goal: a small, defensible paper contribution — "a measured cache-aware model that decides mixed precision, validated across operators."</li>
+   </ul>
+   <div class="q">Does this match your vision — a predictive <em>decision</em> model, vs. a broad empirical quant survey? Which matters more to you?</div></div>`,
+ zh:`<div class="slide"><div class="kicker">愿景 —— 对齐确认</div><h2>我希望的方向</h2>
+   <ul>
+     <li>一个<b>缓存感知的决策层</b>：给定（算子、形状），CARM 输出最优精度与核 —— 编译期/加载期查表，无需改核。</li>
+     <li>做到<b>算子与架构通用</b>：同一个三区间窗口应能刻画稠密 GEMM、MoE 与混合模型 —— 交叉点随操作数大小 + 操作数所在位置而移动。</li>
+     <li>终点：一个小而扎实的论文贡献 —— "一个可测量的缓存感知模型，用于决策混合精度，并跨算子验证"。</li>
+   </ul>
+   <div class="q">这是否契合您的愿景 —— 一个预测性的<em>决策</em>模型，而非一份宽泛的量化实证综述？您更看重哪一个？</div></div>`},
+
+{ // 11 gap losses (v1)
+ en:`<div class="slide"><div class="kicker">Gap A · Loss mechanisms</div><h2>We model a few walls. There are more.</h2>
+   <div class="cols">
+   <div class="box"><h3>Modeled today</h3><ul>
+     <li>HBM weight-byte bandwidth</li><li>L2 residency (capacity-gated)</li><li><b>In-core dequant ceiling</b></li><li>Kernel bandwidth ceiling (fp8 KV)</li></ul></div>
+   <div class="box"><h3>Not yet in the model</h3><ul>
+     <li><b>Accuracy</b> loss — we track kernel rel-err, not downstream perplexity/task accuracy</li>
+     <li>Dynamic vs static <b>scaling</b> overhead; outlier handling</li>
+     <li>Quant/repack cost &amp; <b>dual-weight memory</b> for dispatch</li>
+     <li>Real-serving <b>L2 contention</b> (KV cache + multi-layer)</li></ul></div>
+   </div>
+   <div class="q">Which of these belong in the model, and which are out of scope?</div></div>`,
+ zh:`<div class="slide"><div class="kicker">空白 A · 损失机制</div><h2>我们建模了几道墙，其实不止。</h2>
+   <div class="cols">
+   <div class="box"><h3>当前已建模</h3><ul>
+     <li>HBM 权重字节带宽</li><li>L2 驻留（受容量约束）</li><li><b>核内反量化上限</b></li><li>核带宽上限（fp8 KV）</li></ul></div>
+   <div class="box"><h3>尚未纳入模型</h3><ul>
+     <li><b>精度</b>损失 —— 只跟踪核相对误差，未测下游困惑度/任务准确率</li>
+     <li>动态 vs 静态<b>缩放</b>开销；离群值处理</li>
+     <li>量化/重排代价与调度所需的<b>双份权重显存</b></li>
+     <li>真实服务下的 <b>L2 争用</b>（KV 缓存 + 多层）</li></ul></div>
+   </div>
+   <div class="q">这些当中哪些应进入模型，哪些不在范围内？</div></div>`},
+
+{ // 12 gap precisions (v1)
+ en:`<div class="slide"><div class="kicker">Gap B · Precisions</div><h2>Coverage by precision</h2>
+   <table>
+     <tr><th>Precision</th><th class="c">Weight-only</th><th class="c">Matched (W_A_)</th><th>Status on H100</th></tr>
+     <tr><td>FP8</td><td class="c"><span class="pill p-meas">measured</span></td><td class="c"><span class="pill p-proj">Triton only</span></td><td>native; matched not on CUDA path yet</td></tr>
+     <tr><td>INT8 (W8A8)</td><td class="c"><span class="pill p-none">gap</span></td><td class="c"><span class="pill p-meas">L2-sweep</span></td><td>the clean L2-residency demonstrator</td></tr>
+     <tr><td>INT4 (W4A16)</td><td class="c"><span class="pill p-meas">measured</span></td><td class="c"><span class="pill p-none">gap</span></td><td>dequant-bound; never wins (confounded)</td></tr>
+     <tr><td>MXFP4 / NVFP4, FP6, W4A8</td><td class="c"><span class="pill p-none">gap</span></td><td class="c"><span class="pill p-none">gap</span></td><td>unexplored / needs newer HW</td></tr>
+   </table>
+   <p class="note">The biggest testable gap on H100 <em>today</em>: <span class="em">matched W8A8 on the CUDA MoE path</span> — the fp8 analog of "matched precision breaks the ceiling," on real silicon.</p></div>`,
+ zh:`<div class="slide"><div class="kicker">空白 B · 精度</div><h2>按精度的覆盖情况</h2>
+   <table>
+     <tr><th>精度</th><th class="c">仅权重</th><th class="c">匹配 (W_A_)</th><th>H100 上状态</th></tr>
+     <tr><td>FP8</td><td class="c"><span class="pill p-meas">已测</span></td><td class="c"><span class="pill p-proj">仅 Triton</span></td><td>原生；匹配尚未走 CUDA 路径</td></tr>
+     <tr><td>INT8 (W8A8)</td><td class="c"><span class="pill p-none">空白</span></td><td class="c"><span class="pill p-meas">L2 扫描</span></td><td>干净的 L2 驻留示例</td></tr>
+     <tr><td>INT4 (W4A16)</td><td class="c"><span class="pill p-meas">已测</span></td><td class="c"><span class="pill p-none">空白</span></td><td>受反量化限制；从不获胜（受混淆）</td></tr>
+     <tr><td>MXFP4 / NVFP4、FP6、W4A8</td><td class="c"><span class="pill p-none">空白</span></td><td class="c"><span class="pill p-none">空白</span></td><td>未探索 / 需更新硬件</td></tr>
+   </table>
+   <p class="note"><em>当下</em>在 H100 上最可测的空白：<span class="em">CUDA MoE 路径上的匹配 W8A8</span> —— 即"匹配精度突破上限"的 fp8 类比，在真实芯片上验证。</p></div>`},
+
+{ // 13 gap models (v1)
+ en:`<div class="slide"><div class="kicker">Gap C · Model architectures &amp; sizes</div><h2>Coverage by operator</h2>
+   <div class="cols">
+   <div class="box"><h3>Covered</h3><ul>
+     <li>MoE — coarse (Mixtral) &amp; fine (DeepSeek-V4-Flash, Qwen3.6-35B)</li>
+     <li>MLA attention (DeepSeek, sparse + dense KV)</li>
+     <li>MLA-reconstruction GEMM (the L2-residency sweep)</li></ul></div>
+   <div class="box"><h3>Not covered</h3><ul>
+     <li><b>Dense FFN / GEMM</b> &amp; <b>GQA / MHA</b> attention</li>
+     <li>L2-residency in <b>MoE / hybrid</b> (does the left edge ever appear?)</li>
+     <li><b>Full-model, end-to-end</b> serving (needs multi-GPU)</li>
+     <li>Small / dense models; long-context KV</li></ul></div>
+   </div>
+   <p class="note">We've profiled the operators that dominate the targets — but the generality claim wants at least a dense-GEMM + a GQA data point, and a check for the L2 effect inside MoE/hybrid.</p></div>`,
+ zh:`<div class="slide"><div class="kicker">空白 C · 模型架构与规模</div><h2>按算子的覆盖情况</h2>
+   <div class="cols">
+   <div class="box"><h3>已覆盖</h3><ul>
+     <li>MoE —— 粗粒度（Mixtral）与细粒度（DeepSeek-V4-Flash、Qwen3.6-35B）</li>
+     <li>MLA 注意力（DeepSeek，稀疏 + 稠密 KV）</li>
+     <li>MLA 重构 GEMM（L2 驻留扫描）</li></ul></div>
+   <div class="box"><h3>未覆盖</h3><ul>
+     <li><b>稠密 FFN / GEMM</b> 与 <b>GQA / MHA</b> 注意力</li>
+     <li><b>MoE / 混合</b>中的 L2 驻留（左缘是否会出现？）</li>
+     <li><b>整模型、端到端</b>服务（需多卡）</li>
+     <li>小型/稠密模型；长上下文 KV</li></ul></div>
+   </div>
+   <p class="note">我们已剖析主导目标模型的算子 —— 但要支撑通用性主张，至少还需一个稠密 GEMM + 一个 GQA 数据点，并检验 MoE/混合内部是否存在 L2 效应。</p></div>`},
+
+{ // 14 honest coverage (SWAPPED IN from v2, replaces gap-hardware)
+ en:`<div class="slide"><div class="kicker">What is actually measured</div><h2>Honest coverage</h2>
+   <table>
+     <tr><th>Finding</th><th>Operator</th><th class="c">Hardware</th><th class="c">Status</th></tr>
+     <tr><td>L2-residency flip (W8A8)</td><td>MLA-recon GEMM (microbench)</td><td class="c">H100</td><td class="c"><span class="pill p-meas">measured</span></td></tr>
+     <tr><td>MoE quant crossover</td><td>fused_moe (Marlin)</td><td class="c">H100</td><td class="c"><span class="pill p-meas">measured</span></td></tr>
+     <tr><td>FP8-KV batch washout</td><td>flashmla_sparse</td><td class="c">H100</td><td class="c"><span class="pill p-meas">measured</span></td></tr>
+     <tr><td>Dense-model behavior</td><td>dense GEMM / GQA</td><td class="c">—</td><td class="c"><span class="pill p-none">open</span></td></tr>
+     <tr><td>L2 effect in MoE / hybrid</td><td>MoE / hybrid</td><td class="c">—</td><td class="c"><span class="pill p-none">open</span></td></tr>
+   </table>
+   <p class="note">Three measured findings on H100; the generality questions you raised are explicitly open, not implied-covered.</p></div>`,
+ zh:`<div class="slide"><div class="kicker">究竟测量了什么</div><h2>如实的覆盖情况</h2>
+   <table>
+     <tr><th>发现</th><th>算子</th><th class="c">硬件</th><th class="c">状态</th></tr>
+     <tr><td>L2 驻留翻转（W8A8）</td><td>MLA 重构 GEMM（微基准）</td><td class="c">H100</td><td class="c"><span class="pill p-meas">已测</span></td></tr>
+     <tr><td>MoE 量化交叉点</td><td>fused_moe（Marlin）</td><td class="c">H100</td><td class="c"><span class="pill p-meas">已测</span></td></tr>
+     <tr><td>FP8-KV 批 washout</td><td>flashmla_sparse</td><td class="c">H100</td><td class="c"><span class="pill p-meas">已测</span></td></tr>
+     <tr><td>稠密模型行为</td><td>稠密 GEMM / GQA</td><td class="c">—</td><td class="c"><span class="pill p-none">开放</span></td></tr>
+     <tr><td>MoE / 混合中的 L2 效应</td><td>MoE / 混合</td><td class="c">—</td><td class="c"><span class="pill p-none">开放</span></td></tr>
+   </table>
+   <p class="note">H100 上三项已测发现；您提出的通用性问题明确列为开放，而非默认已覆盖。</p></div>`},
+
+{ // 15 next steps (SWAPPED IN from v2, replaces b300 hypothesis)
+ en:`<div class="slide"><div class="kicker">Next steps — the direction you set</div><h2>Dig into generality, not hardware</h2>
+   <ul>
+     <li><b>1 · Dense model.</b> Run the quant-vs-bf16 crossover on a dense FFN/GEMM (and a real o_proj / qkv) — does the L2-resident left edge or the compute right edge dominate?</li>
+     <li><b>2 · L2 effect in MoE / hybrid.</b> Hunt for L2-resident operands in MoE / hybrid (shared experts, attention projections) — does the left edge ever appear there?</li>
+     <li><b>3 · Deepen the model.</b> Add the costs we currently ignore: quant/repack + <b>dual-weight memory</b> for dispatch, and real-serving <b>L2 contention</b> (KV cache + multi-layer).</li>
+     <li><b>4 · Hardware.</b> Cross-hardware <span class="pill p-proj">parked</span> per your steer — revisit only once the mechanism story is airtight.</li>
+   </ul></div>`,
+ zh:`<div class="slide"><div class="kicker">下一步 —— 您定的方向</div><h2>深挖通用性，而非硬件</h2>
+   <ul>
+     <li><b>1 · 稠密模型。</b>在稠密 FFN/GEMM（以及真正的 o_proj / qkv）上跑量化 vs bf16 交叉点 —— 是 L2 驻留左缘还是计算右缘占主导？</li>
+     <li><b>2 · MoE / 混合中的 L2 效应。</b>在 MoE / 混合中寻找驻留 L2 的操作数（共享专家、注意力投影）—— 左缘是否会出现？</li>
+     <li><b>3 · 深化模型。</b>纳入当前忽略的代价：量化/重排 + 调度所需<b>双份权重显存</b>，以及真实服务下的 <b>L2 争用</b>（KV 缓存 + 多层）。</li>
+     <li><b>4 · 硬件。</b>跨硬件按您意见<span class="pill p-proj">暂缓</span> —— 待机制论证严密后再议。</li>
+   </ul></div>`},
+
+{ // 16 close / alignment (SWAPPED IN from v2, replaces v1 B300-laden close)
+ en:`<div class="slide"><div class="kicker">Alignment</div><h2>The question for you</h2>
+   <div class="q">Is the goal a <em>cache-aware decision model</em> (predict quantize-or-not per operator/shape), with dense + MoE/hybrid as the generality tests — and hardware deferred? If so, I'll start with the dense-model crossover and the MoE/hybrid L2 hunt.</div>
+   <p class="note" style="border:none">Thank you — this version separates the three regimes explicitly and states scope honestly. Feedback welcome before I push further.</p></div>`,
+ zh:`<div class="slide"><div class="kicker">对齐</div><h2>想请您定夺的问题</h2>
+   <div class="q">目标是否是一个<em>缓存感知的决策模型</em>（按算子/形状预测是否量化），以稠密 + MoE/混合作为通用性验证 —— 硬件暂缓？若是，我将从稠密模型交叉点与 MoE/混合的 L2 排查入手。</div>
+   <p class="note" style="border:none">谢谢您 —— 本版本已把三个区间明确区分，并如实说明范围。推进前欢迎您指正。</p></div>`},
+];
+
+let lang='en', i=0;
+const deck=document.getElementById('deck'), hud=document.getElementById('hud'),
+      bar=document.getElementById('bar'), pg=document.getElementById('pg'), brand=document.getElementById('brand');
+function render(){
+  deck.innerHTML=S[i][lang];
+  deck.firstElementChild.classList.add('active');
+  hud.innerHTML=S.map((_,k)=>`<span class="dot ${k===i?'on':''}" onclick="go(${k})"></span>`).join('');
+  bar.style.width=(i/(S.length-1)*100)+'%';
+  pg.textContent=(i+1)+' / '+S.length;
+  brand.textContent = lang==='en' ? 'Cache-Aware Mixed Precision' : '缓存感知混合精度';
+  document.documentElement.lang = lang==='en'?'en':'zh';
+}
+function go(k){ i=Math.max(0,Math.min(S.length-1,k)); render(); }
+function next(){ go(i+1); } function prev(){ go(i-1); }
+function toggleLang(){ lang=lang==='en'?'zh':'en'; document.getElementById('langBtn').textContent=lang==='en'?'中文':'EN'; render(); }
+function fs(){ if(!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen(); }
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'||e.key===' '||e.key==='PageDown'){e.preventDefault();next();}
+  else if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();prev();}
+  else if(e.key==='Home')go(0); else if(e.key==='End')go(S.length-1);
+  else if(e.key.toLowerCase()==='l')toggleLang();
+  else if(e.key.toLowerCase()==='f')fs();
+});
+document.addEventListener('click',e=>{
+  if(e.target.closest('.ctrl')||e.target.closest('.hud'))return;
+  const x=e.clientX/window.innerWidth; if(x>0.5)next(); else prev();
+});
+render();
+</script>
+</body>
+</html>

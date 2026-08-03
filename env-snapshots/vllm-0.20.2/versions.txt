@@ -1,0 +1,10 @@
+python 3.10.12
+torch 2.11.0+cu130 cuda 13.0
+vllm 0.20.2
+triton 3.6.0
+flashinfer 0.6.8.post1
+compressed_tensors 0.15.0.1
+transformers 5.12.1
+numpy 2.2.6
+driver_at_capture: 580.105.08
+nvcc_at_capture: Cuda compilation tools, release 12.8, V12.8.93

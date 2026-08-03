@@ -1,0 +1,4 @@
+python 3.12.3
+torch 2.11.0+cu130
+vllm 0.26.0
+flashinfer 0.6.14

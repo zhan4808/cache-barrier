@@ -1,0 +1,6 @@
+date=2026-06-10T21:19:21Z
+python=Python 3.10.12
+gpu=NVIDIA H100 80GB HBM3, 580.105.08
+torch=2.7.0
+triton=3.3.0
+ncu=NVIDIA (R) Nsight Compute Command Line Profiler
