@@ -1,0 +1,113 @@
+{
+ "gpu": "NVIDIA H100 80GB HBM3",
+ "K": 8192,
+ "T": 1,
+ "torch": "2.7.0+cu126",
+ "rows": [
+  {
+   "w_mb": 8.0,
+   "cublas_us": 6.458,
+   "gems_us": 23.837,
+   "cublas_bw": 2.03,
+   "gems_bw": 0.39
+  },
+  {
+   "w_mb": 16.0,
+   "cublas_us": 7.685,
+   "gems_us": 24.059,
+   "cublas_bw": 3.13,
+   "gems_bw": 0.77
+  },
+  {
+   "w_mb": 24.0,
+   "cublas_us": 10.28,
+   "gems_us": 24.442,
+   "cublas_bw": 3.17,
+   "gems_bw": 1.14
+  },
+  {
+   "w_mb": 28.0,
+   "cublas_us": 10.286,
+   "gems_us": 24.914,
+   "cublas_bw": 3.69,
+   "gems_bw": 1.3
+  },
+  {
+   "w_mb": 32.0,
+   "cublas_us": 10.582,
+   "gems_us": 24.774,
+   "cublas_bw": 4.07,
+   "gems_bw": 1.5
+  },
+  {
+   "w_mb": 34.0,
+   "cublas_us": 12.645,
+   "gems_us": 25.323,
+   "cublas_bw": 3.46,
+   "gems_bw": 1.55
+  },
+  {
+   "w_mb": 36.0,
+   "cublas_us": 12.926,
+   "gems_us": 25.52,
+   "cublas_bw": 3.56,
+   "gems_bw": 1.63
+  },
+  {
+   "w_mb": 38.0,
+   "cublas_us": 13.597,
+   "gems_us": 25.798,
+   "cublas_bw": 3.54,
+   "gems_bw": 1.7
+  },
+  {
+   "w_mb": 40.0,
+   "cublas_us": 16.488,
+   "gems_us": 25.949,
+   "cublas_bw": 2.96,
+   "gems_bw": 1.78
+  },
+  {
+   "w_mb": 44.0,
+   "cublas_us": 19.893,
+   "gems_us": 26.392,
+   "cublas_bw": 2.63,
+   "gems_bw": 1.92
+  },
+  {
+   "w_mb": 48.0,
+   "cublas_us": 21.846,
+   "gems_us": 27.045,
+   "cublas_bw": 2.58,
+   "gems_bw": 2.04
+  },
+  {
+   "w_mb": 56.0,
+   "cublas_us": 24.277,
+   "gems_us": 28.675,
+   "cublas_bw": 2.68,
+   "gems_bw": 2.23
+  },
+  {
+   "w_mb": 64.0,
+   "cublas_us": 26.97,
+   "gems_us": 30.33,
+   "cublas_bw": 2.72,
+   "gems_bw": 2.4
+  },
+  {
+   "w_mb": 80.0,
+   "cublas_us": 30.245,
+   "gems_us": 36.104,
+   "cublas_bw": 3.01,
+   "gems_bw": 2.48
+  },
+  {
+   "w_mb": 96.0,
+   "cublas_us": 38.544,
+   "gems_us": 42.898,
+   "cublas_bw": 2.78,
+   "gems_bw": 2.48
+  }
+ ]
+}
