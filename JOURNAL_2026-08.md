@@ -609,3 +609,28 @@ B200_RUNBOOK §6 added with the exact invocation and readout criteria.
 **Open**: FlagOS/non-NVIDIA leg; wave/tile sawtooth attribution; fine-grid
 cliff re-sweeps on the NEXT A100/B200 (tighten their ±4% ratios the same
 way); venue formatting pass.
+
+## 2026-08-03 (session 10, H100) — the gate as a kernel-design tool
+
+**The kernel-opportunity claim confirmed by construction**
+(`explorations/state_residency/gdn_l2_kernel.py`): a ~100-line Triton
+gated-delta-rule decode kernel (one fused pass, traffic exactly 2x state,
+correctness 1e-8) runs **2.2x faster than fla's fused_recurrent kernel at
+24 MB state** (11.43 vs 25.12 us), 1.5-1.9x across the below-gate range,
+collapsing to ~1.1x above — the speedup window closes at B=40-48, exactly
+the pre-registered B* = C_eff/(H x 64 KB) ~= 40. Warm below-gate 3.4-4.4
+TB/s (70% of L2 tier) vs fla's flat L2-blind 2.3; far field 2.52 (80% of
+HBM). The capacity gate predicted where the headroom lived; the kernel
+captured ~80% of it on first config search.
+
+**Two-capacities question: counter-corroborated**
+(`explorations/ceff_reconcile/ncu_target.py`, nsight-compute now on this
+box): warm-state DRAM reads put the GEMM residency transition at ~34 +/- 2
+MB vs re-read ~40 +/- 2 — the ~6 MB GEMM-context gap is real. Model
+consequence: C_eff is operand-context-dependent; carry both constants.
+Texture noted: GEMM keeps a 37%-hit tail at 44 MB (tiling reuse).
+
+Both threads pre-registered in the autoloop report before measurement.
+Next: epilogue-complete kernel (short-conv + gating), chunked-prefill
+variant, upstream conversation with fla; NCU on the GDN kernels; fold
+into paper as the "gate as design tool" section.

@@ -1,0 +1,139 @@
+{
+ "experiment": "residency_aware_gdn_kernel",
+ "gpu": "NVIDIA H100 80GB HBM3",
+ "torch": "2.7.0+cu126",
+ "triton": "3.3.0",
+ "config": {
+  "BV": 32,
+  "num_warps": 4,
+  "H": 16,
+  "dk": 128,
+  "dv": 128,
+  "state_dtype": "fp32"
+ },
+ "correctness_rel_err": {
+  "state": 1.7364756743631915e-08,
+  "out": 1.4010807092290634e-07
+ },
+ "traffic_model": "2x state per step (single fused read+update+write)",
+ "fla_reference": "results_fla_gdn_h100.json (2.3-2.4 TB/s flat)",
+ "rows": [
+  {
+   "B": 8,
+   "state_mb": 8.0,
+   "warm_us": 4.926,
+   "rot_us": 8.392,
+   "warm_bw_tbs": 3.406,
+   "rot_bw_tbs": 1.999,
+   "rot_over_warm": 1.703
+  },
+  {
+   "B": 16,
+   "state_mb": 16.0,
+   "warm_us": 8.45,
+   "rot_us": 14.806,
+   "warm_bw_tbs": 3.971,
+   "rot_bw_tbs": 2.266,
+   "rot_over_warm": 1.752
+  },
+  {
+   "B": 24,
+   "state_mb": 24.0,
+   "warm_us": 11.429,
+   "rot_us": 21.333,
+   "warm_bw_tbs": 4.404,
+   "rot_bw_tbs": 2.359,
+   "rot_over_warm": 1.867
+  },
+  {
+   "B": 32,
+   "state_mb": 32.0,
+   "warm_us": 16.699,
+   "rot_us": 27.747,
+   "warm_bw_tbs": 4.019,
+   "rot_bw_tbs": 2.419,
+   "rot_over_warm": 1.662
+  },
+  {
+   "B": 40,
+   "state_mb": 40.0,
+   "warm_us": 31.008,
+   "rot_us": 33.757,
+   "warm_bw_tbs": 2.705,
+   "rot_bw_tbs": 2.485,
+   "rot_over_warm": 1.089
+  },
+  {
+   "B": 48,
+   "state_mb": 48.0,
+   "warm_us": 40.134,
+   "rot_us": 40.55,
+   "warm_bw_tbs": 2.508,
+   "rot_bw_tbs": 2.482,
+   "rot_over_warm": 1.01
+  },
+  {
+   "B": 56,
+   "state_mb": 56.0,
+   "warm_us": 46.827,
+   "rot_us": 47.05,
+   "warm_bw_tbs": 2.508,
+   "rot_bw_tbs": 2.496,
+   "rot_over_warm": 1.005
+  },
+  {
+   "B": 64,
+   "state_mb": 64.0,
+   "warm_us": 53.304,
+   "rot_us": 53.56,
+   "warm_bw_tbs": 2.518,
+   "rot_bw_tbs": 2.506,
+   "rot_over_warm": 1.005
+  },
+  {
+   "B": 72,
+   "state_mb": 72.0,
+   "warm_us": 59.867,
+   "rot_us": 60.181,
+   "warm_bw_tbs": 2.522,
+   "rot_bw_tbs": 2.509,
+   "rot_over_warm": 1.005
+  },
+  {
+   "B": 80,
+   "state_mb": 80.0,
+   "warm_us": 66.662,
+   "rot_us": 66.614,
+   "warm_bw_tbs": 2.517,
+   "rot_bw_tbs": 2.519,
+   "rot_over_warm": 0.999
+  },
+  {
+   "B": 96,
+   "state_mb": 96.0,
+   "warm_us": 79.277,
+   "rot_us": 79.635,
+   "warm_bw_tbs": 2.54,
+   "rot_bw_tbs": 2.528,
+   "rot_over_warm": 1.005
+  },
+  {
+   "B": 128,
+   "state_mb": 128.0,
+   "warm_us": 106.096,
+   "rot_us": 105.89,
+   "warm_bw_tbs": 2.53,
+   "rot_bw_tbs": 2.535,
+   "rot_over_warm": 0.998
+  },
+  {
+   "B": 160,
+   "state_mb": 160.0,
+   "warm_us": 132.197,
+   "rot_us": 132.242,
+   "warm_bw_tbs": 2.538,
+   "rot_bw_tbs": 2.537,
+   "rot_over_warm": 1.0
+  }
+ ]
+}

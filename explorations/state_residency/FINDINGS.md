@@ -94,3 +94,39 @@ graph-timed, warm vs rotated):
 Data: `results_fla_gdn_h100.json`; washout one-off in scratchpad,
 numbers quoted here (state 14.56 us, 12 MB stream 9.17 us, RR 122.82 vs
 94.92 us sum).
+
+---
+
+# Addendum 2 (2026-08-03) — the residency-aware kernel EXISTS: 2.2x in the gate window
+
+`gdn_l2_kernel.py`: one fused Triton pass per state tile (decay, k^T S,
+delta-rule rank-1 update, store, q^T S readout), traffic exactly 2x state,
+correctness 1e-8 vs reference. Config BV=32/nw=4 chosen by search.
+Measured against fla 0.5.2 on identical shapes (H=16, dk=dv=128, fp32):
+
+| state MB | fla warm us | ours warm us | speedup | ours rot/warm |
+|----------|------------|--------------|---------|---------------|
+| 8   | 7.51  | 4.93  | 1.52x | 1.70 |
+| 16  | 14.56 | 8.45  | 1.72x | 1.75 |
+| 24  | 25.12 | 11.43 | **2.20x** | 1.87 |
+| 32  | 32.00 | 16.70 | 1.92x | 1.66 |
+| 40  | 38.81 | 31.01 | 1.25x | 1.09 |
+| 48+ | ~     | ~     | ~1.1x | 1.00 |
+
+- Warm below-gate BW 3.4-4.4 TB/s (70% of the L2 tier) vs fla's flat 2.3;
+  far field 2.52 TB/s (80% of HBM rate) — still above fla. The
+  pre-registered success criterion is met: **a gate-shaped speedup, large
+  below C_eff, collapsing at the fine-grid onset**, window closing at
+  B = 40-48 exactly as B* = C_eff/(H x 64 KB) ~= 40 predicted.
+- This is the capacity gate acting as a KERNEL-DESIGN tool: the model
+  said where 2.7x headroom lived; a ~100-line Triton kernel captured
+  ~80% of it (2.2x) on the first config search. Industry relevance:
+  this operator family (Gated DeltaNet) is the decode inner loop of the
+  Qwen3-Next / Kimi-Linear / Nemotron-class hybrids that converged in
+  March 2026; B300's C_eff (~150 MB predicted) widens the window ~3.8x.
+- Honest scope: single decode step, no short-conv/gating epilogues, fp32
+  state only, one GPU; fla's kernel handles varlen/beta-vectors/etc. —
+  the claim is the residency window and its magnitude, not a drop-in
+  replacement.
+
+Data: `results_gdn_l2_kernel_h100.json`.

@@ -22,3 +22,30 @@ sweep (fixed N, scale W via batched copies), sweep at T<=32 only, and
 corroborate with warm-state DRAM-read counters. If the ~6-9 MB gap holds,
 the model should carry C_eff(re-read) and C_eff(GEMM) as two measured
 constants — the June 36 was not wrong, it was a different operand context.
+
+---
+
+# Addendum (2026-08-03) — counter corroboration: the gap is real
+
+nsight-compute installed on this box; warm-state DRAM reads
+(`--cache-control none`, launch-skip 12, avg of 3) per launch:
+
+| MB | GEMM (T=1) | re-read (sum) |
+|----|-----------|----------------|
+| 28 | 2.0       | 0.7  |
+| 32 | 0.6       | 3.2  |
+| 36 | 12.9      | 7.4  |
+| 40 | 23.3      | 22.7 |
+| 44 | 27.5      | 41.8 |
+
+Reading: the GEMM's residency transition centers ~34 +/- 2 MB (2% miss at
+32 -> 36% at 36); the pure re-read's centers ~40 +/- 2 (20% at 36 -> full
+streaming at 44). The ~6 MB GEMM-context capacity gap from the timing
+sweep is corroborated in counters. Texture, honestly noted: at 44 MB the
+GEMM still hits 37% (tiling reuse gives it a partial-residency tail the
+flat re-read lacks), and the re-read leaks a little earlier below its
+break (soft ~3.5 MB rolloff, session-9 fine-grid). Conclusion stands:
+C_eff is operand-context-dependent — carry C_eff(re-read) 39.8 and
+C_eff(GEMM) ~34 as two measured constants; June's 36 sat between them.
+
+Files: `ncu_target.py`; raw numbers above (per-launch averages).
