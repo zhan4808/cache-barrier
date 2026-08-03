@@ -725,3 +725,32 @@ T=2048, rel-err 0.2212 == B200); P6 likely falsified at ~2.7x vs band
 3.4-5.0 (this SXM6 AC = B200 silicon + 24% L2 BW; proper carm fit
 pending). All artifacts local: params, fine-grid cliff, gate sweep, GDN
 kernel pair, MoE trio. B300 box state documented; safe to terminate.
+
+## 2026-08-03 (session 12, H100 + new B200 fleet) — family clustering, confound closed, sawtooth attributed
+
+New B200 (root@216.243.220.136). Full board executed (tasks 16-24):
+
+- **B200 fine-grid C_eff 90.3 = 0.714±0.003** (5 reps): the coarse 98.8
+  sat mid-rolloff. With B300's 0.724 and H100's 0.795, the ratio
+  CLUSTERS BY FAMILY — Hopper ≈0.80, dual-die Blackwell ≈0.71-0.72 —
+  the dual-die caveat is now the leading interpretation. Paper (3
+  sites), deck, prereg updated; A100 remains the only coarse card.
+- **Runbook §6 executed — the w8a8 confound magnitude is CLOSED**:
+  cutlass scaled-mm wins 2.61x at 126 MB / 2.73x at 189 / 2.0x at 319
+  above the gate where triton reads 0.77-0.82; int8's byte-halving keeps
+  the quantized operand effectively L2-fed (~10 TB/s) past bf16's cliff
+  — the operand-aware gate in one table. results_l2_boundary_b200.json.
+- **GDN kernel window, third architecture**: B200 window closes at
+  96-128 MB per its fine-grid C_eff (peak warm 8.9 TB/s at 56 MB);
+  epilogue-complete chain comparison also ran (results_gdn_full_b200).
+  kv_hotset byte-governance reproduced on B200.
+- **Sawtooth ATTRIBUTED (H100 NCU)**: nvjet is persistent (132 CTAs at
+  every M — no grid-level wave quantization); the sawtooth = 320-row
+  macro-tile ceil x per-M kernel-variant selection (M=1024 uniquely
+  draws 1x2_h, which is why it is a per-token MINIMUM). explorations/
+  sawtooth/FINDINGS.md.
+- **P6 formally falsified at 2.66** (bf16 756 / nvfp4 2014 TF effective).
+- **Money figure landed**: figures/gdn_window.pdf (two-architecture
+  window tracking C_eff) in §Design Tool. Paper 17pp 0 errors.
+- Remaining: serving-grade B* knee (B200 vllm-env ready), FlagGems leg
+  (H100), related-work bib integration, WeChat item 18.

@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2026.8.2)  3 AUG 2026 01:13
+This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2026.8.2)  3 AUG 2026 01:16
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1319,7 +1319,7 @@ Underfull \hbox (badness 1014) in paragraph at lines 569--569
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
  [14 <./figures/w8a8_results.pdf> <./figures/mla_l2_stack.pdf> <./figures/fused
-_moe_extended.pdf>]
+_moe_extended.pdf>] [15]
 Underfull \hbox (badness 10000) in paragraph at lines 597--598
 []\OT1/ptm/m/n/10 (+20) Replay-based NCU coun-ters are cold-
  []
@@ -1336,7 +1336,7 @@ Underfull \hbox (badness 10000) in paragraph at lines 597--598
 and
  []
 
-[15]
+
 Underfull \hbox (badness 10000) in paragraph at lines 609--610
 \OT1/ptm/b/n/10 (+20) Positioning (added 2026-08, DI-REC-TION.md
  []
@@ -1380,11 +1380,11 @@ Package rerunfilecheck Info: File `main.out' has not changed.
 (rerunfilecheck)             Checksum: C1630B4793E53BCD19E4CD348A5E2859;6680.
  ) 
 Here is how much of TeX's memory you used:
- 35817 strings out of 480247
- 821774 string characters out of 5896152
+ 35823 strings out of 480247
+ 821831 string characters out of 5896152
  1255832 words of memory out of 5000000
  52709 multiletter control sequences out of 15000+600000
- 517323 words of font info for 333 fonts, out of 8000000 for 9000
+ 517725 words of font info for 337 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
  99i,19n,94p,2934b,2600s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/share/texlive/texmf-dist/fonts/enc/dvips/base/8r.enc}</usr/share/texliv
@@ -1406,7 +1406,7 @@ blic/amsfonts/symbols/msbm10.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw
 /courier/ucrr8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmb8a
 .pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/shar
 e/texlive/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on main.pdf (17 pages, 736617 bytes).
+Output written on main.pdf (17 pages, 736769 bytes).
 PDF statistics:
  1141 PDF objects out of 1200 (max. 8388607)
  460 compressed objects within 5 object streams

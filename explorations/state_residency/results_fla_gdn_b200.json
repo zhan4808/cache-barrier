@@ -1,0 +1,132 @@
+{
+ "experiment": "fla_gdn_fused_recurrent_state_residency",
+ "gpu": "NVIDIA B200",
+ "torch": "2.13.0+cu130",
+ "kernel": "fla 0.5.2 fused_recurrent_gated_delta_rule",
+ "H": 16,
+ "dk": 128,
+ "dv": 128,
+ "state_dtype": "fp32",
+ "traffic_model": "2x state per step (fused read+update+write)",
+ "timing": "CUDA graphs, 10/graph, median of 30",
+ "prediction": "warm advantage below ~40 MB, gone above ~48; B* knee at C_eff/(H*64KB) ~= 40 requests at H=16",
+ "rows": [
+  {
+   "B": 8,
+   "state_mb": 8.0,
+   "warm_us": 5.16,
+   "rot_us": 5.35,
+   "warm_bw_2x_tbs": 3.251,
+   "rot_copies": 13,
+   "rot_over_warm": 1.037
+  },
+  {
+   "B": 16,
+   "state_mb": 16.0,
+   "warm_us": 7.459,
+   "rot_us": 8.03,
+   "warm_bw_2x_tbs": 4.498,
+   "rot_copies": 7,
+   "rot_over_warm": 1.077
+  },
+  {
+   "B": 24,
+   "state_mb": 24.0,
+   "warm_us": 10.992,
+   "rot_us": 11.902,
+   "warm_bw_2x_tbs": 4.579,
+   "rot_copies": 5,
+   "rot_over_warm": 1.083
+  },
+  {
+   "B": 32,
+   "state_mb": 32.0,
+   "warm_us": 13.549,
+   "rot_us": 14.715,
+   "warm_bw_2x_tbs": 4.953,
+   "rot_copies": 4,
+   "rot_over_warm": 1.086
+  },
+  {
+   "B": 40,
+   "state_mb": 40.0,
+   "warm_us": 17.867,
+   "rot_us": 19.112,
+   "warm_bw_2x_tbs": 4.695,
+   "rot_copies": 3,
+   "rot_over_warm": 1.07
+  },
+  {
+   "B": 48,
+   "state_mb": 48.0,
+   "warm_us": 22.776,
+   "rot_us": 22.906,
+   "warm_bw_2x_tbs": 4.42,
+   "rot_copies": 3,
+   "rot_over_warm": 1.006
+  },
+  {
+   "B": 56,
+   "state_mb": 56.0,
+   "warm_us": 26.402,
+   "rot_us": 26.334,
+   "warm_bw_2x_tbs": 4.448,
+   "rot_copies": 2,
+   "rot_over_warm": 0.997
+  },
+  {
+   "B": 64,
+   "state_mb": 64.0,
+   "warm_us": 29.152,
+   "rot_us": 29.299,
+   "warm_bw_2x_tbs": 4.604,
+   "rot_copies": 2,
+   "rot_over_warm": 1.005
+  },
+  {
+   "B": 72,
+   "state_mb": 72.0,
+   "warm_us": 32.378,
+   "rot_us": 32.395,
+   "warm_bw_2x_tbs": 4.664,
+   "rot_copies": 2,
+   "rot_over_warm": 1.001
+  },
+  {
+   "B": 80,
+   "state_mb": 80.0,
+   "warm_us": 35.301,
+   "rot_us": 35.32,
+   "warm_bw_2x_tbs": 4.753,
+   "rot_copies": 2,
+   "rot_over_warm": 1.001
+  },
+  {
+   "B": 96,
+   "state_mb": 96.0,
+   "warm_us": 41.834,
+   "rot_us": 41.544,
+   "warm_bw_2x_tbs": 4.813,
+   "rot_copies": 2,
+   "rot_over_warm": 0.993
+  },
+  {
+   "B": 128,
+   "state_mb": 128.0,
+   "warm_us": 53.691,
+   "rot_us": 53.794,
+   "warm_bw_2x_tbs": 5.0,
+   "rot_copies": 2,
+   "rot_over_warm": 1.002
+  },
+  {
+   "B": 160,
+   "state_mb": 160.0,
+   "warm_us": 65.994,
+   "rot_us": 66.035,
+   "warm_bw_2x_tbs": 5.084,
+   "rot_copies": 2,
+   "rot_over_warm": 1.001
+  }
+ ]
+}

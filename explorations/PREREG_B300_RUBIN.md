@@ -476,3 +476,16 @@ clock lock denied (same virtualized tier as the B200 box). Data:
   specific; a 1400 W liquid-cooled B300 may differ.
 - w8a8 gate sweep (triton 3.7 port): sp8 <= 0.95 to 1.4x C_eff — triton
   int8 still never wins on Blackwell-family, third data point.
+
+## OUTCOMES addendum 3 (session 12, new B200 box)
+
+B200 fine-grid re-sweep (5 reps, ultra-tight): **C_eff = 90.3 MB =
+0.714 ± 0.003x nominal** — the coarse 98.8/0.781 sat mid-rolloff. The
+cross-architecture picture CLUSTERS BY FAMILY: Hopper 0.795, dual-die
+Blackwell 0.714/0.724 (B200/B300); A100 remains coarse (0.78 ± 0.04).
+The dual-die partitioned-L2 interpretation (flagged as a caveat in
+session 9) is now the leading explanation. Session-8 fits that used
+98.8 are documented as coarse-value fits; the GDN window and gate math
+in current docs use fine-grid values. Also: runbook §6 executed —
+tuned-CUDA w8a8 wins 2.0–2.7x above the gate on B200 (triton plateaued
+at 0.77–0.82), closing the last open confound magnitude.
