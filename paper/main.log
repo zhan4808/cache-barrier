@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2026.8.2)  3 AUG 2026 01:16
+This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2026.8.2)  3 AUG 2026 01:22
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1348,43 +1348,69 @@ t to ours. \OT1/ptm/m/it/10 (+20) tri-ton-
  []
 
 
-Underfull \hbox (badness 1082) in paragraph at lines 609--610
-\OT1/ptm/m/it/10 (+20) why \OT1/ptm/m/n/10 (+20) (ca-pac-ity gate be-low, com-p
-ute roofline above) and
+Underfull \hbox (badness 1668) in paragraph at lines 611--612
+[]\OT1/ptm/b/n/10 (+20) Simulators, mi-crobench-marks, and ef-fec-tive ca-pac-i
+ty.
  []
 
 
-Overfull \hbox (108.14603pt too wide) in paragraph at lines 624--625
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [16]
+Overfull \hbox (108.14603pt too wide) in paragraph at lines 628--629
 \OT1/ptm/m/n/10 (-20) (\OT1/pcr/m/n/10 profiling/cuda[]validation/results[]moe[
 ]nvfp4[]native[]b200.json\OT1/ptm/m/n/10 (-20) );
  []
 
-[16] (./main.bbl
-Underfull \hbox (badness 2626) in paragraph at lines 16--20
+(./main.bbl
+Underfull \hbox (badness 2626) in paragraph at lines 22--26
 []\OT1/ptm/m/n/10 (+20) Tri Dao et al.  Re-playssm: Cache ssm in-puts,
  []
 
 
-Underfull \hbox (badness 2781) in paragraph at lines 16--20
+Underfull \hbox (badness 2781) in paragraph at lines 22--26
 \OT1/ptm/m/n/10 (+20) not state.  []$\OT1/pcr/m/n/10 https : / / tridao . me / 
 blog / 2026 /
  []
 
 
-Underfull \hbox (badness 1460) in paragraph at lines 57--62
+Underfull \vbox (badness 1418) has occurred while \output is active []
+
+ [17]
+Underfull \hbox (badness 1460) in paragraph at lines 75--80
 []\OT1/ptm/m/n/10 (+20) Coleman Hooper, Se-hoon Kim, Hiva Mo-ham-madi,
  []
 
-) [17] (./main.aux)
+
+Underfull \hbox (badness 1902) in paragraph at lines 87--90
+\OT1/ptm/m/n/10 (+20) statically-checked agent har-ness for self-retargeting
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 98--101
+[]\OT1/ptm/m/n/10 (+20) Aaron Jar-musch and Sunita Chan-drasekaran.
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 98--101
+\OT1/ptm/m/n/10 (+20) Microbenchmark-driven an-a-lyt-i-cal per-for-mance
+ []
+
+
+Underfull \hbox (badness 2809) in paragraph at lines 115--120
+[]\OT1/ptm/m/n/10 (+20) Qwen Team.  Flashqla: Fused gpu ker-nels for
+ []
+
+) [18] (./main.aux)
 Package rerunfilecheck Info: File `main.out' has not changed.
 (rerunfilecheck)             Checksum: C1630B4793E53BCD19E4CD348A5E2859;6680.
  ) 
 Here is how much of TeX's memory you used:
- 35823 strings out of 480247
- 821831 string characters out of 5896152
+ 35851 strings out of 480247
+ 822335 string characters out of 5896152
  1255832 words of memory out of 5000000
- 52709 multiletter control sequences out of 15000+600000
- 517725 words of font info for 337 fonts, out of 8000000 for 9000
+ 52721 multiletter control sequences out of 15000+600000
+ 517926 words of font info for 339 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
  99i,19n,94p,2934b,2600s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/share/texlive/texmf-dist/fonts/enc/dvips/base/8r.enc}</usr/share/texliv
@@ -1406,10 +1432,10 @@ blic/amsfonts/symbols/msbm10.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw
 /courier/ucrr8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmb8a
 .pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/shar
 e/texlive/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on main.pdf (17 pages, 736769 bytes).
+Output written on main.pdf (18 pages, 744699 bytes).
 PDF statistics:
- 1141 PDF objects out of 1200 (max. 8388607)
- 460 compressed objects within 5 object streams
- 91 named destinations out of 1000 (max. 500000)
+ 1178 PDF objects out of 1200 (max. 8388607)
+ 496 compressed objects within 5 object streams
+ 104 named destinations out of 1000 (max. 500000)
  66900 words of extra memory for PDF output out of 74296 (max. 10000000)
 

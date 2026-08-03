@@ -130,3 +130,83 @@
   author={Gupta, Neelesh and Wang, Peter and Kannan, Rajgopal and Prasanna, Viktor K.},
   year={2026}, eprint={2603.05931}, archivePrefix={arXiv}, primaryClass={cs.AR}
 }
+
+% ── Related-work delta (explorations/venue_relatedwork.md, integrated 2026-08-03) ──
+% dao2026replayssm and gupta2026persistentstate were already present above; not duplicated.
+
+@inproceedings{vidur,
+  title={Vidur: A Large-Scale Simulation Framework for LLM Inference},
+  author={Agrawal, Amey and Kedia, Nitin and Mohan, Jayashree and Panwar, Ashish and Kwatra, Nipun and Gulavani, Bhargav and Ramjee, Ramachandran and Tumanov, Alexey},
+  booktitle={MLSys},
+  year={2024}
+}
+
+@misc{yao2026kernelsight,
+  title={KernelSight-LM: A Kernel-Level LLM Inference Simulator},
+  author={Yao, Xiteng and Kim, Taeho and Pei, Hengzhi and Liu, Xinle and Ulrich, Kyle and Lausen, Leonard and Khetan, Ashish and Song, Xiang and Karypis, George and Herbordt, Martin},
+  year={2026}, eprint={2606.28565}, archivePrefix={arXiv}, primaryClass={cs.PF}
+}
+
+@misc{blackwell2025microbench,
+  title={Microbenchmarking NVIDIA's Blackwell Architecture: An in-depth Architectural Analysis},
+  author={Jarmusch, Aaron and Chandrasekaran, Sunita},
+  year={2025}, eprint={2512.02189}, archivePrefix={arXiv}, primaryClass={cs.AR},
+  note={B200: 148 SMs, four L2 partitions, TMEM; L2 hit-rate vs precision}
+}
+
+@misc{dissecting2025blackwell,
+  title={Dissecting the NVIDIA Blackwell Architecture with Microbenchmarks},
+  author={Jarmusch, Aaron and Graddon, Nathan and Chandrasekaran, Sunita},
+  year={2025}, eprint={2507.10789}, archivePrefix={arXiv}, primaryClass={cs.AR}
+}
+
+@misc{jarmusch2026analytical,
+  title={Microbenchmark-Driven Analytical Performance Modeling Across Modern GPU Architectures},
+  author={Jarmusch, Aaron and Chandrasekaran, Sunita},
+  year={2026}, eprint={2605.04178}, archivePrefix={arXiv}, primaryClass={cs.DC}
+}
+
+@misc{zhang2026cacheresident,
+  title={Cache-Resident LLM Inference in GB-Scale Last-Level Caches},
+  author={Zhang, Wanning and Gu, Tongzhou and Canini, Marco and Xu, Ceyu and Weng, Jian},
+  year={2026}, eprint={2606.25353}, archivePrefix={arXiv}, primaryClass={cs.AR}
+}
+
+@misc{wang2026specla,
+  title={SpecLA: Efficient Speculative Decoding for Linear-Attention Models},
+  author={Wang, Zhibin and Han, Xuying and Yang, Zhaohua and Liu, Fuliang and Li, Xue and Gu, Rong and Zhong, Sheng and Tian, Chen},
+  year={2026}, eprint={2607.16673}, archivePrefix={arXiv}, primaryClass={cs.LG}
+}
+
+@misc{nvidia2026gdn2,
+  title={Gated DeltaNet-2: Decoupling Erase and Write in Linear Attention},
+  author={Hatamizadeh, Ali and Choi, Yejin and Kautz, Jan},
+  year={2026}, eprint={2605.22791}, archivePrefix={arXiv}, primaryClass={cs.LG}
+}
+
+@misc{automegakernel2026,
+  title={AutoMegaKernel: A Statically-Checked Agent Harness for Self-Retargeting Megakernel Synthesis},
+  author={Jaber, Jaber and Jaber, Osama},
+  year={2026}, eprint={2606.09682}, archivePrefix={arXiv}, primaryClass={cs.DC}
+}
+
+@misc{kvprefetch2025,
+  title={Accelerating LLM Inference Throughput via Asynchronous KV Cache Prefetching},
+  author={Dong, Yanhao and Miao, Yubo and Li, Weinan and Zheng, Xiao and Wang, Chao and Wu, Jiesheng and Lyu, Feng},
+  year={2025}, eprint={2504.06319}, archivePrefix={arXiv}, primaryClass={cs.DC},
+  note={cp.async.bulk.prefetch.L2 staging of KV into L2}
+}
+
+@misc{aiaq2025,
+  title={Arithmetic-Intensity-Aware Quantization},
+  author={Singh, Taig and Rajan, Shreshth and Jain, Nikhil},
+  year={2025}, eprint={2512.14090}, archivePrefix={arXiv}, primaryClass={cs.LG}
+}
+
+@misc{flashqla2026,
+  title={FlashQLA: Fused GPU Kernels for Gated DeltaNet},
+  author={{Qwen Team}},
+  year={2026}, month={apr},
+  howpublished={\url{https://github.com/QwenLM/FlashQLA}},
+  note={Chunked prefill/training kernels, SM90/SM100/SM103/SM120; no decode kernel}
+}

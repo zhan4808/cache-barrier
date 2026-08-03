@@ -754,3 +754,12 @@ New B200 (root@216.243.220.136). Full board executed (tasks 16-24):
   window tracking C_eff) in §Design Tool. Paper 17pp 0 errors.
 - Remaining: serving-grade B* knee (B200 vllm-env ready), FlagGems leg
   (H100), related-work bib integration, WeChat item 18.
+
+**Related-work integration landed** (session 12 cont): 12 bib entries
+added (KernelSight-LM, Blackwell microbench lineage, SpecLA,
+megakernels, GDN-2, cache-resident inference, +6 more; two author lists
+completed from arXiv), two positioning paragraphs inserted in §Related
+Work, redundant clause removed. Paper now 18 pp, 0 errors. Pre-submission
+TODO flagged by agent: five inline arXiv citations in the Positioning
+paragraph lack bib entries (tritonBLAS, QServe, APEX4, two rooflines) and
+MARLIN should use \cite{marlin}.

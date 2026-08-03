@@ -1,5 +1,11 @@
 \begin{thebibliography}{10}
 
+\bibitem{vidur}
+Amey Agrawal, Nitin Kedia, Jayashree Mohan, Ashish Panwar, Nipun Kwatra,
+  Bhargav Gulavani, Ramachandran Ramjee, and Alexey Tumanov.
+\newblock Vidur: A large-scale simulation framework for llm inference.
+\newblock In {\em MLSys}, 2024.
+
 \bibitem{quarot}
 Saleh Ashkboos, Amirkeivan Mohtashami, Maximilian~L. Croci, Bo~Li, Martin
   Jaggi, Dan Alistarh, Torsten Hoefler, and James Hensman.
@@ -35,6 +41,13 @@ DeepSeek-AI.
 \newblock Deepseek-v3 technical report.
 \newblock {\em arXiv preprint arXiv:2412.19437}, 2024.
 
+\bibitem{kvprefetch2025}
+Yanhao Dong, Yubo Miao, Weinan Li, Xiao Zheng, Chao Wang, Jiesheng Wu, and Feng
+  Lyu.
+\newblock Accelerating llm inference throughput via asynchronous kv cache
+  prefetching, 2025.
+\newblock cp.async.bulk.prefetch.L2 staging of KV into L2.
+
 \bibitem{gptq}
 Elias Frantar, Saleh Ashkboos, Torsten Hoefler, and Dan Alistarh.
 \newblock Gptq: Accurate post-training quantization for generative pre-trained
@@ -53,6 +66,11 @@ Neelesh Gupta, Peter Wang, Rajgopal Kannan, and Viktor~K. Prasanna.
 \newblock A persistent-state dataflow accelerator for memory-bound linear
   attention decode on fpga, 2026.
 
+\bibitem{nvidia2026gdn2}
+Ali Hatamizadeh, Yejin Choi, and Jan Kautz.
+\newblock Gated deltanet-2: Decoupling erase and write in linear attention,
+  2026.
+
 \bibitem{kvquant}
 Coleman Hooper, Sehoon Kim, Hiva Mohammadi, Michael~W. Mahoney, Yakun~Sophia
   Shao, Kurt Keutzer, and Amir Gholami.
@@ -65,12 +83,44 @@ Aleksandar Ilic, Frederico Pratas, and Leonel Sousa.
 \newblock Cache-aware roofline model: Upgrading the loft.
 \newblock {\em IEEE Computer Architecture Letters}, 13(1):21--24, 2014.
 
+\bibitem{automegakernel2026}
+Jaber Jaber and Osama Jaber.
+\newblock Automegakernel: A statically-checked agent harness for
+  self-retargeting megakernel synthesis, 2026.
+
+\bibitem{blackwell2025microbench}
+Aaron Jarmusch and Sunita Chandrasekaran.
+\newblock Microbenchmarking nvidia's blackwell architecture: An in-depth
+  architectural analysis, 2025.
+\newblock B200: 148 SMs, four L2 partitions, TMEM; L2 hit-rate vs precision.
+
+\bibitem{jarmusch2026analytical}
+Aaron Jarmusch and Sunita Chandrasekaran.
+\newblock Microbenchmark-driven analytical performance modeling across modern
+  gpu architectures, 2026.
+
+\bibitem{dissecting2025blackwell}
+Aaron Jarmusch, Nathan Graddon, and Sunita Chandrasekaran.
+\newblock Dissecting the nvidia blackwell architecture with microbenchmarks,
+  2025.
+
 \bibitem{awq}
 Ji~Lin, Jiaming Tang, Haotian Tang, Shang Yang, Wei-Ming Chen, Wei-Chen Wang,
   Guangxuan Xiao, Xingyu Dang, Chuang Gan, and Song Han.
 \newblock Awq: Activation-aware weight quantization for llm compression and
   acceleration.
 \newblock In {\em MLSys}, 2024.
+
+\bibitem{flashqla2026}
+{Qwen Team}.
+\newblock Flashqla: Fused gpu kernels for gated deltanet.
+\newblock \url{https://github.com/QwenLM/FlashQLA}, apr 2026.
+\newblock Chunked prefill/training kernels, SM90/SM100/SM103/SM120; no decode
+  kernel.
+
+\bibitem{aiaq2025}
+Taig Singh, Shreshth Rajan, and Nikhil Jain.
+\newblock Arithmetic-intensity-aware quantization, 2025.
 
 \bibitem{triton}
 Philippe Tillet, H.~T. Kung, and David Cox.
@@ -83,17 +133,32 @@ Vasily Volkov.
 \newblock Better performance at lower occupancy.
 \newblock In {\em GPU Technology Conference}, 2010.
 
+\bibitem{wang2026specla}
+Zhibin Wang, Xuying Han, Zhaohua Yang, Fuliang Liu, Xue Li, Rong Gu, Sheng
+  Zhong, and Chen Tian.
+\newblock Specla: Efficient speculative decoding for linear-attention models,
+  2026.
+
 \bibitem{roofline}
 Samuel Williams, Andrew Waterman, and David Patterson.
 \newblock Roofline: An insightful visual performance model for multicore
   architectures.
 \newblock {\em Communications of the ACM}, 52(4):65--76, 2009.
 
+\bibitem{yao2026kernelsight}
+Xiteng Yao, Taeho Kim, Hengzhi Pei, Xinle Liu, Kyle Ulrich, Leonard Lausen,
+  Ashish Khetan, Xiang Song, George Karypis, and Martin Herbordt.
+\newblock Kernelsight-lm: A kernel-level llm inference simulator, 2026.
+
 \bibitem{flashinfer}
 Zihao Ye, Lequn Lai, Ruihang Shao, Wuwei Zheng, and Tianqi Chen.
 \newblock Flashinfer: Efficient and customizable attention engine for llm
   inference serving.
 \newblock In {\em MLSys}, 2025.
+
+\bibitem{zhang2026cacheresident}
+Wanning Zhang, Tongzhou Gu, Marco Canini, Ceyu Xu, and Jian Weng.
+\newblock Cache-resident llm inference in gb-scale last-level caches, 2026.
 
 \bibitem{sglang}
 Lianmin Zheng, Liangsheng Yin, Zhiqiang Xie, Jeff Huang, Chuyue Sun, Cody~Hao

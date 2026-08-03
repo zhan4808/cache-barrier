@@ -1,0 +1,46 @@
+% ══════════════════════════════════════════════════════════════════════════════
+% RELATED-WORK INSERT (related-work integration agent, 2026-08-03)
+% Source: explorations/venue_relatedwork.md; all bib keys now exist in references.bib.
+%
+% WHERE TO INSERT: \section{Related Work} (main.tex line 607), immediately AFTER
+% the "Positioning (added 2026-08, DIRECTION.md P0)" paragraph (line 609) and
+% BEFORE the \textbf{Attention kernels.} paragraph (line 611).  The two blocks
+% are complementary: Positioning handles tritonBLAS/QServe/MARLIN/APEX4; this
+% insert handles simulators, microbenchmark lineage, capacity work, and the
+% linear-attention-state neighborhood of Section~\ref{sec:designtool}.
+%
+% OVERLAP TO RESOLVE AT MERGE: the Positioning paragraph already mentions
+% "Microbenchmark-parameterized cross-architecture performance models
+% (arXiv:2605.04178)" inline — that is \cite{jarmusch2026analytical}, treated
+% at more depth in the first paragraph below.  Recommend deleting that clause
+% from Positioning (and its trailing "LLM roofline studies ... which is
+% precisely the gap this paper fills" can stay) to avoid saying it twice.
+%
+% BIB ISSUES FOUND (paper/references.bib):
+% - dao2026replayssm and gupta2026persistentstate were already present; NOT
+%   re-added.  The existing dao2026replayssm note omits the memo's speedup
+%   figures (1.43--1.84x kernel / 1.20--1.48x e2e on H100/B300) — harmless,
+%   but add them if the note is ever surfaced.
+% - No citation-key collisions.  12 new entries appended under the marked
+%   "Related-work delta" comment; total 30 entries, all with complete author
+%   lists (the two memo-flagged incompletes resolved from arXiv:
+%   wang2026specla = Wang, Han, Yang, Liu, Li, Gu, Zhong, Tian;
+%   yao2026kernelsight = Yao, Kim, Pei, Liu, Ulrich, Lausen, Khetan, Song,
+%   Karypis, Herbordt).
+% - Both Blackwell microbenchmark papers (2507.10789, 2512.02189) and the
+%   analytical-modeling paper (2605.04178) are the same Jarmusch/Chandrasekaran
+%   group — the prose below treats them as one lineage deliberately.
+% - Pre-existing inconsistency, not introduced here: the Positioning paragraph
+%   cites five works inline by arXiv number with NO bib entry (tritonBLAS
+%   2512.04226, QServe 2405.04532, APEX4 2606.08761, roofline studies
+%   2402.16363 and 2602.11506) and cites MARLIN by arXiv number although
+%   \cite{marlin} exists.  Camera-ready will want real \cite keys for all six.
+% - Memo keys blackwell2025microbench / dissecting2025blackwell /
+%   automegakernel2026 / kvprefetch2025 / aiaq2025 are title-based rather than
+%   author-year; kept verbatim so cross-references in the memo and the fla
+%   issue draft stay valid.
+% ══════════════════════════════════════════════════════════════════════════════
+
+\textbf{Simulators, microbenchmarks, and effective capacity.}  Kernel-level inference simulators predict serving performance by interpolating profiled kernel grids: Vidur~\cite{vidur} fits learned estimators over per-operator profiling runs, and KernelSight-LM~\cite{yao2026kernelsight} patches a roofline with a learned efficiency term, reaching 12.1\% cross-generation error against 22\% for the plain roofline.  Both repair the deficit this paper names --- a roofline without a capacity term mispredicts cache-resident kernels --- but repair it with fitted degrees of freedom that must be re-profiled per architecture, where we repair it with five measured constants ($C_\text{eff}$, $\mathrm{BW}_{L2}$, $\mathrm{BW}_\text{HBM}$, $r_\text{dequant}$, $t_0$) and a gate: the same form transfers to an unseen B200 at 16.6\%/3.9\% MAPE (below/above gate) with no per-kernel terms (Section~\ref{sec:transfer}).  The Blackwell microbenchmark line~\cite{dissecting2025blackwell,blackwell2025microbench} characterizes the same silicon --- L2 latency and bandwidth, the four-partition topology, TMEM --- and independently corroborates our B200 constants, but characterization is where it stops: none of these studies measure an effective residency capacity, the one number that turns their tables into a predictor.  The same group's microbenchmark-parameterized analytical models~\cite{jarmusch2026analytical} (1.3\% MAE on 21 kernels) are our nearest methodological neighbor, sharing the measure-then-predict mechanism while lacking both the capacity term and the precision decision.  That the capacity term is the portable idea is corroborated off-GPU: CPU-cluster serving that pins weights LLC-resident reports 2.04--11.51$\times$ TPOT gains~\cite{zhang2026cacheresident} --- the residency-changes-dispatch calculus arriving independently on another substrate, and, like our four-GPU effective-vs-nominal fractions (Hopper ${\approx}0.80$, dual-die Blackwell $0.71$--$0.72$), evidence that nominal LLC capacity is the wrong number to reason with.  Arithmetic-intensity-aware precision selection~\cite{aiaq2025} is the capacity-blind limit of our dispatch rule: correct above the gate, wrong below it.
+
+\textbf{On-chip state for linear-attention decode.}  The design-tool result (Section~\ref{sec:designtool}) sits in a fast-moving neighborhood.  An FPGA dataflow accelerator~\cite{gupta2026persistentstate} targets exactly this bottleneck on the premise that GPU L2 cannot persist state across kernel launches --- the premise our counters refute below $C_\text{eff}$ (86\% warm L2 hit rate across graph-replayed decode steps).  SpecLA~\cite{wang2026specla} keeps the state \emph{shared-memory}-resident across the candidate tokens of a single speculative launch (1.70$\times$ on GDN-1.3B/H100) --- the SMEM-tier cousin of our claim, with no capacity model, no batch window, and no cross-launch persistence.  Megakernel systems~\cite{automegakernel2026} fuse whole-model decode into persistent kernels; they occupy the fusion axis of our measured decomposition (fusion ${\sim}1.25\times$ everywhere, residency ${\sim}1.9\times$ inside the window) without placing state under a capacity model or predicting where the locality win dies.  ReplaySSM~\cite{dao2026replayssm} halves state traffic algorithmically, cache-blind, and composes with residency as Section~\ref{sec:designtool} details.  The only other L2-residency inference-kernel work we found stages KV into L2 with \texttt{cp.async.bulk.prefetch.L2}~\cite{kvprefetch2025} --- an operand our measurements show is not L2-limited, where recurrent state is.  The operator family itself is moving beneath all of this --- Qwen's FlashQLA kernels~\cite{flashqla2026} serve chunked prefill only, and Gated DeltaNet-2~\cite{nvidia2026gdn2} changes the update rule but not the state shape --- so the decode-side residency window, whose location the constants predicted on two architectures before the kernel ran (40${\to}$92~MB, tracking measured $C_\text{eff}$), applies to the family's successors as stated.
